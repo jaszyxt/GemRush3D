@@ -18,13 +18,14 @@ namespace GemRush.EditorTools
 
         static readonly string[] RequiredShaders =
         {
-            "Standard",                    // all world materials
+            "Universal Render Pipeline/Lit",    // all world materials (URP)
             "Skybox/Procedural",           // runtime skybox
             "Sprites/Default",             // portal fill
-            "Particles/Standard Unlit",    // particle bursts
+            "Universal Render Pipeline/Particles/Unlit", // particle bursts
             "UI/Default",                  // uGUI
             "Unlit/Texture",               // Backdrop sky gradient
-            "Unlit/Color"                  // Backdrop island silhouettes
+            "Unlit/Color",                 // Backdrop island silhouettes
+            "Universal Render Pipeline/Unlit" // Backdrop fallback
         };
 
         static EnsureShaders()
@@ -86,8 +87,8 @@ namespace GemRush.EditorTools
         public static void Build()
         {
             PlayerSettings.productName = "Gem Rush 3D";
-            PlayerSettings.bundleVersion = "1.9.1";
-            PlayerSettings.Android.bundleVersionCode = 14;
+            PlayerSettings.bundleVersion = "1.9.2";
+            PlayerSettings.Android.bundleVersionCode = 15;
 
             ApplyIcon();
             ApplySigning();
@@ -111,6 +112,23 @@ namespace GemRush.EditorTools
             }
             Debug.Log("[GemRush] APK built: " +
                 System.IO.Path.GetFullPath(options.locationPathName));
+
+            // Windows standalone from the same session — same version and
+            // content, so laptop players and phone players stay in sync.
+            BuildPlayerOptions winOptions = new BuildPlayerOptions();
+            winOptions.scenes = new string[] { "Assets/Scenes/Game.unity" };
+            winOptions.locationPathName = "Builds/GemRush3D.exe";
+            winOptions.target = BuildTarget.StandaloneWindows64;
+
+            BuildReport winReport = BuildPipeline.BuildPlayer(winOptions);
+            if (winReport.summary.result != BuildResult.Succeeded)
+            {
+                Debug.LogError("[GemRush] Windows build failed: " +
+                    winReport.summary.result);
+                EditorApplication.Exit(1);
+            }
+            Debug.Log("[GemRush] Windows build: " +
+                System.IO.Path.GetFullPath(winOptions.locationPathName));
         }
 
         /// The icon is painted in code (flat Pip-on-an-island scene) so the

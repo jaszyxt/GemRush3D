@@ -695,6 +695,64 @@ namespace UnityEngine.Rendering
         One, Zero, SrcColor, SrcAlpha, DstColor, DstAlpha,
         OneMinusSrcColor, OneMinusSrcAlpha, OneMinusDstColor, OneMinusDstAlpha
     }
+
+    // ---------- URP volume framework (compile-check stubs) ----------
+
+    public abstract class VolumeComponent
+    {
+        public bool active;
+    }
+
+    public class VolumeParameter<T>
+    {
+        public T value;
+        public bool overrideState;
+        public void Override(T x) { }
+    }
+
+    public class FloatParameter : VolumeParameter<float> { }
+    public class ColorParameter : VolumeParameter<Color> { }
+
+    public class VolumeProfile : ScriptableObject
+    {
+        public T Add<T>(bool overrides = false) where T : VolumeComponent, new()
+        { return new T(); }
+    }
+
+    public class Volume : MonoBehaviour
+    {
+        public bool isGlobal { get; set; }
+        public VolumeProfile profile { get; set; }
+    }
+}
+
+namespace UnityEngine.Rendering.Universal
+{
+    public class Bloom : global::UnityEngine.Rendering.VolumeComponent
+    {
+        public global::UnityEngine.Rendering.FloatParameter intensity;
+        public global::UnityEngine.Rendering.FloatParameter threshold;
+        public global::UnityEngine.Rendering.FloatParameter scatter;
+        public global::UnityEngine.Rendering.ColorParameter tint;
+    }
+
+    public class Vignette : global::UnityEngine.Rendering.VolumeComponent
+    {
+        public global::UnityEngine.Rendering.FloatParameter intensity;
+        public global::UnityEngine.Rendering.FloatParameter smoothness;
+        public global::UnityEngine.Rendering.ColorParameter color;
+    }
+
+    public class ColorAdjustments : global::UnityEngine.Rendering.VolumeComponent
+    {
+        public global::UnityEngine.Rendering.FloatParameter saturation;
+        public global::UnityEngine.Rendering.FloatParameter contrast;
+    }
+
+    public class UniversalAdditionalCameraData : MonoBehaviour
+    {
+        public bool renderPostProcessing { get; set; }
+    }
 }
 
 namespace UnityEngine.Events

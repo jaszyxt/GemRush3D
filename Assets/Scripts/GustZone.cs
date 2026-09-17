@@ -102,8 +102,6 @@ namespace GemRush
             t += Time.deltaTime;
             float phase = Mathf.Repeat(t, period);
             bool active = phase < activeTime;
-            if (active && t - phase < Time.deltaTime + 0.02f)
-                Debug.Log("[GustDebug] gust went ACTIVE, t=" + t.ToString("F1"));
 
             // While blowing, grab every PlayerController whose collider is
             // inside the volume — an OverlapBox, because OnTriggerStay

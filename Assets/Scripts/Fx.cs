@@ -114,7 +114,7 @@ namespace GemRush
             fade.color = new ParticleSystem.MinMaxGradient(gradient);
 
             ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
-            Shader shader = Shader.Find("Particles/Standard Unlit");
+            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
             if (shader != null) renderer.sharedMaterial = new Material(shader);
 
             go.AddComponent<AutoDestroy>();

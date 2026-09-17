@@ -60,6 +60,10 @@ namespace GemRush
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
             rb.mass = 1f;
             rb.linearDamping = 0f;
+            // Never sleep: a sleeping body generates no trigger callbacks
+            // (gems, gusts, hearts) — and a gust must grab Pip even when he
+            // stands perfectly still waiting for it.
+            rb.sleepThreshold = 0f;
         }
 
         void Start()

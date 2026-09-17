@@ -42,14 +42,14 @@ namespace GemRush
             backdrop.nearRig = BuildIslandLayer("ParallaxNear", nearColor, 0.55f, 30f).transform;
         }
 
-        /// Shader lookup with a Standard fallback: Shader.Find returns null
+        /// Shader lookup with an unlit fallback: Shader.Find returns null
         /// on device for shaders stripped from the build, which used to abort
-        /// level loading entirely. Standard is pinned via EnsureShaders, so
+        /// level loading entirely. URP/Unlit is pinned via EnsureShaders, so
         /// the worst case is a solid-colour backdrop, never a frozen menu.
         static Material UnlitMaterial(string shaderName, Color color)
         {
             Shader shader = Shader.Find(shaderName);
-            if (shader == null) shader = Shader.Find("Standard");
+            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
             Material mat = new Material(shader);
             if (shaderName == "Unlit/Color") mat.color = color;
             return mat;

@@ -22,16 +22,18 @@ namespace GemRush
 
         static Shader standardShader;
 
-        /// Standard-shader material with an optional emission glow (emission &gt; 0).
+        /// Lit material with an optional emission glow (emission &gt; 0).
+        /// URP/Lit: main colour maps to _BaseColor via Material.color, and
+        /// the emission keyword/property keep their Standard-shader names.
         public static Material Solid(Color color, float emission)
         {
             if (standardShader == null)
             {
-                standardShader = Shader.Find("Standard");
+                standardShader = Shader.Find("Universal Render Pipeline/Lit");
             }
             Material mat = new Material(standardShader);
             mat.color = color;
-            mat.SetFloat("_Glossiness", 0.35f);
+            mat.SetFloat("_Smoothness", 0.35f);
             if (emission > 0f)
             {
                 mat.EnableKeyword("_EMISSION");
@@ -41,21 +43,24 @@ namespace GemRush
             return mat;
         }
 
-        /// Turns a Standard-shader material into a true Fade (alpha-blended)
-        /// material. Setting the color's alpha alone does nothing — the blend
-        /// state, keywords and render queue must all be configured, or the
-        /// material renders opaque (the original cloud bug).
+        /// Turns a URP/Lit material into a true Fade (alpha-blended)
+        /// material. Setting the color's alpha alone does nothing — the
+        /// surface/blend state, keywords and render queue must all be
+        /// configured, or the material renders opaque (the original cloud
+        /// bug, URP edition).
         public static void SetFade(Material mat, float alpha)
         {
-            mat.SetFloat("_Mode", 2f); // Fade
+            mat.SetFloat("_Surface", 1f); // Transparent surface type
+            mat.SetFloat("_Blend", 0f);   // Alpha blend
             mat.SetInt("_SrcBlend",
                 (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
             mat.SetInt("_DstBlend",
                 (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             mat.SetInt("_ZWrite", 0);
+            mat.SetFloat("_AlphaClip", 0f);
             mat.DisableKeyword("_ALPHATEST_ON");
-            mat.EnableKeyword("_ALPHABLEND_ON");
             mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             mat.renderQueue = 3000;
             Color c = mat.color;
             c.a = alpha;

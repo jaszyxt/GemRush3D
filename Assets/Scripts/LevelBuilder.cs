@@ -143,15 +143,18 @@ namespace GemRush
             Light sun = sunGo != null ? sunGo.GetComponent<Light>() : null;
             if (sun != null)
             {
+                // Intensities compensated for the retired scene-default
+                // light that used to double-light every level under the
+                // Built-in pipeline (see GameBootstrap.Boot).
                 if (level.DarkRealm)
                 {
-                    sun.intensity = 0.55f;
+                    sun.intensity = 0.95f;
                     sun.color = new Color(0.75f, 0.82f, 1f);
                     sun.transform.rotation = Quaternion.Euler(64f, -35f, 0f);
                 }
                 else
                 {
-                    sun.intensity = 1.15f;
+                    sun.intensity = 1.9f;
                     sun.color = new Color(1f, 0.96f, 0.88f);
                     sun.transform.rotation = Quaternion.Euler(48f, -35f, 0f);
                 }

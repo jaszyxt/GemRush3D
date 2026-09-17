@@ -41,6 +41,9 @@ tools/session-errors.log
 tools/csc-*.txt
 tools/*.png
 
+# Editor screenshot verification artifacts (kept locally, not in git)
+Assets/Screenshots/
+
 # Release signing secrets — never commit these
 tools/gemrush.keystore
 tools/signing.txt
