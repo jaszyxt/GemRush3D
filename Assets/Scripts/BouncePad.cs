@@ -69,7 +69,6 @@ namespace GemRush
             Vector3 top = transform.localPosition + new Vector3(0f, 0.3f, 0f);
             Fx.Burst(top, ArtLib.GemPink * 1.5f, 14);
             AudioManager.Instance.PlayBounce();
-            Haptics.Medium();
         }
     }
 }

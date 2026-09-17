@@ -42,6 +42,12 @@ namespace GemRush
         /// Tailwind gusts: periodic wind walls that carry Pip across gaps.
         public List<GustSpec> Gusts = new List<GustSpec>();
 
+        /// Echo bells: ring to solidify linked echo bridges for a while.
+        public List<BellSpec> Bells = new List<BellSpec>();
+
+        /// Hidden bridges that exist only while their bell's echo rings.
+        public List<EchoBridgeSpec> EchoBridges = new List<EchoBridgeSpec>();
+
         /// Bonus flight level: Pip stays home and Gloomfang is playable —
         /// no gravity, gentle drift, no fall deaths.
         public bool BonusFlight = false;
@@ -173,6 +179,34 @@ namespace GemRush
             ActiveTime = activeTime;
             Strength = strength;
             Lift = lift;
+        }
+    }
+
+    public class BellSpec
+    {
+        public Vector3 PlatformTop;   // where the bell stands
+        public float ToneSeconds;     // how long its echo keeps bridges solid
+        public int Index;             // which echo bridges it reveals
+
+        public BellSpec(float x, float y, float z, float toneSeconds, int index)
+        {
+            PlatformTop = new Vector3(x, y, z);
+            ToneSeconds = toneSeconds;
+            Index = index;
+        }
+    }
+
+    public class EchoBridgeSpec
+    {
+        public Vector3 Center;
+        public Vector3 Size = new Vector3(3f, 0.5f, 10f);
+        public int BellIndex;
+
+        public EchoBridgeSpec(float x, float y, float z, Vector3 size, int bellIndex)
+        {
+            Center = new Vector3(x, y, z);
+            Size = size;
+            BellIndex = bellIndex;
         }
     }
 }

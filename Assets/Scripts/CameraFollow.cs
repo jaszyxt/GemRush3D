@@ -2,20 +2,43 @@ using UnityEngine;
 
 namespace GemRush
 {
-    /// Smooth third-person follow camera with a fixed offset.
+    /// Smooth third-person follow camera. The framing adapts to the screen's
+    /// aspect ratio: the tuned offset was designed for a wide phone, so on
+    /// narrower screens (tablets, 4:3) the camera dollies back to keep the
+    /// same course visibility instead of feeling cramped.
     public class CameraFollow : MonoBehaviour
     {
         public Transform target;
-        public Vector3 offset = new Vector3(0f, 7f, -9f);
+        public Vector3 baseOffset = new Vector3(0f, 7f, -9f);
         public float positionSmooth = 5f;
         public float lookSmooth = 9f;
 
+        /// The aspect the framing was tuned on. Wider than this = phone as
+        /// designed (scale 1); narrower = camera scales back, up to +50%.
+        const float ReferenceAspect = 2.1f;
+
+        Vector3 offset;
         Vector3 lookPoint;
         float shakeTimer;
         float shakeMagnitude;
 
+        void Start()
+        {
+            RecalculateFraming();
+        }
+
+        /// Distance scale from the screen aspect: 1.0 on wide phones, up to
+        /// 1.5 on 4:3 tablets.
+        void RecalculateFraming()
+        {
+            float aspect = (float)Screen.width / Screen.height;
+            float scale = Mathf.Clamp(ReferenceAspect / aspect, 1f, 1.5f);
+            offset = baseOffset * scale;
+        }
+
         public void SnapToTarget()
         {
+            RecalculateFraming();
             if (target == null) return;
             transform.position = target.position + offset;
             lookPoint = target.position;
@@ -30,6 +53,7 @@ namespace GemRush
 
         void LateUpdate()
         {
+            RecalculateFraming();
             if (target == null) return;
             float posBlend = 1f - Mathf.Exp(-positionSmooth * Time.deltaTime);
             float lookBlend = 1f - Mathf.Exp(-lookSmooth * Time.deltaTime);

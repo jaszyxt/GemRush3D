@@ -64,6 +64,10 @@ namespace GemRush
             CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1600f, 900f);
+            // Landscape-locked game: scale by height, so phones, tablets and
+            // desktop all show UI of the same physical size and the extra
+            // width of any screen simply shows wider panels.
+            scaler.matchWidthOrHeight = 1f;
             canvasGo.AddComponent<GraphicRaycaster>();
 
             GameObject esGo = new GameObject("EventSystem");

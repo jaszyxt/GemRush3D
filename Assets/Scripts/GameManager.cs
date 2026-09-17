@@ -161,7 +161,6 @@ namespace GemRush
             if (State != GameState.Playing) return;
             GemsCollected++;
             if (playPickupSound) AudioManager.Instance.PlayPickup();
-            Haptics.Light();
         }
 
         public void SetSpawn(Vector3 position)

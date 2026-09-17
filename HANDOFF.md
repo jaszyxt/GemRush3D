@@ -69,3 +69,15 @@ fix — see git history). This session: the URP migration.
 5. On-device perf spot-check of URP on the tablet/phone would be prudent
    (editor timings are not device timings) — adb shell dumpsys gfxinfo while
    playing works.
+
+## Windows build (added same session)
+- **v1.9.2 Windows exe** in `Builds/Windows/GemRush3D.exe`, smoke-tested
+  (10s run, process stable), **desktop shortcut "Gem Rush 3D"** created.
+  Built via MCP manage_build (scenes: Game.unity). DirectML.dll + D3D12/ ship
+  because com.unity.ai.inference is in the package set — harmless, ~14 MB;
+  removing that package would slim future builds if unwanted.
+- The editor is switched **back to Android** after the Windows build
+  (required — one active build target at a time). Repeat the
+  windows64→build→android dance for future Windows builds.
+- NOTE: the editor exited unexpectedly after the Windows build (post-build,
+  12:29; cause unclear, possibly user close). Relaunched cleanly after.

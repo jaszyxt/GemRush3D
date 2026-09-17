@@ -159,7 +159,6 @@ namespace GemRush
                 rb.linearVelocity = vel;
                 squash = 0.28f;
                 AudioManager.Instance.PlayJump();
-                Haptics.Light();
                 Vector3 feet = tr.position + Vector3.down * 0.9f;
                 Fx.Burst(feet, new Color(0.9f, 0.9f, 0.9f), 8);
             }
