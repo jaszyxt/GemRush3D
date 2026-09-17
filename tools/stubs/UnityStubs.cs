@@ -17,6 +17,7 @@ namespace UnityEngine
         public static void Destroy(Object obj, float delay) { }
         public static void DontDestroyOnLoad(Object obj) { }
         public static T FindObjectOfType<T>() where T : Object { return default(T); }
+        public static T[] FindObjectsOfType<T>() where T : Object { return null; }
     }
 
     public static class Debug
@@ -349,6 +350,7 @@ namespace UnityEngine
         public float linearDamping { get; set; }
         public bool isKinematic { get; set; }
         public bool useGravity { get; set; }
+        public float sleepThreshold { get; set; }
         public RigidbodyConstraints constraints { get; set; }
         public RigidbodyInterpolation interpolation { get; set; }
         public CollisionDetectionMode collisionDetectionMode { get; set; }
