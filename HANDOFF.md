@@ -28,10 +28,11 @@ use my github account, consider graphics, flag paid gold standards").
   portal/spawn reachability, KillY sanity, orphan islands (edge-gap based),
   spinner grounding, medal-time ordering. All 24 levels pass in 0.6s.
 - **CI**: `.github/workflows/syntax-check.yml` (free stub-compile on every
-  push — active; first failure `*.csproj` gitignore ate Check.csproj, fixed
-  with `!tools/Check.csproj` negation) and `android-build.yml` (GameCI v4:
-  audit tests + signed APK + GitHub Release on `v*` tags — **waiting on the
-  one-time Unity license secrets**, steps in README-CI.md ≈5 min).
+  push — **active and green**; the stubs were extended from the old 24-script
+  subset to the full 82-script API surface, plus `!tools/Check.csproj`
+  gitignore negation) and `android-build.yml` (GameCI v4: audit tests +
+  signed APK + GitHub Release on `v*` tags — **waiting on the one-time Unity
+  license secrets**, steps in README-CI.md ≈5 min).
 - **Packages**: com.unity.memoryprofiler 1.1.12, com.unity.performance.
   profile-analyzer 1.4.0 (editor-only dev tools).
 - `tools/Check.csproj` replaces the stale csc-response.txt list (glob-based).
