@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Offline compile check: builds every game script against the Unity API
+    stubs in tools/stubs — no Unity editor needed. Used by CI
+    (.github/workflows/syntax-check.yml); catches syntax errors and
+    stub-covered API misuse in ~30s. The Unity/GameCI build remains the
+    real gate.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <OutDir>$(MSBuildThisFileDirectory)out\</OutDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)stubs/UnityStubs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../Assets/Scripts/**/*.cs" />
+  </ItemGroup>
+</Project>
