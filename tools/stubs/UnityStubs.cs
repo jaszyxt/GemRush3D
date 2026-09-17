@@ -14,8 +14,16 @@ namespace UnityEngine
     {
         public string name;
         public static void Destroy(Object obj) { }
+        public static void Destroy(Object obj, float delay) { }
         public static void DontDestroyOnLoad(Object obj) { }
         public static T FindObjectOfType<T>() where T : Object { return default(T); }
+    }
+
+    public static class Debug
+    {
+        public static void Log(object message) { }
+        public static void LogWarning(object message) { }
+        public static void LogError(object message) { }
     }
 
     public class Component : Object
@@ -39,6 +47,7 @@ namespace UnityEngine
         public GameObject() { }
         public GameObject(string name) { }
         public static GameObject CreatePrimitive(PrimitiveType type) { return null; }
+        public static GameObject Find(string name) { return null; }
         public Transform transform { get { return null; } }
         public string tag { get; set; }
         public bool activeSelf { get { return false; } }
@@ -48,9 +57,10 @@ namespace UnityEngine
         public T GetComponentInParent<T>() { return default(T); }
     }
 
-    public class Transform : Component
+    public class Transform : Component, System.Collections.IEnumerable
     {
         public Transform parent { get { return null; } }
+        public int childCount { get { return 0; } }
         public Vector3 position { get; set; }
         public Vector3 localPosition { get; set; }
         public Vector3 localScale { get; set; }
@@ -59,6 +69,9 @@ namespace UnityEngine
         public Vector3 forward { get { return new Vector3(); } }
         public Vector3 right { get { return new Vector3(); } }
         public Vector3 up { get { return new Vector3(); } }
+        public Transform GetChild(int index) { return null; }
+        public Transform Find(string name) { return null; }
+        public System.Collections.IEnumerator GetEnumerator() { return null; }
         public void SetParent(Transform parent) { }
         public void SetParent(Transform parent, bool worldPositionStays) { }
         public void LookAt(Vector3 worldPoint) { }
@@ -109,6 +122,11 @@ namespace UnityEngine
         public Vector2 normalized { get { return this; } }
         public static Vector2 zero { get { return new Vector2(); } }
         public static Vector2 one { get { return new Vector2(); } }
+        public static float Distance(Vector2 a, Vector2 b) { return 0f; }
+        public static bool operator ==(Vector2 a, Vector2 b) { return true; }
+        public static bool operator !=(Vector2 a, Vector2 b) { return false; }
+        public override bool Equals(object other) { return true; }
+        public override int GetHashCode() { return 0; }
         public static Vector2 operator +(Vector2 a, Vector2 b) { return a; }
         public static Vector2 operator -(Vector2 a, Vector2 b) { return a; }
         public static Vector2 operator *(Vector2 a, float d) { return a; }
@@ -129,7 +147,12 @@ namespace UnityEngine
         public static Vector3 forward { get { return new Vector3(); } }
         public static Vector3 right { get { return new Vector3(); } }
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t) { return a; }
-        public static Vector3 Distance(Vector3 a, Vector3 b) { return new Vector3(); }
+        public static float Distance(Vector3 a, Vector3 b) { return 0f; }
+        public void Normalize() { }
+        public static bool operator ==(Vector3 a, Vector3 b) { return true; }
+        public static bool operator !=(Vector3 a, Vector3 b) { return false; }
+        public override bool Equals(object other) { return true; }
+        public override int GetHashCode() { return 0; }
         public static Vector3 operator +(Vector3 a, Vector3 b) { return a; }
         public static Vector3 operator -(Vector3 a, Vector3 b) { return a; }
         public static Vector3 operator *(Vector3 a, float d) { return a; }
@@ -174,6 +197,11 @@ namespace UnityEngine
         public static float Max(float a, float b) { return 0f; }
         public static int Max(int a, int b) { return 0; }
         public static int Min(int a, int b) { return 0; }
+        public static float SmoothStep(float from, float to, float t) { return 0f; }
+        public static int RoundToInt(float f) { return 0; }
+        public static float Repeat(float t, float length) { return 0f; }
+        public static float MoveTowards(float current, float target,
+            float maxDelta) { return 0f; }
     }
 
     public static class PlayerPrefs
@@ -182,6 +210,8 @@ namespace UnityEngine
         public static void SetInt(string key, int value) { }
         public static float GetFloat(string key, float defaultValue) { return 0f; }
         public static void SetFloat(string key, float value) { }
+        public static string GetString(string key, string defaultValue) { return null; }
+        public static void SetString(string key, string value) { }
         public static bool HasKey(string key) { return false; }
         public static void DeleteKey(string key) { }
         public static void Save() { }
@@ -190,6 +220,8 @@ namespace UnityEngine
     public static class Random
     {
         public static float value { get { return 0f; } }
+        public static float Range(float min, float max) { return 0f; }
+        public static int Range(int min, int max) { return 0; }
     }
 
     public static class Time
@@ -197,6 +229,7 @@ namespace UnityEngine
         public static float time { get { return 0f; } }
         public static float deltaTime { get { return 0f; } }
         public static float fixedDeltaTime { get { return 0f; } }
+        public static float maximumDeltaTime { get; set; }
         public static float timeSinceLevelLoad { get { return 0f; } }
         public static float timeScale { get; set; }
         public static float unscaledDeltaTime { get { return 0f; } }
@@ -260,6 +293,10 @@ namespace UnityEngine
         public static Collider[] OverlapSphere(Vector3 position, float radius,
             int layerMask, QueryTriggerInteraction queryTriggerInteraction)
         { return null; }
+        public static Collider[] OverlapBox(Vector3 center, Vector3 halfExtents,
+            Quaternion orientation, int layerMask,
+            QueryTriggerInteraction queryTriggerInteraction)
+        { return null; }
     }
 
     public enum QueryTriggerInteraction { UseGlobal, Ignore, Collide }
@@ -273,6 +310,12 @@ namespace UnityEngine
     public class BoxCollider : Collider
     {
         public Vector3 size { get; set; }
+        public Vector3 center { get; set; }
+    }
+
+    public class SphereCollider : Collider
+    {
+        public float radius { get; set; }
         public Vector3 center { get; set; }
     }
 
@@ -329,10 +372,13 @@ namespace UnityEngine
         public Material(Shader shader) { }
         public Color color { get; set; }
         public Texture mainTexture { get; set; }
+        public int renderQueue { get; set; }
         public MaterialGlobalIlluminationFlags globalIlluminationFlags { get; set; }
         public void SetColor(string name, Color value) { }
         public void SetFloat(string name, float value) { }
+        public void SetInt(string name, int value) { }
         public void EnableKeyword(string keyword) { }
+        public void DisableKeyword(string keyword) { }
     }
 
     public class Renderer : Component
@@ -541,9 +587,14 @@ namespace UnityEngine
     {
         public bool playOnAwake { get; set; }
         public float spatialBlend { get; set; }
+        public float volume { get; set; }
+        public bool loop { get; set; }
+        public AudioClip clip { get; set; }
+        public bool isPlaying { get { return false; } }
         public void PlayOneShot(AudioClip clip) { }
         public void PlayOneShot(AudioClip clip, float volumeScale) { }
         public void Play() { }
+        public void Stop() { }
     }
 
     public class AudioListener : Behaviour { }
@@ -636,6 +687,13 @@ namespace UnityEngine
 namespace UnityEngine.Rendering
 {
     public enum AmbientMode { Skybox, Trilight, Flat }
+
+    // Standard GPU blend factors used by ArtLib's transparent materials.
+    public enum BlendMode
+    {
+        One, Zero, SrcColor, SrcAlpha, DstColor, DstAlpha,
+        OneMinusSrcColor, OneMinusSrcAlpha, OneMinusDstColor, OneMinusDstAlpha
+    }
 }
 
 namespace UnityEngine.Events
