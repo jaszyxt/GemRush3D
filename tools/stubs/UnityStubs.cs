@@ -76,6 +76,7 @@ namespace UnityEngine
         public void SetParent(Transform parent, bool worldPositionStays) { }
         public void LookAt(Vector3 worldPoint) { }
         public void Rotate(Vector3 eulers) { }
+        public void Rotate(float xAngle, float yAngle, float zAngle) { }
         public void Rotate(Vector3 axis, float angle) { }
         public void Rotate(Vector3 axis, float angle, Space relativeTo) { }
         public void Translate(Vector3 translation) { }
