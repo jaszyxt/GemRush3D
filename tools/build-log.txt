@@ -1,0 +1,45 @@
+VBCSCompilerPreWarmer: pre-warm launched (dotnet PID 38108)
+VBCSCompiler prewarm took 8.13 ms
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.6/respin/6000.6.0f1-fa21a270ab12' branch; Version is '6000.6.0f1 (f7f8ed4d1e24) revision 16251117'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Admin" at "2026-09-16T14:53:17.8459511Z"
+OS: 'Windows 11  (10.0.26200) Professional' Language: 'en' Physical Memory: 28311 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-09-16T14:53:17Z
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 1040, path: "C:/Program Files/Unity Hub/UnityLicensingClient_V1/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              8725ebd27c0c4d22b322c284d8ce3554
+  Correlation Id:          7a97ae45aa619d4e84775701b86f9978
+  External correlation Id: 9103343022424448436
+  Machine Id:              GBANakrcwTRK/85a2xRaXYyjtTc=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-Admin" (connect: 0.00s, validation: 0.00s, handshake: 0.04s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Admin-notifications" at "2026-09-16T14:53:17.8848787Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 18968496784822-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 0.06s
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Unity.exe
+-batchmode
+-quit
+-nographics
+-projectPath
+C:/Users/Admin/.zcode/workspace/default/GemRush3D
+-executeMethod
+GemRush.EditorTools.BuildAndroid.Build
+-logFile
+C:/Users/Admin/.zcode/workspace/default/GemRush3D/tools/build-log.txt
+Successfully changed project path to: C:/Users/Admin/.zcode/workspace/default/GemRush3D
+C:/Users/Admin/.zcode/workspace/default/GemRush3D
+[ExitDontLaunchBugReporter] Exiting without the bug reporter. Application will exit with return code 1

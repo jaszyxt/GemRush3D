@@ -1,0 +1,32 @@
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]serSettings/
+.utmp/
+MemoryCaptures/
+
+# Built binaries stay out of git; CI attaches them to releases instead
+*.apk
+*.aab
+*.unitypackage
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.csproj
+*.sln
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Dev-only compile checker output
+tools/check.dll
+
+# Release signing secrets — never commit these
+tools/gemrush.keystore
+tools/signing.txt

@@ -1,0 +1,53 @@
+using UnityEngine;
+
+namespace GemRush
+{
+    /// All text-only story content that is not part of a level definition:
+    /// the completion epilogue and the menu's rotating flavor quotes. Level
+    /// missions, win lines and checkpoint beats live with their levels.
+    public static class Story
+    {
+        /// Shown page by page on the completion screen, after the last
+        /// level of the last pack is cleared.
+        public static readonly string[] Epilogue = new string[]
+        {
+            "The Master Sunstone rose out of the Undercloud like a second dawn. " +
+            "One by one, every portal in the sky realm lit at once — and the storm " +
+            "that had swallowed them all simply... stopped.",
+
+            "The Sky-Keeper examined Gloomfang for a long moment. A storm who stole " +
+            "light because he feared the dark was still, technically, a weather " +
+            "management problem. She gave him a badge and a rounder, kinder job: " +
+            "carrying rain to the dry islands on Tuesdays.",
+
+            "And Pip? Pip went back to the little island where all of this started, " +
+            "put the last gem on the shelf, and watched two suns set. " +
+            "Somewhere far below, a very large storm was learning to hum.",
+
+            "The Far Isles chart now hangs in the Sky-Keeper's hall — every island " +
+            "named in Pip's small, determined handwriting, and one line in the " +
+            "legend: 'weather support (probationary): Gloomfang.' He has requested " +
+            "the word 'probationary' be removed. Request pending.\n\n" +
+            "THE END — every ending here is just a portal to the next adventure."
+        };
+
+        /// One of these is shown in the menu's corner, rotating per visit.
+        public static readonly string[] MenuQuotes = new string[]
+        {
+            "Gloomfang was never the villain. He was just weather with feelings.",
+            "Gloomfang's diary, page 1: 'Today I stole the sun again. Still lonely.'",
+            "The Sky-Keeper's review of Pip: 'small, determined, excellent at falling upward.'",
+            "A storm's heart is a lantern nobody lit. Pip fixes that.",
+            "Twelve levels. Three lives. One very apologetic storm.",
+            "The guardians spin because nobody ever asked them to stop. Ask nicely.",
+            "The Two Suns playground: no storm, no pressure, all bounce.",
+            "The Far Isles: where the wind does the climbing.",
+            "Gloomfang's job title, officially: weather support (probationary)."
+        };
+
+        public static string MenuQuote()
+        {
+            return MenuQuotes[Random.Range(0, MenuQuotes.Length)];
+        }
+    }
+}

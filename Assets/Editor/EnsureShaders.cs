@@ -1,0 +1,249 @@
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEngine;
+
+namespace GemRush.EditorTools
+{
+    /// The game builds every material at runtime from shaders looked up by
+    /// name (Shader.Find). Shaders that nothing in a build references are
+    /// stripped by Unity, which works fine in the editor but crashes on
+    /// device. This pins the required shaders onto the project's
+    /// "Always Included Shaders" list as soon as the project is opened.
+    [InitializeOnLoad]
+    public static class EnsureShaders
+    {
+        const string GraphicsSettingsPath = "ProjectSettings/GraphicsSettings.asset";
+
+        static readonly string[] RequiredShaders =
+        {
+            "Standard",                    // all world materials
+            "Skybox/Procedural",           // runtime skybox
+            "Sprites/Default",             // portal fill
+            "Particles/Standard Unlit",    // particle bursts
+            "UI/Default",                  // uGUI
+            "Unlit/Texture",               // Backdrop sky gradient
+            "Unlit/Color"                  // Backdrop island silhouettes
+        };
+
+        static EnsureShaders()
+        {
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(GraphicsSettingsPath);
+            if (assets == null || assets.Length == 0)
+            {
+                Debug.LogWarning("[GemRush] Could not load " + GraphicsSettingsPath);
+                return;
+            }
+
+            SerializedObject graphicsSettings = new SerializedObject(assets[0]);
+            SerializedProperty included =
+                graphicsSettings.FindProperty("m_AlwaysIncludedShaders");
+            if (included == null || !included.isArray)
+            {
+                Debug.LogWarning("[GemRush] m_AlwaysIncludedShaders not found.");
+                return;
+            }
+
+            HashSet<string> existing = new HashSet<string>();
+            for (int i = 0; i < included.arraySize; i++)
+            {
+                Shader shader = included.GetArrayElementAtIndex(i).objectReferenceValue as Shader;
+                if (shader != null) existing.Add(shader.name);
+            }
+
+            bool changed = false;
+            for (int i = 0; i < RequiredShaders.Length; i++)
+            {
+                if (existing.Contains(RequiredShaders[i])) continue;
+                Shader shader = Shader.Find(RequiredShaders[i]);
+                if (shader == null)
+                {
+                    Debug.LogWarning("[GemRush] Shader not found: " + RequiredShaders[i]);
+                    continue;
+                }
+                included.InsertArrayElementAtIndex(included.arraySize);
+                included.GetArrayElementAtIndex(included.arraySize - 1)
+                    .objectReferenceValue = shader;
+                changed = true;
+                Debug.Log("[GemRush] Pinned shader into build: " + RequiredShaders[i]);
+            }
+
+            if (changed) graphicsSettings.ApplyModifiedProperties();
+        }
+    }
+
+    /// Headless release builder: sets identity, icon and signing, then builds
+    /// the Android APK. Run with
+    /// Unity.exe -batchmode -projectPath <proj> -executeMethod GemRush.EditorTools.BuildAndroid.Build -quit
+    public static class BuildAndroid
+    {
+        const string BuildMenuPath = "GemRush/Build Android APK (Release)";
+
+        /// Triggerable from the editor menu or via Unity MCP's
+        /// menu-item execution tool.
+        [MenuItem(BuildMenuPath)]
+        public static void Build()
+        {
+            PlayerSettings.productName = "Gem Rush 3D";
+            PlayerSettings.bundleVersion = "1.9.0";
+            PlayerSettings.Android.bundleVersionCode = 13;
+
+            ApplyIcon();
+            ApplySigning();
+
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
+            {
+                EditorUserBuildSettings.SwitchActiveBuildTarget(
+                    BuildTargetGroup.Android, BuildTarget.Android);
+            }
+
+            BuildPlayerOptions options = new BuildPlayerOptions();
+            options.scenes = new string[] { "Assets/Scenes/Game.unity" };
+            options.locationPathName = "Builds/GemRush3D.apk";
+            options.target = BuildTarget.Android;
+
+            BuildReport report = BuildPipeline.BuildPlayer(options);
+            if (report.summary.result != BuildResult.Succeeded)
+            {
+                Debug.LogError("[GemRush] Build failed: " + report.summary.result);
+                EditorApplication.Exit(1);
+            }
+            Debug.Log("[GemRush] APK built: " +
+                System.IO.Path.GetFullPath(options.locationPathName));
+        }
+
+        /// The icon is painted in code (flat Pip-on-an-island scene) so the
+        /// project keeps shipping zero imported assets.
+        static void ApplyIcon()
+        {
+            const string iconPath = "Assets/Textures/AppIcon.png";
+            Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
+            if (icon == null)
+            {
+                Debug.Log("[GemRush] Painting app icon.");
+                System.IO.Directory.CreateDirectory(
+                    System.IO.Path.GetDirectoryName(iconPath));
+                Texture2D painted = PaintIcon();
+                System.IO.File.WriteAllBytes(iconPath, painted.EncodeToPNG());
+                AssetDatabase.ImportAsset(iconPath);
+                icon = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
+            }
+            if (icon != null)
+            {
+                // Unity 6: Android icons are adaptive-only; Legacy/Round are
+                // deprecated as errors.
+                NamedBuildTarget android = NamedBuildTarget.Android;
+                PlatformIconKind kind =
+                    UnityEditor.Android.AndroidPlatformIconKind.Adaptive;
+                PlatformIcon[] slots = PlayerSettings.GetPlatformIcons(android, kind);
+                for (int i = 0; i < slots.Length; i++) slots[i].SetTexture(icon);
+                PlayerSettings.SetPlatformIcons(android, kind, slots);
+                Debug.Log("[GemRush] App icon applied (adaptive).");
+            }
+        }
+
+        static void ApplySigning()
+        {
+            string projectRoot = System.IO.Directory.GetParent(Application.dataPath).FullName;
+            string keystore = System.IO.Path.Combine(projectRoot, "tools", "gemrush.keystore");
+            string passFile = System.IO.Path.Combine(projectRoot, "tools", "signing.txt");
+            if (!System.IO.File.Exists(keystore) || !System.IO.File.Exists(passFile))
+            {
+                Debug.LogWarning("[GemRush] No keystore/signing.txt; debug-signed build.");
+                return;
+            }
+            string password = "";
+            string aliasName = "gemrush";
+            foreach (string line in System.IO.File.ReadAllLines(passFile))
+            {
+                if (line.StartsWith("storepass=")) password = line.Substring(10);
+                else if (line.StartsWith("alias=")) aliasName = line.Substring(6);
+            }
+            // Without this flag Unity silently ignores the keystore below and
+            // ships debug-signed — the exact bug v1.0.0's APK had.
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = keystore;
+            PlayerSettings.Android.keystorePass = password;
+            PlayerSettings.Android.keyaliasName = aliasName;
+            PlayerSettings.Android.keyaliasPass = password;
+            Debug.Log("[GemRush] Signing with release keystore 'gemrush'.");
+        }
+
+        // ---------- Icon painter ----------
+
+        static Texture2D PaintIcon()
+        {
+            int s = 512;
+            Color[] px = new Color[s * s];
+
+            for (int y = 0; y < s; y++)
+            {
+                float t = y / (float)(s - 1);
+                Color sky = Color.Lerp(new Color(0.25f, 0.5f, 0.93f),
+                    new Color(0.62f, 0.83f, 1f), t);
+                for (int x = 0; x < s; x++) px[y * s + x] = sky;
+            }
+
+            FillEllipse(px, s, 415, 405, 55, 55, new Color(1f, 0.95f, 0.72f));
+            FillEllipse(px, s, 105, 415, 75, 26, new Color(1f, 1f, 1f));
+            FillEllipse(px, s, 145, 438, 55, 24, new Color(1f, 1f, 1f));
+            FillEllipse(px, s, 430, 320, 60, 20, new Color(1f, 1f, 1f));
+
+            FillEllipse(px, s, 256, 150, 215, 48, new Color(0.36f, 0.72f, 0.34f));
+            FillEllipse(px, s, 256, 116, 190, 42, new Color(0.5f, 0.37f, 0.25f));
+
+            FillRhombus(px, s, 132, 300, 72, 92, new Color(0.98f, 0.3f, 0.75f));
+            FillRhombus(px, s, 132, 300, 28, 38, new Color(1f, 0.65f, 0.9f));
+            FillRhombus(px, s, 395, 250, 45, 58, new Color(0.98f, 0.3f, 0.75f));
+            FillRhombus(px, s, 395, 250, 18, 24, new Color(1f, 0.65f, 0.9f));
+
+            FillEllipse(px, s, 256, 300, 86, 106, new Color(1f, 0.55f, 0.15f));
+            FillEllipse(px, s, 232, 272, 44, 60, new Color(1f, 0.68f, 0.35f));
+            FillEllipse(px, s, 338, 288, 30, 24, new Color(0.85f, 0.3f, 0.1f));
+            FillEllipse(px, s, 226, 328, 17, 19, Color.white);
+            FillEllipse(px, s, 286, 328, 17, 19, Color.white);
+            FillEllipse(px, s, 230, 328, 8, 10, new Color(0.1f, 0.1f, 0.12f));
+            FillEllipse(px, s, 282, 328, 8, 10, new Color(0.1f, 0.1f, 0.12f));
+
+            Texture2D tex = new Texture2D(s, s, TextureFormat.RGBA32, false);
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
+        }
+
+        static void FillEllipse(Color[] px, int s, int cx, int cy, int rx, int ry, Color c)
+        {
+            int x0 = Mathf.Clamp(cx - rx, 0, s - 1);
+            int x1 = Mathf.Clamp(cx + rx, 0, s - 1);
+            int y0 = Mathf.Clamp(cy - ry, 0, s - 1);
+            int y1 = Mathf.Clamp(cy + ry, 0, s - 1);
+            for (int y = y0; y <= y1; y++)
+            {
+                for (int x = x0; x <= x1; x++)
+                {
+                    float dx = (x - cx) / (float)rx;
+                    float dy = (y - cy) / (float)ry;
+                    if (dx * dx + dy * dy <= 1f) px[y * s + x] = c;
+                }
+            }
+        }
+
+        static void FillRhombus(Color[] px, int s, int cx, int cy, int rx, int ry, Color c)
+        {
+            int x0 = Mathf.Clamp(cx - rx, 0, s - 1);
+            int x1 = Mathf.Clamp(cx + rx, 0, s - 1);
+            int y0 = Mathf.Clamp(cy - ry, 0, s - 1);
+            int y1 = Mathf.Clamp(cy + ry, 0, s - 1);
+            for (int y = y0; y <= y1; y++)
+            {
+                for (int x = x0; x <= x1; x++)
+                {
+                    float dx = Mathf.Abs(x - cx) / (float)rx;
+                    float dy = Mathf.Abs(y - cy) / (float)ry;
+                    if (dx + dy <= 1f) px[y * s + x] = c;
+                }
+            }
+        }
+    }
+}
