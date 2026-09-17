@@ -1,31 +1,43 @@
-# Unity generated
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-[Uu]serSettings/
+# === github/gitignore Unity template (trimmed) ===
 .utmp/
-MemoryCaptures/
-
-# Built binaries stay out of git; CI attaches them to releases instead
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]serSettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+*.log
 *.apk
 *.aab
 *.unitypackage
+sysinfo.txt
+mono_crash.*
 
-# Visual Studio / Rider
+# IDE
 .vs/
 .idea/
 *.csproj
 *.sln
+*.user
+
+# Unity test-runner scenes
+InitTestScene*.unity*
 
 # OS
 Thumbs.db
 .DS_Store
 
-# Dev-only compile checker output
+# === project-specific ===
 tools/check.dll
+tools/out/
+tools/build-log*.txt
+tools/probe-log.txt
+tools/session-errors.log
+tools/csc-*.txt
+tools/*.png
 
 # Release signing secrets — never commit these
 tools/gemrush.keystore

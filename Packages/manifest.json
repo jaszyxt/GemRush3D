@@ -3,6 +3,8 @@
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.unity.ai.assistant": "2.19.0-pre.2",
     "com.unity.ai.inference": "2.6.1",
+    "com.unity.memoryprofiler": "1.1.12",
+    "com.unity.performance.profile-analyzer": "1.4.0",
     "com.unity.postprocessing": "3.4.0",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

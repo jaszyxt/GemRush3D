@@ -2,22 +2,36 @@ using UnityEngine;
 
 namespace GemRush
 {
-    /// Short vibration pulses on Android. All device access is compiled only
-    /// into Android builds and wrapped in try/catch, so this is a silent
-    /// no-op everywhere else.
+    /// Vibration pulses on Android with amplitude control where the device
+    /// supports it (API 26+). The Handheld.Vibrate fallback below is what
+    /// makes Unity include android.permission.VIBRATE in the manifest —
+    /// without that permission the JNI path throws SecurityException and
+    /// vibration silently no-ops. All device access is compiled only into
+    /// Android builds and wrapped in try/catch, so this is a silent no-op
+    /// everywhere else.
     public static class Haptics
     {
+        // Amplitudes are 1–255; picked to feel distinct through a case.
+        const int AmplitudeLight = 72;
+        const int AmplitudeMedium = 140;
+        const int AmplitudeHeavy = 230;
+
         public static void Light()
         {
-            Pulse(18);
+            Pulse(18, AmplitudeLight, 0);
         }
 
         public static void Medium()
         {
-            Pulse(40);
+            Pulse(35, AmplitudeMedium, 1);
         }
 
-        static void Pulse(int milliseconds)
+        public static void Heavy()
+        {
+            Pulse(60, AmplitudeHeavy, 2);
+        }
+
+        static void Pulse(int milliseconds, int amplitude, int predefinedEffect)
         {
             if (!SaveSystem.HapticsOn) return;
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -33,15 +47,15 @@ namespace GemRush
                             activity.Call<AndroidJavaObject>("getSystemService", "vibrator"))
                         {
                             if (vibrator == null) return;
-                            using (AndroidJavaClass effectClass =
-                                new AndroidJavaClass("android.os.VibrationEffect"))
+                            if (!VibrateWithEffect(vibrator, milliseconds, amplitude,
+                                predefinedEffect))
                             {
-                                using (AndroidJavaObject effect = effectClass.CallStatic<
-                                    AndroidJavaObject>("createOneShot",
-                                    (long)milliseconds, (int)-1))
-                                {
-                                    vibrator.Call("vibrate", effect);
-                                }
+                                // Devices without amplitude control (or very old
+                                // APIs) still get a usable buzz. This call also
+                                // guarantees the VIBRATE permission ships in the
+                                // manifest, which the JNI path needs to be allowed
+                                // at all.
+                                Handheld.Vibrate();
                             }
                         }
                     }
@@ -53,5 +67,57 @@ namespace GemRush
             }
 #endif
         }
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+        static bool VibrateWithEffect(AndroidJavaObject vibrator, int milliseconds,
+            int amplitude, int predefinedEffect)
+        {
+            try
+            {
+                using (AndroidJavaObject sdkInt =
+                    new AndroidJavaClass("android.os.Build$VERSION")
+                        .GetStatic<AndroidJavaObject>("SDK_INT"))
+                {
+                    int api = sdkInt.Call<int>("intValue");
+                    using (AndroidJavaClass effectClass =
+                        new AndroidJavaClass("android.os.VibrationEffect"))
+                    {
+                        // API 29+: predefined effects (click/tick/heavy click) are
+                        // tuned by the device maker and feel noticeably crisper.
+                        if (api >= 29)
+                        {
+                            using (AndroidJavaObject effect = effectClass.CallStatic<
+                                AndroidJavaObject>("createPredefined", predefinedEffect))
+                            {
+                                if (effect != null)
+                                {
+                                    vibrator.Call("vibrate", effect);
+                                    return true;
+                                }
+                            }
+                        }
+                        if (api >= 26)
+                        {
+                            using (AndroidJavaObject effect = effectClass.CallStatic<
+                                AndroidJavaObject>("createOneShot",
+                                (long)milliseconds, (int)amplitude))
+                            {
+                                if (effect != null)
+                                {
+                                    vibrator.Call("vibrate", effect);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                // Fall through to the legacy path below.
+            }
+            return false;
+        }
+#endif
     }
 }

@@ -86,8 +86,8 @@ namespace GemRush.EditorTools
         public static void Build()
         {
             PlayerSettings.productName = "Gem Rush 3D";
-            PlayerSettings.bundleVersion = "1.9.0";
-            PlayerSettings.Android.bundleVersionCode = 13;
+            PlayerSettings.bundleVersion = "1.9.1";
+            PlayerSettings.Android.bundleVersionCode = 14;
 
             ApplyIcon();
             ApplySigning();

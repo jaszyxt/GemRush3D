@@ -1,0 +1,11 @@
+name: syntax-check
+
+on: [push, pull_request]
+
+jobs:
+  dotnet-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile game scripts against Unity stubs (no Unity needed)
+        run: dotnet build tools/Check.csproj

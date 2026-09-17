@@ -1,0 +1,72 @@
+name: android-build
+
+# Full GameCI build of the signed APK. Runs on version tags and manual
+# dispatch only (not every push) to stay inside the free minutes budget.
+#
+# ONE-TIME SETUP (documented in README-CI.md):
+#   1. Unity Hub -> Preferences -> Licenses -> Add -> Get a free personal
+#      license, then copy C:\ProgramData\Unity\Unity_lic.ulf
+#   2. gh secret set UNITY_LICENSE < Unity_lic.ulf
+#      gh secret set UNITY_EMAIL  <your-unity-email>
+#      gh secret set UNITY_PASSWORD <your-unity-password>
+#   3. gh secret set GEMRUSH_KEYSTORE_BASE64 < <(base64 -w0 tools/gemrush.keystore)
+#      gh secret set GEMRUSH_SIGNING < tools/signing.txt
+# Then: git tag v1.9.1 && git push --tags  (or run from the Actions tab)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-Android-
+
+      - name: Restore release signing (git-ignored locally)
+        run: |
+          mkdir -p tools
+          printf '%s' "${{ secrets.GEMRUSH_SIGNING }}" > tools/signing.txt
+          printf '%s' "${{ secrets.GEMRUSH_KEYSTORE_BASE64 }}" | base64 -d > tools/gemrush.keystore
+
+      - name: Run EditMode level-audit tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          testMode: EditMode
+          artifactsPath: test-results
+
+      - name: Build signed APK
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: android
+          unityVersion: auto
+          androidExportType: androidPackage
+          buildMethod: GemRush.EditorTools.BuildAndroid.Build
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: GemRush3D-APK
+          path: Builds/GemRush3D.apk
+
+      - name: Create GitHub Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: Builds/GemRush3D.apk

@@ -174,7 +174,7 @@ namespace GemRush
             if (State != GameState.Playing) return;
             Lives--;
             AudioManager.Instance.PlayDie();
-            Haptics.Medium();
+            Haptics.Heavy();
             Fx.Burst(GameBootstrap.Player.transform.position,
                 ArtLib.HazardRed * 1.5f, 26);
             GameBootstrap.CameraRig.Shake(0.35f, 0.25f);
@@ -202,7 +202,7 @@ namespace GemRush
                 LevelLibrary.Levels.Length - 1));
 
             AudioManager.Instance.PlayWin();
-            Haptics.Medium();
+            Haptics.Heavy();
             Fx.Burst(GameBootstrap.Player.transform.position,
                 ArtLib.PortalCyan * 1.5f, 40);
 
