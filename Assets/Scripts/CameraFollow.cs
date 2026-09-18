@@ -19,6 +19,7 @@ namespace GemRush
 
         Vector3 offset;
         Vector3 lookPoint;
+        float followY; // soft-zone height the camera actually holds
         float shakeTimer;
         float shakeMagnitude;
 
@@ -42,11 +43,15 @@ namespace GemRush
             if (target == null) return;
             transform.position = target.position + offset;
             lookPoint = target.position;
+            followY = target.position.y;
         }
 
-        /// Brief position jitter, used for death feedback.
+        /// Brief position jitter, used for death feedback. Respects the
+        /// motion-comfort setting: players who turn shake off keep every
+        /// other piece of death feedback (burst, sound, haptic).
         public void Shake(float magnitude, float duration)
         {
+            if (!SaveSystem.ShakeOn) return;
             shakeMagnitude = magnitude;
             shakeTimer = duration;
         }
@@ -57,8 +62,19 @@ namespace GemRush
             if (target == null) return;
             float posBlend = 1f - Mathf.Exp(-positionSmooth * Time.deltaTime);
             float lookBlend = 1f - Mathf.Exp(-lookSmooth * Time.deltaTime);
-            transform.position = Vector3.Lerp(transform.position,
-                target.position + offset, posBlend);
+
+            // Vertical soft zone: the camera holds its height while Pip hops
+            // (small target deltas settle slowly) and only chases when he
+            // leaves the window — climbs and falls. Riding every jump arc
+            // made landing heights hard to read; a held horizon reads true.
+            const float YWindow = 2.5f;
+            float dy = target.position.y - followY;
+            float yBlend = Mathf.Abs(dy) > YWindow ? posBlend : posBlend * 0.25f;
+            followY = Mathf.Lerp(followY, target.position.y, yBlend);
+
+            Vector3 goal = target.position + offset;
+            goal.y = followY + offset.y;
+            transform.position = Vector3.Lerp(transform.position, goal, posBlend);
             lookPoint = Vector3.Lerp(lookPoint, target.position, lookBlend);
 
             if (shakeTimer > 0f)

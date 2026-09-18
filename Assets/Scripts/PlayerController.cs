@@ -23,6 +23,8 @@ namespace GemRush
         bool grounded;
         bool wasGroundedLastFrame = true;
         float squash; // 0 = neutral; positive = stretched, negative = squashed
+        float squashVel; // spring velocity for the squash overshoot
+        bool jumpCutApplied; // variable jump height: cut only once per jump
         float lastGroundedTime = -99f;
         float lastJumpPressedTime = -99f;
         Vector3 platformVelocity;
@@ -154,6 +156,7 @@ namespace GemRush
                 lastJumpPressedTime = -99f;
                 lastGroundedTime = -99f;
                 platformVelocity = Vector3.zero;
+                jumpCutApplied = false;
                 Vector3 vel = rb.linearVelocity;
                 vel.y = jumpVelocity;
                 rb.linearVelocity = vel;
@@ -161,6 +164,21 @@ namespace GemRush
                 AudioManager.Instance.PlayJump();
                 Vector3 feet = tr.position + Vector3.down * 0.9f;
                 Fx.Burst(feet, new Color(0.9f, 0.9f, 0.9f), 8);
+            }
+
+            // Variable jump height (release-to-cut): a short tap makes a
+            // short hop. One mild cut per jump, never while wind carries the
+            // player, and never in flight (hold-to-rise IS the fly control).
+            bool jumpHeld = Input.GetButton("Jump") || TouchControls.JumpHeld;
+            if (!flyMode && !jumpHeld && !jumpCutApplied && grounded == false &&
+                Time.time - lastGroundedTime > coyoteTime &&
+                rb.linearVelocity.y > jumpVelocity * 0.35f &&
+                gustPush == Vector3.zero && windLift <= 0f)
+            {
+                jumpCutApplied = true;
+                Vector3 vel = rb.linearVelocity;
+                vel.y *= 0.5f;
+                rb.linearVelocity = vel;
             }
 
             if (tr.position.y < (gm.CurrentLevelDefinition != null
@@ -194,10 +212,17 @@ namespace GemRush
             float target = 0f;
             if (grounded && speed < 0.6f)
                 target = Mathf.Sin(Time.time * 2.2f) * 0.045f; // idle breathing
-            squash = Mathf.Lerp(squash, target,
-                1f - Mathf.Exp(-10f * Time.deltaTime));
+            // Underdamped spring instead of a plain decay: the squash passes
+            // slightly past neutral on recovery — classic follow-through, so
+            // landings read as bouncy rather than damped.
+            squashVel += (-90f * (squash - target) - 12f * squashVel)
+                * Time.deltaTime;
+            squash += squashVel * Time.deltaTime;
             if (!grounded && rb.linearVelocity.y > 2f && squash < 0.25f)
+            {
                 squash = Mathf.Lerp(squash, 0.25f, 0.5f);
+                squashVel = 0f;
+            }
 
             bodyVisual.localScale = new Vector3(
                 1f - squash * 0.6f, 1f + squash, 1f - squash * 0.6f);
@@ -282,10 +307,16 @@ namespace GemRush
             float blend = 1f - Mathf.Exp(-acceleration * control * Time.fixedDeltaTime);
             vel.x = Mathf.Lerp(vel.x, targetVel.x, blend);
             vel.z = Mathf.Lerp(vel.z, targetVel.z, blend);
+            // Terminal fall speed: long drops used to build unbounded speed,
+            // which made landing squash/dust thresholds and timing reads
+            // inconsistent between a 3-unit hop and a 30-unit plunge.
+            if (!flyMode) vel.y = Mathf.Max(vel.y, -28f);
             if (flyMode)
             {
                 // Hold jump to rise; let go and Gloomfang gently sinks.
-                bool rising = Input.GetButton("Jump") ||
+                // (Touch holds report through JumpHeld — onClick-only jump
+                // used to make flight rise for just the buffer window.)
+                bool rising = Input.GetButton("Jump") || TouchControls.JumpHeld ||
                     Time.time - lastJumpPressedTime <= jumpBuffer;
                 float targetY = rising ? 5.5f : -1.4f;
                 vel.y = Mathf.Lerp(vel.y, targetY,
@@ -366,6 +397,7 @@ namespace GemRush
             lastJumpPressedTime = -99f;
             lastGroundedTime = -99f;
             platformVelocity = Vector3.zero;
+            jumpCutApplied = true; // a pad launch is never cut short
         }
 
         /// Called by Updraft columns while Pip is inside: blend vertical

@@ -14,11 +14,17 @@ namespace GemRush
         /// Set by the jump button; consumed (and cleared) by the player controller.
         public static bool JumpQueued;
 
+        /// True the whole time the jump button is held — variable jump height
+        /// and fly mode read this (a Button.onClick only fires on release,
+        /// which both delayed every jump and broke hold-to-rise on touch).
+        public static bool JumpHeld;
+
         /// Normalized move vector (-1..1 on each axis) from the joystick.
         public Vector2 MoveVector { get; private set; }
 
         RectTransform baseRect;
         RectTransform knobRect;
+        RectTransform jumpRect;
         float canvasScale = 1f;
         float radiusPx = 120f;
         int joystickFingerId = -1;
@@ -28,6 +34,8 @@ namespace GemRush
         {
             if (!Input.touchSupported) return;
 
+            bool lefty = SaveSystem.LeftyOn;
+
             GameObject root = new GameObject("TouchControls");
             root.transform.SetParent(hudParent, false);
             RectTransform rootRect = root.AddComponent<RectTransform>();
@@ -36,6 +44,7 @@ namespace GemRush
             Sprite circle = Fx.CircleSprite();
             TouchControls controls = root.AddComponent<TouchControls>();
             TouchControls.JumpQueued = false;
+            TouchControls.JumpHeld = false;
 
             // Joystick base + knob; floated under the thumb while touching.
             GameObject baseGo = NewCircleImage(root.transform, "StickBase",
@@ -45,22 +54,23 @@ namespace GemRush
             controls.baseRect.anchoredPosition = new Vector2(-1000f, -1000f);
 
             GameObject knobGo = NewCircleImage(controls.baseRect.transform, "Knob",
-                circle, new Color(1f, 1f, 1f, 0.65f), false);
+                circle, new Color(1f, 1f, 0.65f), false);
             controls.knobRect = knobGo.GetComponent<RectTransform>();
             controls.knobRect.sizeDelta = new Vector2(110f, 110f);
 
-            // Jump button, bottom right.
+            // Jump button in the dominant thumb's arc. Fires on PRESS, not
+            // release (uGUI Button.onClick would add ~80ms to the game's
+            // most-pressed input), and reports hold state for fly mode and
+            // variable jump height.
             GameObject jumpGo = NewCircleImage(root.transform, "JumpButton",
                 circle, new Color(1f, 0.45f, 0.2f, 0.8f), true);
-            RectTransform jumpRect = jumpGo.GetComponent<RectTransform>();
-            jumpRect.anchorMin = new Vector2(1f, 0f);
-            jumpRect.anchorMax = new Vector2(1f, 0f);
-            jumpRect.sizeDelta = new Vector2(180f, 180f);
-            jumpRect.anchoredPosition = new Vector2(-150f, 160f);
+            controls.jumpRect = jumpGo.GetComponent<RectTransform>();
+            controls.jumpRect.anchorMin = new Vector2(lefty ? 0f : 1f, 0f);
+            controls.jumpRect.anchorMax = new Vector2(lefty ? 0f : 1f, 0f);
+            controls.jumpRect.sizeDelta = new Vector2(180f, 180f);
+            controls.jumpRect.anchoredPosition = new Vector2(lefty ? 150f : -150f, 160f);
 
-            Button jump = jumpGo.AddComponent<Button>();
-            jump.targetGraphic = jumpGo.GetComponent<Image>();
-            jump.onClick.AddListener(delegate { TouchControls.JumpQueued = true; });
+            JumpTouch jump = jumpGo.AddComponent<JumpTouch>();
 
             GameObject labelGo = new GameObject("Label");
             labelGo.transform.SetParent(jumpGo.transform, false);
@@ -73,6 +83,33 @@ namespace GemRush
             label.alignment = TextAnchor.MiddleCenter;
             label.raycastTarget = false;
             StretchFull(label.rectTransform);
+        }
+
+        /// Clears interrupted-touch state: if the OS (call, notification
+        /// shade) swallows the TouchPhase.Ended event, the joystick finger
+        /// id would otherwise stay claimed forever and brick all input.
+        public static void ResetInput()
+        {
+            JumpQueued = false;
+            JumpHeld = false;
+            if (Instance != null) Instance.joystickFingerId = -1;
+        }
+
+        /// Press-and-hold jump button; also queues the buffered jump.
+        class JumpTouch : MonoBehaviour,
+            UnityEngine.EventSystems.IPointerDownHandler,
+            UnityEngine.EventSystems.IPointerUpHandler
+        {
+            public void OnPointerDown(UnityEngine.EventSystems.PointerEventData data)
+            {
+                JumpQueued = true;
+                JumpHeld = true;
+            }
+
+            public void OnPointerUp(UnityEngine.EventSystems.PointerEventData data)
+            {
+                JumpHeld = false;
+            }
         }
 
         void Awake()
@@ -90,7 +127,9 @@ namespace GemRush
                 Touch t = Input.GetTouch(i);
 
                 if (t.phase == TouchPhase.Began && joystickFingerId == -1 &&
-                    t.position.x < Screen.width * 0.6f)
+                    (SaveSystem.LeftyOn
+                        ? t.position.x > Screen.width * 0.4f
+                        : t.position.x < Screen.width * 0.6f))
                 {
                     joystickFingerId = t.fingerId;
                     stickCenter = t.position;

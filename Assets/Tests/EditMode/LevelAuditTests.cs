@@ -83,6 +83,20 @@ namespace GemRush.Tests
                     Half = half
                 };
             }
+            // Echo bridges are standable while their bell's tone rings them
+            // solid — the intended way to cross (and to trail gems) in the
+            // Bell Towers packs.
+            for (int i = 0; i < l.EchoBridges.Count; i++)
+            {
+                EchoBridgeSpec b = l.EchoBridges[i];
+                tops.Add(new Top
+                {
+                    Center = new Vector3(b.Center.x,
+                        b.Center.y + b.Size.y * 0.5f, b.Center.z),
+                    Half = new Vector2(Mathf.Max(b.Size.x * 0.5f, 1.5f),
+                                       Mathf.Max(b.Size.z * 0.5f, 1.5f))
+                });
+            }
             return tops;
         }
 
@@ -153,8 +167,8 @@ namespace GemRush.Tests
         [Test]
         public void LevelCount_IsSubstantial()
         {
-            Assert.GreaterOrEqual(LevelLibrary.Levels.Length, 9,
-                "The shipped game has 15+ levels; a smaller library means a " +
+            Assert.GreaterOrEqual(LevelLibrary.Levels.Length, 24,
+                "The shipped game has 30 levels; a smaller library means a " +
                 "pack file stopped being concatenated in BuildAllLevels.");
         }
 
@@ -373,6 +387,62 @@ namespace GemRush.Tests
                         Label(i, l) + ": spinner " + s + " at " + st +
                         " does not sit on any platform or mover top " +
                         "(within " + SpinnerTopTolerance + " of the surface).");
+                }
+                i++;
+            }
+        }
+
+        [Test]
+        public void EveryCheckpoint_StandsOnAPlatformTop()
+        {
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                List<Top> tops = StandableTops(l);
+                for (int c = 0; c < l.Checkpoints.Count; c++)
+                {
+                    Vector3 cp = l.Checkpoints[c];
+                    bool grounded = false;
+                    for (int t = 0; t < tops.Count && !grounded; t++)
+                    {
+                        float dx = Mathf.Abs(cp.x - tops[t].Center.x) - tops[t].Half.x;
+                        float dz = Mathf.Abs(cp.z - tops[t].Center.z) - tops[t].Half.y;
+                        grounded = dx <= 1f && dz <= 1f &&
+                            Mathf.Abs(cp.y - tops[t].Center.y) <= SpinnerTopTolerance;
+                    }
+                    Assert.IsTrue(grounded,
+                        Label(i, l) + ": checkpoint " + c + " at " + cp +
+                        " floats off its platform top (checkpoint positions " +
+                        "are top-surface positions, like spinners).");
+                    Assert.Greater(cp.y, l.KillY + 0.5f,
+                        Label(i, l) + ": checkpoint " + c +
+                        " sits below the death plane.");
+                }
+                i++;
+            }
+        }
+
+        [Test]
+        public void EveryGustExit_HasALanding()
+        {
+            // A gust that dumps Pip past the last platform is a death trap
+            // disguised as a ride: the swept far end of every gust lane must
+            // end within jump reach of a standable top.
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.BonusFlight) { i++; continue; }
+                List<Top> tops = StandableTops(l);
+                for (int g = 0; g < l.Gusts.Count; g++)
+                {
+                    GustSpec gust = l.Gusts[g];
+                    Vector3 exit = gust.Center + Vector3.Scale(
+                        gust.Direction, new Vector3(
+                            gust.Size.z * 0.5f + 10f, 0f, gust.Size.z * 0.5f + 10f));
+                    Assert.IsTrue(Reachable(l, tops, exit),
+                        Label(i, l) + ": gust " + g + " blows out to " + exit +
+                        " with no platform, wind or gust reach there — the " +
+                        "ride ends in the void.");
                 }
                 i++;
             }

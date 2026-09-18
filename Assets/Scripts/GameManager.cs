@@ -46,6 +46,28 @@ namespace GemRush
             ShowMenu();
         }
 
+        // A phone call or the notification shade can interrupt any run.
+        // Auto-pausing (and clearing half-swallowed touch state) means the
+        // resume is always the calm pause menu — never mid-air next to the
+        // thing that was about to kill you.
+        void OnApplicationPause(bool paused)
+        {
+            if (paused && State == GameState.Playing)
+            {
+                TouchControls.ResetInput();
+                PauseGame();
+            }
+        }
+
+        void OnApplicationFocus(bool focused)
+        {
+            if (!focused && State == GameState.Playing)
+            {
+                TouchControls.ResetInput();
+                PauseGame();
+            }
+        }
+
         void Update()
         {
             if (State == GameState.Playing)
@@ -201,7 +223,7 @@ namespace GemRush
                 LevelLibrary.Levels.Length - 1));
 
             AudioManager.Instance.PlayWin();
-            Haptics.Heavy();
+            Haptics.Fanfare();
             Fx.Burst(GameBootstrap.Player.transform.position,
                 ArtLib.PortalCyan * 1.5f, 40);
 

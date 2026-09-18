@@ -11,10 +11,17 @@ namespace GemRush
         Vector3 basePosition;
         float phase;
         bool collected;
+        bool magnetized;
 
         /// Melody gem: when non-zero, collecting this gem plays this note
         /// instead of the regular pickup — gem trails become songs.
         public float noteFrequency;
+
+        /// How close Pip must be before a gem lets go of its perch and
+        /// slides toward him: mobile thumbs are imprecise, so near-misses on
+        /// the game's core verb should still count.
+        const float MagnetRadius = 2.2f;
+        const float MagnetSpeed = 10f;
 
         public static Gem Create(Transform parent, Vector3 position)
         {
@@ -45,10 +52,31 @@ namespace GemRush
         void Update()
         {
             if (collected) return;
-            transform.Rotate(Vector3.up, 120f * Time.deltaTime, Space.World);
-            Vector3 pos = basePosition;
-            pos.y += Mathf.Sin(Time.time * 2f + phase) * 0.22f;
-            transform.localPosition = pos;
+
+            // Magnetism: once Pip is close, drop the bob and slide to him.
+            if (!magnetized)
+            {
+                Transform pip = GameBootstrap.Player != null
+                    ? GameBootstrap.Player.transform : null;
+                if (pip != null &&
+                    (pip.position - transform.position).sqrMagnitude
+                        < MagnetRadius * MagnetRadius)
+                    magnetized = true;
+            }
+
+            if (magnetized)
+            {
+                Transform pip = GameBootstrap.Player.transform;
+                transform.position = Vector3.MoveTowards(transform.position,
+                    pip.position, MagnetSpeed * Time.deltaTime);
+            }
+            else
+            {
+                transform.Rotate(Vector3.up, 120f * Time.deltaTime, Space.World);
+                Vector3 pos = basePosition;
+                pos.y += Mathf.Sin(Time.time * 2f + phase) * 0.22f;
+                transform.localPosition = pos;
+            }
 
             // Shared glow pulse: one material update, all gems breathe together.
             if (sharedGemMaterial != null)

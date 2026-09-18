@@ -14,7 +14,7 @@ namespace GemRush
             heart.transform.SetParent(parent, false);
             heart.transform.localPosition = position;
 
-            Material mat = ArtLib.Solid(ArtLib.HazardRed, 0.6f);
+            Material mat = ArtLib.Solid(ArtLib.HeartGold, 0.6f);
 
             // Two spheres for the lobes, a rotated cube for the point.
             GameObject lobeL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -62,7 +62,7 @@ namespace GemRush
             GameManager.Instance.OnHeartCollected();
             AudioManager.Instance.PlayHeart();
             Haptics.Light();
-            Fx.Burst(transform.localPosition, ArtLib.HazardRed * 1.6f, 18);
+            Fx.Burst(transform.localPosition, ArtLib.HeartGold * 1.6f, 18);
 
             // Shrink out politely.
             transform.localScale = Vector3.one * 0.01f;

@@ -194,6 +194,22 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "shadows", value ? 1 : 0); Save(); }
         }
 
+        /// Vestibular comfort: the death shake is the only camera motion
+        /// effect in the game, so one toggle covers motion sensitivity.
+        public static bool ShakeOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "shake", 1) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "shake", value ? 1 : 0); Save(); }
+        }
+
+        /// Mirrors the touch layout: joystick on the dominant side, jump in
+        /// the other thumb's arc.
+        public static bool LeftyOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "lefty", 0) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "lefty", value ? 1 : 0); Save(); }
+        }
+
         static void Save()
         {
             PlayerPrefs.Save();
