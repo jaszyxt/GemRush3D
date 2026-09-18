@@ -130,6 +130,7 @@ namespace GemRush
             l.Name = "Skyfall Summit";
             l.Mission = "Skyfall Summit: the last Sunstones, the thinning air, and Gloomfang holding the high ground he insists he won fairly. One final climb, Pip — end the storm where the sky begins.";
             l.WinLine = "Rematch settled — tomorrow's forecast calls for sunshine and zero chance of Gloomfang.";
+            l.Milestone = "REGION CHARTED: THE REMATCH. The atlas orders a second page.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 8f, 5f, 1f, 5f));

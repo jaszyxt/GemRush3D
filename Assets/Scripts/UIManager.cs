@@ -56,6 +56,37 @@ namespace GemRush
         GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
         System.Action quitConfirmedAction;
 
+        // Touch level select is paged (5x2 per page): once the packs grew
+        // past four rows, 100-unit-tall touch buttons could no longer stack
+        // between PLAY and the instructions without covering each other's
+        // tap area. Keyboard/mouse keeps the one dense grid.
+        const int PageSize = 10;
+        int levelPage;
+        Button pagePrev;
+        Button pageNext;
+        Text pageLabel;
+
+        // Settings opened while paused becomes a layer over the pause menu:
+        // pause hides while Settings is up and returns when it closes.
+        bool settingsOverPause;
+
+        // Change-cache for the HUD: callers may push every frame, but a
+        // write (and its string allocation) only happens when the displayed
+        // value actually moved.
+        int hudCacheLevel = -1;
+        int hudCacheGems = -1;
+        int hudCacheTotal = -1;
+        int hudCacheLives = -1;
+        int hudCacheDeciseconds = -1;
+
+        // Text Size setting: every label registers its designed size here,
+        // so Large mode re-derives from the base and can never overflow a
+        // layout that was fitted for the default.
+        readonly System.Collections.Generic.List<Text> scalableTexts =
+            new System.Collections.Generic.List<Text>();
+        readonly System.Collections.Generic.List<int> scalableBaseSizes =
+            new System.Collections.Generic.List<int>();
+
         void Awake()
         {
             Instance = this;
@@ -108,6 +139,10 @@ namespace GemRush
             BuildPause(safeGo.transform);
             BuildIntro(safeGo.transform);
             BuildStoryToast(safeGo.transform);
+
+            // Honor a persisted Text Size preference on every label (a no-op
+            // at the default size).
+            ApplyTextSize();
 
             HideAll();
         }
@@ -206,11 +241,11 @@ namespace GemRush
 
             // Touch builds pin every tappable target to at least 100x100
             // ref units (~48 dp); keyboard and mouse keep the compact
-            // sizes. The taller touch PLAY needs headroom under the
-            // tagline, so on touch it anchors a little higher — the grid
-            // below derives its band from the same anchor.
+            // sizes. Both share PLAY's anchor: with paging (below) the
+            // touch grid needs only two rows, so the desktop rhythm works
+            // for touch too.
             bool touch = Input.touchSupported;
-            float playY = touch ? 0.5f : 0.46f;
+            float playY = 0.46f;
             MakeButton(menuPanel.transform, "PLAY",
                 new Vector2(0.5f, playY), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.PlayContinue(); });
@@ -219,51 +254,93 @@ namespace GemRush
             int count = LevelLibrary.Levels.Length;
             levelButtons = new Button[count];
             levelButtonTexts = new Text[count];
-            int perRow = count <= 4 ? count : (count > 12 ? 5 : 3);
-            int rows = (count + perRow - 1) / perRow;
-            // The grid must fit between PLAY and the instructions band
-            // (top y≈0.085) however many levels exist. Spacing is derived
-            // from the row count so the last row never collides with it.
-            // On touch the buttons are pinned at 100 units tall (~48 dp),
-            // so the same derivation runs from the real button size and
-            // PLAY's higher anchor instead of the fixed band — three rows
-            // of 100-unit buttons only fit when PLAY moves up with them.
-            float gridTop = 0.395f;
-            float gridBottom = 0.135f;
-            float rowStep = rows > 1
-                ? Mathf.Min(0.075f, (gridTop - gridBottom) / (rows - 1))
-                : 0f;
-            float buttonHeight = Mathf.Min(60f, 46f + rowStep * 120f);
-            Vector2 levelSize = new Vector2(200f, buttonHeight);
+            int perRow;
+            int rows;
+            float gridTop, gridBottom, rowStep, buttonHeight;
+            Vector2 levelSize;
+            int levelLabelSize;
             if (touch)
             {
+                // Paged 5x2: two fixed rows of 100-unit buttons in the band
+                // between PLAY and the instructions, arrows at the band's
+                // vertical middle. Page-flipping is in FlipPage/RefreshMenu.
+                perRow = 5;
+                rows = 2;
                 buttonHeight = 100f;
                 levelSize = new Vector2(240f, buttonHeight);
-                float half = buttonHeight / 900f * 0.5f;
-                float margin = 0.006f;
-                gridTop = playY - half * 2f - margin;
-                gridBottom = 0.085f + half + margin;
+                levelLabelSize = 24;
+                gridTop = 0.32f;
+                gridBottom = 0.165f;
+                rowStep = gridTop - gridBottom;
+            }
+            else
+            {
+                perRow = count <= 4 ? count : (count > 12 ? 5 : 3);
+                rows = (count + perRow - 1) / perRow;
+                // The grid must fit between PLAY (y≈0.46) and the
+                // instructions band (top y≈0.085) however many levels
+                // exist. Spacing is derived from the row count so the last
+                // row never collides with it.
+                gridTop = 0.395f;
+                gridBottom = 0.135f;
                 rowStep = rows > 1
-                    ? Mathf.Min(buttonHeight / 900f + margin * 2f,
-                        (gridTop - gridBottom) / (rows - 1))
+                    ? Mathf.Min(0.075f, (gridTop - gridBottom) / (rows - 1))
                     : 0f;
+                buttonHeight = Mathf.Min(60f, 46f + rowStep * 120f);
+                levelSize = new Vector2(200f, buttonHeight);
+                levelLabelSize = rowStep < 0.06f ? 20 : 21;
             }
             for (int i = 0; i < count; i++)
             {
                 int index = i; // capture for the delegate
-                int row = i / perRow;
-                // Center whichever buttons actually landed on the last row.
-                int inRow = (row == rows - 1) ? (count - row * perRow) : perRow;
-                int col = i - row * perRow;
-                float x = 0.5f - ((inRow - 1) / 2f - col) * 0.185f;
-                float y = gridTop - row * rowStep;
+                int row, col, inRow;
+                float x, y;
+                if (touch)
+                {
+                    // Position within the page: row 0 is this page's first
+                    // five levels, row 1 its second five.
+                    row = (i / perRow) % 2;
+                    col = i % perRow;
+                    inRow = perRow;
+                    // Step 0.17 keeps the outer columns clear of the page
+                    // arrows flanking the grid (240-wide buttons end at
+                    // x 0.085 / begin at 0.915; the arrows end at 0.073 /
+                    // begin at 0.927).
+                    x = 0.5f - (2 - col) * 0.17f;
+                    y = row == 0 ? gridTop : gridBottom;
+                }
+                else
+                {
+                    row = i / perRow;
+                    // Center whichever buttons actually landed on the last row.
+                    inRow = (row == rows - 1) ? (count - row * perRow) : perRow;
+                    col = i - row * perRow;
+                    x = 0.5f - ((inRow - 1) / 2f - col) * 0.185f;
+                    y = gridTop - row * rowStep;
+                }
                 Button b = MakeButton(menuPanel.transform, "LEVEL " + (i + 1),
                     new Vector2(x, y), new Vector2(0f, 0f), levelSize,
-                    delegate { GameManager.Instance.PlayLevel(index); });
+                    delegate { GameManager.Instance.PlayLevel(index); },
+                    levelLabelSize);
                 levelButtons[i] = b;
                 levelButtonTexts[i] = b.GetComponentInChildren<Text>();
-                if (levelButtonTexts[i] != null)
-                    levelButtonTexts[i].fontSize = rowStep < 0.06f ? 19 : 21;
+            }
+
+            if (touch)
+            {
+                // Page flipper: arrows flank the grid; the "n / N" readout
+                // sits in the bottom-center gap between the instructions
+                // band (left) and the flavor quotes (right).
+                pagePrev = MakeButton(menuPanel.transform, "‹",
+                    new Vector2(0.045f, 0.2425f), new Vector2(0f, 0f),
+                    new Vector2(90f, 100f), delegate { FlipPage(-1); }, 44);
+                pageNext = MakeButton(menuPanel.transform, "›",
+                    new Vector2(0.955f, 0.2425f), new Vector2(0f, 0f),
+                    new Vector2(90f, 100f), delegate { FlipPage(1); }, 44);
+                pageLabel = MakeText(menuPanel.transform, "PageLabel", "", 20,
+                    new Color(0.85f, 0.87f, 0.92f), TextAnchor.MiddleCenter,
+                    new Vector2(0.455f, 0.005f), new Vector2(0.545f, 0.05f),
+                    0f, 0f, 0f, 0f);
             }
 
             // The floor-enlarged touch SETTINGS (220x100) would poke past
@@ -279,15 +356,15 @@ namespace GemRush
                 "Move: WASD / Arrows    Jump: Space    (ENTER works too)\n" +
                 "Collect gems for stars, dodge the red spinners, reach the portal!\n" +
                 "On touch: drag left side to move, tap JUMP.",
-                18, new Color(0.85f, 0.87f, 0.92f), TextAnchor.LowerLeft,
+                22, new Color(0.85f, 0.87f, 0.92f), TextAnchor.LowerLeft,
                 new Vector2(0.03f, 0.01f), new Vector2(0.46f, 0.085f), 0f, 0f, 0f, 0f);
 
-            menuQuote = MakeText(menuPanel.transform, "MenuQuote", "", 20,
+            menuQuote = MakeText(menuPanel.transform, "MenuQuote", "", 22,
                 new Color(0.72f, 0.78f, 0.88f), TextAnchor.LowerRight,
                 new Vector2(0.52f, 0.01f), new Vector2(0.97f, 0.085f), 0f, 0f, 0f, 0f);
             menuQuote.fontStyle = FontStyle.Italic;
 
-            visitRecap = MakeText(menuPanel.transform, "VisitRecap", "", 19,
+            visitRecap = MakeText(menuPanel.transform, "VisitRecap", "", 22,
                 starGold, TextAnchor.UpperLeft,
                 new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f);
         }
@@ -295,10 +372,31 @@ namespace GemRush
         void RefreshMenu()
         {
             if (levelButtons == null) return;
+            int count = levelButtons.Length;
             int dailyIndex = DailyGem.TodayIndex();
             bool giftTaken = DailyGem.GiftAlreadyCollectedToday();
-            for (int i = 0; i < levelButtons.Length; i++)
+            int first = 0;
+            int last = count;
+            if (Input.touchSupported)
             {
+                int pages = PageCount();
+                levelPage = Mathf.Clamp(levelPage, 0, pages - 1);
+                first = levelPage * PageSize;
+                last = Mathf.Min(first + PageSize, count);
+                if (pageLabel != null)
+                    pageLabel.text = (levelPage + 1) + " / " + pages;
+                if (pagePrev != null) pagePrev.interactable = levelPage > 0;
+                if (pageNext != null) pageNext.interactable = levelPage < pages - 1;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                // Off-page buttons deactivate entirely — no stray raycasts,
+                // no golden daily glow leaking through from another page.
+                bool onPage = i >= first && i < last;
+                if (levelButtons[i].gameObject.activeSelf != onPage)
+                    levelButtons[i].gameObject.SetActive(onPage);
+                if (!onPage) continue;
+
                 bool unlocked = i <= SaveSystem.UnlockedLevel;
                 levelButtons[i].interactable = unlocked;
                 Image img = levelButtons[i].targetGraphic as Image;
@@ -325,19 +423,45 @@ namespace GemRush
             }
         }
 
+        int PageCount()
+        {
+            return (levelButtons.Length + PageSize - 1) / PageSize;
+        }
+
+        void FlipPage(int dir)
+        {
+            levelPage = Mathf.Clamp(levelPage + dir, 0, PageCount() - 1);
+            RefreshMenu();
+        }
+
         void BuildHUD(Transform canvas)
         {
             hudPanel = MakePanel(canvas, "HudPanel", new Color(0f, 0f, 0f, 0f));
 
-            hudLevel = MakeText(hudPanel.transform, "Level", "", 26,
+            // The four HUD readouts change constantly (the clock rebuilds
+            // its mesh ~10x/s even when nothing else moves). uGUI dirties a
+            // whole canvas when any of its graphics changes, so they get a
+            // small nested canvas of their own and the static pause button
+            // never re-batches with them.
+            GameObject hudDyn = new GameObject("HudDynamic", typeof(RectTransform));
+            hudDyn.transform.SetParent(hudPanel.transform, false);
+            RectTransform dynRect = (RectTransform)hudDyn.transform;
+            dynRect.anchorMin = Vector2.zero;
+            dynRect.anchorMax = Vector2.one;
+            dynRect.offsetMin = Vector2.zero;
+            dynRect.offsetMax = Vector2.zero;
+            hudDyn.AddComponent<Canvas>();
+            Transform dyn = hudDyn.transform;
+
+            hudLevel = MakeText(dyn, "Level", "", 26,
                 new Color(0.9f, 0.9f, 0.95f), TextAnchor.MiddleLeft,
                 new Vector2(0f, 0.93f), new Vector2(0.22f, 1f), 24f, 4f, 4f, 2f);
 
-            hudGems = MakeText(hudPanel.transform, "Gems", "Gems  0 / 0", 28,
+            hudGems = MakeText(dyn, "Gems", "Gems  0 / 0", 28,
                 Color.white, TextAnchor.MiddleLeft,
                 new Vector2(0.22f, 0.93f), new Vector2(0.48f, 1f), 12f, 4f, 4f, 2f);
 
-            hudTime = MakeText(hudPanel.transform, "Time", "0:00.0", 28,
+            hudTime = MakeText(dyn, "Time", "0:00.0", 28,
                 Color.white, TextAnchor.MiddleCenter,
                 new Vector2(0.48f, 0.93f), new Vector2(0.62f, 1f), 4f, 4f, 4f, 2f);
 
@@ -347,11 +471,10 @@ namespace GemRush
             bool touch = Input.touchSupported;
             Button pause = MakeButton(hudPanel.transform, "II",
                 new Vector2(0.645f, touch ? 0.93f : 0.965f), new Vector2(0f, 0f),
-                new Vector2(58f, 58f), delegate { GameManager.Instance.PauseGame(); });
-            Text pauseLabel = pause.GetComponentInChildren<Text>();
-            if (pauseLabel != null) pauseLabel.fontSize = 26;
+                new Vector2(58f, 58f),
+                delegate { GameManager.Instance.PauseGame(); }, 26);
 
-            hudLives = MakeText(hudPanel.transform, "Lives", "Lives  3", 28,
+            hudLives = MakeText(dyn, "Lives", "Lives  3", 28,
                 starGold, TextAnchor.MiddleRight,
                 new Vector2(0.68f, 0.93f), new Vector2(1f, 1f), 8f, 4f, 24f, 2f);
 
@@ -503,24 +626,23 @@ namespace GemRush
             title.fontStyle = FontStyle.Bold;
 
             // Rows: Sound, Screen Shake, Haptics, Shadows, Left-handed
-            // Controls — plus Fullscreen on desktop only. The step derives
-            // from the row count so the six-row desktop layout still keeps
-            // its last row clear of BACK below.
+            // Controls, Text Size — plus Fullscreen on desktop only. The
+            // desktop step derives from seven rows so the last one keeps
+            // its distance from BACK; on touch the 100-unit-tall rows
+            // reflow into a 2-column grid (reading order; an odd last row
+            // centers itself).
             string[] names = IsDesktopPlatform()
                 ? new string[] { "Sound", "Screen Shake", "Haptics", "Shadows",
-                    "Left-handed Controls", "Fullscreen" }
+                    "Left-handed Controls", "Text Size", "Fullscreen" }
                 : new string[] { "Sound", "Screen Shake", "Haptics", "Shadows",
-                    "Left-handed Controls" };
+                    "Left-handed Controls", "Text Size" };
             settingsLabels = new Text[names.Length];
-            // On touch the 100-unit-tall rows cannot stack five high
-            // between the title and BACK, so they reflow into a 2-column
-            // grid (reading order; an odd last row centers itself).
             bool touch = Input.touchSupported;
             for (int i = 0; i < names.Length; i++)
             {
                 int index = i;
                 float x = 0.5f;
-                float y = 0.62f - i * 0.0745f;
+                float y = touch ? 0f : 0.63f - i * 0.068f;
                 if (touch)
                 {
                     int row = i / 2;
@@ -535,7 +657,7 @@ namespace GemRush
             }
 
             MakeButton(settingsPanel.transform, "BACK",
-                new Vector2(0.5f, 0.17f), new Vector2(0f, 0f),
+                new Vector2(0.5f, touch ? 0.17f : 0.11f), new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseSettings(); });
 
             settingsPanel.SetActive(false);
@@ -543,9 +665,27 @@ namespace GemRush
 
         void ShowSettings()
         {
+            // From pause, Settings becomes a layer: the pause panel draws
+            // above Settings in sibling order, so it hides while Settings
+            // is up and comes straight back on close — the run stays
+            // paused underneath the whole time.
+            settingsOverPause = GameManager.Instance != null &&
+                GameManager.Instance.State == GameState.Paused;
+            if (settingsOverPause) HidePaused();
             RefreshSettings();
             settingsPanel.SetActive(true);
             AudioManager.Instance.PlayPanel(true);
+        }
+
+        /// Closes the settings panel (same as pressing its BACK button).
+        public void CloseSettings()
+        {
+            settingsPanel.SetActive(false);
+            if (settingsOverPause && GameManager.Instance != null &&
+                GameManager.Instance.State == GameState.Paused)
+                ShowPaused();
+            settingsOverPause = false;
+            AudioManager.Instance.PlayPanel(false);
         }
 
         void RefreshSettings()
@@ -556,8 +696,17 @@ namespace GemRush
             ApplyLabel(settingsLabels[2], "Haptics", SaveSystem.HapticsOn);
             ApplyLabel(settingsLabels[3], "Shadows", SaveSystem.ShadowsOn);
             ApplyLabel(settingsLabels[4], "Left-handed Controls", SaveSystem.LeftyOn);
-            if (settingsLabels.Length > 5)
-                ApplyLabel(settingsLabels[5], "Fullscreen", SaveSystem.FullscreenOn);
+            if (settingsLabels.Length > 5 && settingsLabels[5] != null)
+            {
+                // A mode, not an on/off: the label names the value, and the
+                // row tint follows it like every other toggle.
+                settingsLabels[5].text = "Text Size:  " +
+                    (SaveSystem.TextLargeOn ? "LARGE" : "NORMAL");
+                Image img = settingsLabels[5].transform.parent.GetComponent<Image>();
+                if (img != null) img.color = SaveSystem.TextLargeOn ? onColor : offColor;
+            }
+            if (settingsLabels.Length > 6)
+                ApplyLabel(settingsLabels[6], "Fullscreen", SaveSystem.FullscreenOn);
         }
 
         void ApplyLabel(Text label, string name, bool on)
@@ -589,20 +738,41 @@ namespace GemRush
             }
             else if (index == 5)
             {
+                SaveSystem.TextLargeOn = !SaveSystem.TextLargeOn;
+                ApplyTextSize();
+            }
+            else if (index == 6)
+            {
                 SaveSystem.FullscreenOn = !SaveSystem.FullscreenOn;
                 Screen.fullScreenMode = SaveSystem.FullscreenOn
                     ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
             }
             // A flipped setting answers with its own blip: up when it
-            // turned on, down when it turned off.
+            // turned on, down when it turned off. (Index 5 reads its state
+            // after ApplyTextSize, so the blip matches what is on screen.)
             bool[] states =
             {
                 SaveSystem.SoundOn, SaveSystem.ShakeOn, SaveSystem.HapticsOn,
-                SaveSystem.ShadowsOn, SaveSystem.LeftyOn, SaveSystem.FullscreenOn
+                SaveSystem.ShadowsOn, SaveSystem.LeftyOn, SaveSystem.TextLargeOn,
+                SaveSystem.FullscreenOn
             };
-            if (index >= 0 && index < states.Length)
+            if (index >= 0 && index < settingsLabels.Length)
                 AudioManager.Instance.PlayUIToggle(states[index]);
             RefreshSettings();
+        }
+
+        /// Re-derives every registered label from its designed size. Runs
+        /// once at build and whenever Text Size flips; a few hundred
+        /// fontSize writes, never per frame.
+        void ApplyTextSize()
+        {
+            float mult = SaveSystem.TextLargeOn ? 1.15f : 1f;
+            for (int i = 0; i < scalableTexts.Count; i++)
+            {
+                if (scalableTexts[i] == null) continue;
+                scalableTexts[i].fontSize =
+                    Mathf.Max(12, Mathf.RoundToInt(scalableBaseSizes[i] * mult));
+            }
         }
 
         void BuildPause(Transform canvas)
@@ -619,16 +789,21 @@ namespace GemRush
                 new Vector2(360f, 84f), delegate { GameManager.Instance.ResumeGame(); });
 
             MakeButton(pausePanel.transform, "RESTART LEVEL",
-                new Vector2(0.5f, 0.28f), new Vector2(0f, 0f),
+                new Vector2(0.5f, 0.285f), new Vector2(0f, 0f),
                 new Vector2(360f, 68f),
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
-            // On touch the three floor-enlarged buttons (100 units each)
-            // would collide as a stack, so the bottom one drops a step.
+            // Settings joins the pause menu (D9): sound/haptics/text size
+            // are adjustable mid-run, without abandoning the level. MENU and
+            // SETTINGS share the bottom row; the touch floor widens both,
+            // which still clears side by side.
             MakeButton(pausePanel.transform, "MENU",
-                new Vector2(0.5f, Input.touchSupported ? 0.16f : 0.17f),
-                new Vector2(0f, 0f),
-                new Vector2(360f, 68f), delegate { GameManager.Instance.GoToMenu(); });
+                new Vector2(0.5f - 0.13f, 0.165f), new Vector2(0f, 0f),
+                new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
+
+            MakeButton(pausePanel.transform, "SETTINGS",
+                new Vector2(0.5f + 0.13f, 0.165f), new Vector2(0f, 0f),
+                new Vector2(260f, 62f), delegate { ShowSettings(); });
 
             pausePanel.SetActive(false);
         }
@@ -700,6 +875,15 @@ namespace GemRush
         public void ShowMenu()
         {
             HideAll();
+            // Touch paging opens on the page holding the next unplayed
+            // level, so "continue" is where the eyes land first.
+            if (Input.touchSupported && levelButtons != null &&
+                levelButtons.Length > 0)
+            {
+                int frontier = Mathf.Clamp(SaveSystem.UnlockedLevel,
+                    0, levelButtons.Length - 1);
+                levelPage = frontier / PageSize;
+            }
             RefreshMenu();
             if (menuQuote != null) menuQuote.text = Story.MenuQuote();
             UpdateVisitRecap();
@@ -731,6 +915,14 @@ namespace GemRush
         public void ShowHUD()
         {
             HideAll();
+            // A fresh level must repaint the HUD even when the cached values
+            // happen to match what the last run displayed (restart with
+            // identical gem count, etc.).
+            hudCacheLevel = -1;
+            hudCacheGems = -1;
+            hudCacheTotal = -1;
+            hudCacheLives = -1;
+            hudCacheDeciseconds = -1;
             hudPanel.SetActive(true);
         }
 
@@ -828,16 +1020,34 @@ namespace GemRush
             completePanel.SetActive(true);
         }
 
+        /// Push-based HUD update with a change-cache: a steady frame does
+        /// no string formatting and no .text writes. The clock formats only
+        /// when its displayed tenth-of-a-second moved, which caps it at ten
+        /// allocations per second instead of sixty.
         public void UpdateHUD(int level, int gems, int total, int lives, float time)
         {
-            if (hudLevel != null)
+            if (hudLevel != null && level != hudCacheLevel)
+            {
+                hudCacheLevel = level;
                 hudLevel.text = "LV " + (level + 1);
-            if (hudGems != null)
+            }
+            if (hudGems != null && (gems != hudCacheGems || total != hudCacheTotal))
+            {
+                hudCacheGems = gems;
+                hudCacheTotal = total;
                 hudGems.text = string.Format("Gems  {0} / {1}", gems, total);
-            if (hudTime != null)
+            }
+            int decis = (int)(time * 10f);
+            if (hudTime != null && decis != hudCacheDeciseconds)
+            {
+                hudCacheDeciseconds = decis;
                 hudTime.text = FormatTime(time);
-            if (hudLives != null)
+            }
+            if (hudLives != null && lives != hudCacheLives)
+            {
+                hudCacheLives = lives;
                 hudLives.text = string.Format("Lives  {0}", lives);
+            }
         }
 
         static string FormatTime(float t)
@@ -853,12 +1063,10 @@ namespace GemRush
         /// back/Escape stack closes Settings before any other back action.
         public bool SettingsOpen => settingsPanel != null && settingsPanel.activeSelf;
 
-        /// Closes the settings panel (same as pressing its BACK button).
-        public void CloseSettings()
-        {
-            settingsPanel.SetActive(false);
-            AudioManager.Instance.PlayPanel(false);
-        }
+        /// True while the quit-confirmation dialog is on screen; Enter and
+        /// the menu shortcuts must not fire underneath it.
+        public bool QuitOpen =>
+            quitConfirmPanel != null && quitConfirmPanel.activeSelf;
 
         /// Shows the quit-confirmation dialog ("QUIT THE GAME?"). Quitting
         /// always goes through this dialog on desktop — Esc/back never quits
@@ -969,6 +1177,10 @@ namespace GemRush
             Outline outline = go.AddComponent<Outline>();
             outline.effectColor = new Color(0f, 0f, 0f, 0.85f);
             outline.effectDistance = new Vector2(2f, -2f);
+            // Registered for the Text Size setting: base size remembered,
+            // so Large mode re-derives instead of compounding.
+            scalableTexts.Add(text);
+            scalableBaseSizes.Add(size);
             return text;
         }
 
@@ -983,7 +1195,8 @@ namespace GemRush
         }
 
         Button MakeButton(Transform parent, string label, Vector2 anchor,
-            Vector2 anchoredPos, Vector2 size, UnityEngine.Events.UnityAction onClick)
+            Vector2 anchoredPos, Vector2 size, UnityEngine.Events.UnityAction onClick,
+            int labelSize = 28)
         {
             GameObject go = new GameObject("Button");
             go.transform.SetParent(parent, false);
@@ -1019,7 +1232,7 @@ namespace GemRush
             Text text = labelGo.AddComponent<Text>();
             if (font != null) text.font = font;
             text.text = label;
-            text.fontSize = 28;
+            text.fontSize = labelSize;
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
             text.raycastTarget = false;
@@ -1030,6 +1243,9 @@ namespace GemRush
             lrt.anchorMax = Vector2.one;
             lrt.offsetMin = Vector2.zero;
             lrt.offsetMax = Vector2.zero;
+            // Registered for the Text Size setting, like every other label.
+            scalableTexts.Add(text);
+            scalableBaseSizes.Add(labelSize);
             return button;
         }
 

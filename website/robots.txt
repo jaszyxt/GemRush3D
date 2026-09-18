@@ -1,0 +1,5 @@
+# Gem Rush 3D — official website
+User-agent: *
+Allow: /
+
+Sitemap: https://jaszyxt.github.io/GemRush3D/sitemap.xml

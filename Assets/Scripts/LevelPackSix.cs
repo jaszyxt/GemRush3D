@@ -20,6 +20,7 @@ namespace GemRush
             l.BonusFlight = true;
             l.Mission = "TUESDAY. The Sky-Keeper is away, the badge is ON, and for the first time ever, Gloomfang does his run alone. Deliver the last Sunstones to the summit porch, weave the dancing guardians, and absolutely do not cry at the sunset. (He will cry at the sunset.) Hold jump to rise. Let go to just... be.";
             l.WinLine = "Delivery complete. He hummed the whole way home — and if anyone asks, the rain was confetti. It was confetti.";
+            l.Milestone = "BONUS LOGGED: GLOOMFANG'S DAY OFF. The atlas lists its first employee.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // his porch
             l.Platforms.Add(new PlatformSpec(0f, 2f, 18f, 6f, 1f, 6f));

@@ -28,6 +28,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Gust Alley";
+            l.Mood = SoundMood.Wind;
             l.Mission = "Something small is laughing in the wind, and every laugh blows a gust down this alley. The gaps ahead are far too wide to jump — but Nim's giggles carry further than you'd think. Stand in the lane. Wait for the giggle. Ride it.";
             l.WinLine = "Gust Alley, charted! Nim followed you the whole way, giggling. Gloomfang pretended not to be jealous. Of the baby. Or the wind. Unclear.";
 
@@ -82,6 +83,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Where Nim Laughs";
+            l.Mood = SoundMood.Wind;
             l.Mission = "Nim led you to his favorite spot: a garden where the guardians sleep through weather, giggles, and everything. Gust lanes cross the beds here — so the game is timing laughs around naps. Nim, for the record, has no timing at all.";
             l.WinLine = "Where Nim Laughs, charted! The guardians slept through an entire baby storm. Professional.";
 
@@ -146,8 +148,10 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "The Baby's Home";
+            l.Mood = SoundMood.Wind;
             l.Mission = "The giggles end somewhere above the garden — and the wind up here blows longer and softer than anywhere else. Two guardians patrol the route. At the top: a nest of clouds, a very small snore, and a very large storm who has decided this is everyone's problem now. Ours, specifically.";
             l.WinLine = "Nim is home, asleep, one cloud-big and one Pip-small. Gloomfang built the crib out of mist and refuses to discuss it. The atlas grows one word: 'family.'";
+            l.Milestone = "REGION CHARTED: STORM CHASERS. The atlas adds its first lullaby.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 6f, 1f, 6f));

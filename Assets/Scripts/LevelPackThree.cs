@@ -152,6 +152,7 @@ namespace GemRush
             l.Name = "Heart of the Storm";
             l.Mission = "At the bottom of everything beats the Heart of the Storm — and in front of it stands Gloomfang, out of storm and nearly out of excuses. 'Go back,' he thunders. It comes out as a whisper. One last climb, Pip. Not to win. To listen.";
             l.WinLine = "Pip takes his hand. The sky realm lights from below for the first time in a thousand years.";
+            l.Milestone = "REGION CHARTED: THE UNDERCLOUD. The atlas grows a bottom.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 5f, 20f, 6f, 1f, 6f));     // checkpoint ledge

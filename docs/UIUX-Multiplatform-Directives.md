@@ -463,3 +463,31 @@ Revisit alongside the iOS target. (Art rationale in
 whole desktop resolution, and some Android punch-hole devices misreport
 too — stretching every screen off-screen. Anchors are now clamped to
 0..1 so a bogus report degrades to "no inset", never a broken UI.
+
+## Appendix B — Implementation status (UI/general agent · 2026-09-19)
+
+| ID | Status | Notes |
+|----|--------|-------|
+| D1 | **Done** | `SafeArea.cs` (with the over-report clamp from Appendix A) + `SafeRoot` in `UIManager.Awake`; every screen parents under it |
+| D2 | **Done** | `TouchTarget()` floors every button at 100×100 on touch; small buttons re-anchored. **Correction to D2's original DoD:** a 5×5 grid of 100-unit buttons cannot fit the menu band — the rows overlapped and buried each other's tap area. Touch level select is therefore **paged (5×2, ‹ › arrows, "n / N" readout)** and opens on the page holding the newest unlocked level; desktop keeps the dense grid |
+| D3 | **Done** | Settings expose Screen Shake and Left-handed Controls; lefty live-mirrors the jump button via `TouchControls.ApplySide()` (no restart); Fullscreen row on desktop (bonus) |
+| D4 | **Done** | `GameManager.HandleBackNavigation()` walks the stack (dialog → settings → pause/resume → desktop menu quit-confirm); Android never quits |
+| D5/D6 | Not started | Gamepad phases — gameplay/input agent |
+| D7 | **Done** | HUD readouts on a nested `HudDynamic` canvas; `UpdateHUD` change-cached (clock ≤ 10 string builds/s, steady frames allocate nothing); `ShowHUD` resets the cache |
+| D8 | Partial | Fullscreen toggle + persisted mode done; `resizableWindow` + window-rect memory still open — platform/build agent |
+| D9 | **Done** | SETTINGS button on the pause menu; Settings hides pause while open and restores it on close (pause draws above Settings in sibling order, so the hide is required) |
+| D10 | **Done** | Text floors raised (instructions/quote/recap → 22, desktop level sublabels ≥ 20); "Text Size: NORMAL/LARGE" row re-derives every registered label from its base at 1.15× (never compounding); Enter is guarded while overlays hold the screen |
+| D11 | Not started | String table |
+| D12 | **Done** (by art agent) | See Appendix A |
+
+**Verification state:** in-editor compile clean (Unity 6000.6, live refresh).
+New `Assets/Tests/EditMode/UIAuditTests.cs` (safe-area anchor bounds, safe-root
+parenthood, level-count parity, Text Size re-derivation) is written but **not
+yet executed** — the editor was in a play session; run the EditMode suite once
+it exits play mode (same pending-rerun note as HANDOFF.md). Touch paging and
+the pause-settings layout still need one Device-Simulator pass on a notched
+20:9 preset.
+
+**Known live issue (not UI):** `GoalPortal.Update()` NRE at line 75 in the
+current working tree — thrown every frame during the editor's play session.
+Belongs to the in-flight gameplay work; flagged for its owner.

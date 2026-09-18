@@ -24,6 +24,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Twinlight Terrace";
+            l.Mood = SoundMood.Sunset;
             l.Mission = "With the Undercloud lit from below, the sky realm has two suns now — the old one, and the one Pip made. The terraces glow gold all day. No storm. No pressure. Just the best views in the realm and a guardian who half-heartedly spins.";
             l.WinLine = "Golden hour, golden gems. Gloomfang watched the whole run and clapped — very quietly, from very far away.";
 
@@ -87,6 +88,7 @@ namespace GemRush
             l.Mission = "It's Tuesday — Gloomfang's first official rain delivery. The islands are slick with celebration, the guardians are dancing, and the elevators run on schedule. Splashing is encouraged. Falling is traditional.";
             l.WinLine = "Pip danced through the first rain the realm has ever liked. Gloomfang took a bow and made it rain confetti. Briefly. Accidentally.";
             l.Name = "Raindance Revels";
+            l.Mood = SoundMood.Sunset;
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 6f, 1f, 6f));
@@ -149,8 +151,10 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Pip's Homecoming";
+            l.Mood = SoundMood.Sunset;
             l.Mission = "One more walk, and it's the oldest one there is: the way home. The first course looks smaller now — same islands, same gentle guardian, same movers that once felt impossible. The shelf by the window still has room for one more gem.";
             l.WinLine = "Home. The shelf gets the last gem — and the window keeps the best view in the realm. Thanks for playing.";
+            l.Milestone = "REGION CHARTED: THE TWO SUNS. The ink dries gold.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // home start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 6f, 1f, 6f));

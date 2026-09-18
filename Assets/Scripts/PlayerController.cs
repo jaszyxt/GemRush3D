@@ -193,7 +193,7 @@ namespace GemRush
                     if (rb.position.y < -1f)
                         TeleportTo(new Vector3(rb.position.x, 0.5f, rb.position.z));
                 }
-                else gm.OnPlayerDied();
+                else gm.OnPlayerDied(true);
             }
 
             if (flyMode) return; // flight skips squash (no landing to sell)
@@ -246,6 +246,7 @@ namespace GemRush
         void OnLand(float impactSpeed)
         {
             squash = Mathf.Clamp(-impactSpeed * 0.06f, -0.3f, 0f);
+            AudioManager.Instance.PlayLand(impactSpeed);
             if (impactSpeed > 5f)
                 Fx.Burst(tr.position + Vector3.down * 0.9f,
                     new Color(0.9f, 0.9f, 0.9f), 10);
@@ -331,12 +332,21 @@ namespace GemRush
             }
             else if (windLift > 0f)
             {
-                vel.y = Mathf.Lerp(vel.y, windLift,
-                    1f - Mathf.Exp(-5f * Time.fixedDeltaTime));
+                // Wind columns: constant lift while inside (the fountain),
+                // but pressing DOWN sinks through the wind at a gentle
+                // pace — the explicit "let me off here" control. The gate
+                // below also means wind never dampens an upward jump.
+                float lift = input.y < -0.5f ? -3f : windLift;
+                if (vel.y < lift)
+                {
+                    vel.y = Mathf.Lerp(vel.y, lift,
+                        1f - Mathf.Exp(-5f * Time.fixedDeltaTime));
+                }
             }
             rb.linearVelocity = vel;
             gustPush = Vector3.zero;
             gustLift = 0f;
+            windLift = 0f;
         }
 
         bool CheckGrounded()

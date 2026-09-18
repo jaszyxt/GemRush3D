@@ -34,9 +34,22 @@ namespace GemRush
             }
 
             // Ease toward the target pace — waking and dozing are gradual.
+            float previousSpeed = currentSpeed;
             currentSpeed = Mathf.MoveTowards(currentSpeed, target,
                 90f * Time.deltaTime);
             transform.Rotate(Vector3.up, currentSpeed * Time.deltaTime);
+
+            // A sleeping guardian crossing half-speed on the way up gets a
+            // rising growl — the sound of it noticing you. Volume fades
+            // with distance so far-off guardians stay quiet.
+            if (wakeRadius > 0f &&
+                previousSpeed < degreesPerSecond * 0.5f &&
+                currentSpeed >= degreesPerSecond * 0.5f &&
+                player != null)
+            {
+                AudioManager.Instance.PlayGuardianWake(
+                    AudioManager.Falloff(transform.position, 24f) * 0.9f);
+            }
 
             // The arm literally brightens as it wakes.
             if (armMat != null)

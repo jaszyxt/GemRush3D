@@ -25,6 +25,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Tailwind Point";
+            l.Mood = SoundMood.Wind;
             l.Mission = "The Sky-Keeper unrolls a brand-new map — mostly blank — and taps the empty corner: the Far Isles. First stop, Tailwind Point, where the wind stands still and the islands float on it. Gloomfang insists on coming as 'weather support.' He IS the weather.";
             l.WinLine = "Tailwind Point, charted! The wind says hello. Loudly. Gloomfang translated: it's been waiting for company.";
 
@@ -85,7 +86,8 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Monsoon Mosaic";
-            l.Mission = "Weather support, day one: Gloomfang practices his Tuesday rain over the Mosaic Isles, and everything blooms mid-jump. The guardians have learned to dance in it. The updrafts smell like wet stone and are twice as strong.";
+            l.Mood = SoundMood.Wind;
+            l.Mission = "Weather support, first posting: Gloomfang practices his Tuesday rain over the Mosaic Isles, and everything blooms mid-jump. The guardians have learned to dance in it. The updrafts smell like wet stone and are twice as strong.";
             l.WinLine = "Monsoon Mosaic, charted! Gloomfang's rain passed inspection. He has been insufferably proud ever since.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
@@ -147,8 +149,10 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "The Last Blank Space";
+            l.Mood = SoundMood.Wind;
             l.Mission = "One blank corner remains on the Sky-Keeper's map, and the wind blows hardest exactly there. Three standing winds, two guardians who wandered out this far to be alone, and the spot where the atlas ends. Draw the last line, Pip.";
             l.WinLine = "The map is full. The Sky-Keeper looks at it for a long time, then writes one word in the corner: 'more.'";
+            l.Milestone = "REGION CHARTED: THE FAR ISLES. The wind has a return address.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 6f, 1f, 6f));

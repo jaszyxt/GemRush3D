@@ -87,8 +87,18 @@ namespace GemRush.EditorTools
         public static void Build()
         {
             PlayerSettings.productName = "Gem Rush 3D";
-            PlayerSettings.bundleVersion = "1.9.2";
-            PlayerSettings.Android.bundleVersionCode = 15;
+            PlayerSettings.bundleVersion = "1.12.2";
+            PlayerSettings.Android.bundleVersionCode = 21;
+
+            // Desktop window UX (D8): a resizable borderless-fullscreen
+            // window at the UI's native reference size that keeps running
+            // when it loses focus. The in-game Settings Fullscreen row
+            // overrides the mode per machine at runtime.
+            PlayerSettings.resizableWindow = true;
+            PlayerSettings.defaultScreenWidth = 1600;
+            PlayerSettings.defaultScreenHeight = 900;
+            PlayerSettings.fullScreenMode = FullScreenMode.FullScreenWindow;
+            PlayerSettings.runInBackground = true;
 
             ApplyIcon();
             ApplySigning();

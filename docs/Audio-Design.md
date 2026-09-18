@@ -1,0 +1,113 @@
+# Audio Design — Gem Rush 3D
+
+**Owner:** audio agent · **v1.0** · 2026-09-18
+**Everything is synthesized at runtime. There are zero audio files, and
+that is a feature** — new sounds are code, reviewed like code, and never
+missing from a build.
+
+## 1. Sonic identity
+
+"A tiny warm hero in a big soft sky." Two timbre families carry the whole
+game (all in `SfxSynth`):
+
+- **Chime** — pure sines with shimmering, fast-dying upper partials
+  (`ChimePartials`). Everything positive: gems, hearts, stars, bells,
+  gifts, UI.
+- **Breath** — one-pole low-passed noise with sweeping cutoff
+  (`NoiseVoice`). Motion and weather: jumps, landings, wind, teleports,
+  page turns.
+
+Dark moments invert the palette: low hollow sines, dark filtered noise.
+Positive events sit near **C-major pentatonic**, so anything the player
+does lands in key with the score. Playing the game literally plays music.
+
+## 2. The score (`MusicSynth`)
+
+One pad loop per `SoundMood`, chosen per level by `LevelDefinition.Mood`
+(`Auto` resolves from the realm flags: flight > dark > garden > mirror >
+day). Spec per mood: four chords, chord tempo, voicing weights (octave
+harmonic, sub warmth, detune width, glassy shimmer), optional motif.
+
+| Mood | Realm | Character |
+|---|---|---|
+| Day | Packs 1–3 daylight | the home sound (C–Am–F–G) |
+| Dark | Undercloud | low, sub-heavy + rumble bed |
+| Sunset | Two Suns | golden Fmaj7–C–Am7–G6 |
+| Garden | Sky Garden | Cadd9 voicing + music-box twinkles (matches melody gems) |
+| Wind | Far Isles, Storm Chasers | open suspensions + wind bed |
+| Bells | Bell Towers | low Am–G–F–Em + one soft bell per chord change + airy bed |
+| Flight | Gloomfang's Day Off | wide-detuned wash, weightless |
+| Mirror | Mirror Skies | modal sus2 chords, glassy shimmer |
+| Menu | — | slower maj7 theme with an answering phrase |
+
+**Load-bearing loop length:** gusts phase-lock to the music clock
+(`AudioManager.GetMusicPhase`), so every mood that hosts gusts keeps four
+2.2 s chords (the 8.8 s loop). Gust periods and active windows divide it,
+so onsets land on chord boundaries and the swell "plays the chord".
+
+Ambience beds (wind / high wind / rumble) live on the same wind channel
+as gameplay wind; the mood sets a base level and updrafts pulse above it.
+
+## 3. Event inventory (what answers the player)
+
+| Moment | Sound | Notes |
+|---|---|---|
+| Jump | breathy puff + rising chirp | 3 baked pitch variants, randomized |
+| Land | thump + dust | scales with impact; silent below 2.5 |
+| Gem | chime | combo ladder: chained pickups climb semitones, resets on death |
+| Melody gem | music-box note | Sky Garden; same scale as the Garden motif |
+| Checkpoint | three rising chimes | |
+| Heart | three notes over a low bed | "a hug in C" |
+| Bounce pad | spring boing | fast rise, wobble settle |
+| Death (hazard) | crack + dark drop | |
+| Death (fall) | wind rush + distant poof | |
+| Last life lost | two gentle notes | "careful now" — never punishing |
+| Game over | low thud + minor swell | pad ducks under it |
+| Level won | stab + run + sparkle | pad ducks; stars ding as they land; NEW! flourish |
+| Game beaten | four swelling chords | head-silenced so it follows the fanfare |
+| Sky Garden win | rising music-box run | under the fanfare, with the bloom wave |
+| Bell | hum-heavy inharmonic strike | rings for the echo's length + tail |
+| Echo bridge | rising chimes / falling answer | materialize vs. expire |
+| Guardian wake | rising growl | sleeping spinners at half-speed; distance-faded |
+| Gust | Nim's giggle, then chord-rooted swell | giggle 0.55 s before onset — the telegraph levels promise |
+| Updraft | wind bed swells | heartbeat: re-asserted every frame inside |
+| Goal portal | warm hum | proximity-faded; heard before seen |
+| Mirror door | glass cluster + travel breath + arrival | |
+| Gift (daily star) | three bell-toned notes | distinct from a win |
+| UI | tiny tick everywhere; panels breathe; toggles blip up/down; pause dips, resume rises; epilogue pages turn | never louder than gameplay |
+
+Distance rule: one-shot world sounds scale by `AudioManager.Falloff`
+(quadratic within a per-event range) so far-off things stay quiet.
+
+## 4. Channels & mixing
+
+| Channel | Content | Level |
+|---|---|---|
+| `source` | all one-shots | per-clip synth volumes (UI ≈ 0.2, gameplay ≈ 0.3–0.5) |
+| `musicSource` | mood pad | 0.55 master × 0.13 synth; ducks to 35% on death/win, restores 2.5 s |
+| `windSource` | mood bed + updraft pulse | bed 0.09–0.5 by mood, pulse +0.75, decays 2.2/s |
+| `humSource` | portal proximity | ≤ 0.16, fades 1.4/s |
+
+Everything is gated by `SaveSystem.SoundOn` (music and ambience are part
+of "Sound"). All fades are Update-driven on unscaled time — no
+coroutines, pause-safe by design.
+
+## 5. How to add a sound
+
+1. Build the voice in `SfxSynth` from `Voice`/`NoiseVoice` (add a named
+   timbre if it's a new material), expose it, and synthesize it in
+   `AudioManager.Awake` if short, or lazily into `noteCache` if long.
+   `FinalizeClip` peak-guards everything — always go through it.
+2. Keep positive sounds in C-major pentatonic (C D E G A).
+3. Expose a `PlayXxx` wrapper; gate through `PlayIfOn`.
+4. For world events, scale by `Falloff(position, range)` and rate-limit
+   (edge-trigger, like `GustZone.wasTelegraph`) so it can't machine-gun.
+5. Hook the call site; run the offline check
+   (`tools/stubs/UnityStubs.cs` must cover any new Unity API you use).
+
+## 6. Known boundaries
+
+- Playback is 2D by design (the camera follows the player everywhere).
+- Clips are mono; width comes from detune, not pan.
+- One shared SFX source: overlapping PlayOneShots sum — the peak guard
+  and quiet synth levels keep stacking from clipping.

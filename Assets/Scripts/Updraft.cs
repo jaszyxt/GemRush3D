@@ -8,9 +8,8 @@ namespace GemRush
     public class Updraft : MonoBehaviour
     {
         float strength = 11f;
-        const float HoverDrift = -0.6f;   // gentle sink at the column rim
-        Vector3 volumeSize;
         Transform[] wisps;
+        GameObject tipGem;
         float wispHeight;
         float drift;
 
@@ -31,8 +30,16 @@ namespace GemRush
 
             Updraft up = col.AddComponent<Updraft>();
             up.strength = strength;
-            up.volumeSize = size;
             up.wispHeight = size.y;
+
+            // Rim beacon: a glowing cap at the column's top marking where
+            // you pop out — the exit reads before you even enter.
+            Material rimMat = ArtLib.Solid(ArtLib.Air, 1.4f);
+            ArtLib.SetFade(rimMat, 0.5f);
+            ArtLib.DecorCube(col.transform,
+                new Vector3(0f, size.y + 0.1f, 0f),
+                new Vector3(size.x * 1.1f, 0.15f, size.z * 1.1f),
+                Quaternion.identity, rimMat);
 
             int count = Mathf.Max(3, (int)(size.y * 0.8f));
             up.wisps = new Transform[count];
@@ -52,6 +59,13 @@ namespace GemRush
                 wisp.GetComponent<MeshRenderer>().sharedMaterial = windMat;
                 up.wisps[i] = wisp.transform;
             }
+
+            // A bright gem riding the very top of the column: the reward
+            // mark that says "this goes somewhere worth going".
+            Material tipMat = ArtLib.Solid(ArtLib.GemPink, 1.6f);
+            up.tipGem = ArtLib.DecorSphere(col.transform,
+                new Vector3(0f, size.y + 0.6f, 0f),
+                new Vector3(0.4f, 0.4f, 0.4f), tipMat);
         }
 
         void Update()
@@ -73,15 +87,11 @@ namespace GemRush
             PlayerController player = other.GetComponentInParent<PlayerController>();
             if (player == null) return;
 
-            // Fade the lift toward a gentle sink in the top band of the
-            // column: Pip rises, then hovers at the rim instead of bouncing
-            // against an invisible ceiling he could never fall past.
-            float topY = transform.position.y + volumeSize.y * 0.5f;
-            float fromTop = topY - player.transform.position.y;
-            float rimFade = Mathf.Clamp01(fromTop / 1.5f);
-            float lift = Mathf.Lerp(HoverDrift, strength, rimFade);
-
-            player.SetWindLift(lift);
+            // A wind column is a fountain: constant full lift while inside,
+            // so Pip pops out of the top with upward momentum and arcs
+            // ballistically onto the ledge the level points him at. Descend
+            // by steering out the side — never by sinking through the wind.
+            player.SetWindLift(strength);
             // The wind bed is a heartbeat: each frame inside re-asserts the
             // pulse, and it decays back to the mood bed when Pip hops out.
             AudioManager.Instance.PulseWind();

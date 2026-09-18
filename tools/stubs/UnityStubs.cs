@@ -18,6 +18,7 @@ namespace UnityEngine
         public static void DontDestroyOnLoad(Object obj) { }
         public static T FindObjectOfType<T>() where T : Object { return default(T); }
         public static T[] FindObjectsOfType<T>() where T : Object { return null; }
+        public static T FindFirstObjectByType<T>() where T : Object { return default(T); }
     }
 
     public static class Debug
@@ -47,6 +48,7 @@ namespace UnityEngine
     {
         public GameObject() { }
         public GameObject(string name) { }
+        public GameObject(string name, params System.Type[] components) { }
         public static GameObject CreatePrimitive(PrimitiveType type) { return null; }
         public static GameObject Find(string name) { return null; }
         public Transform transform { get { return null; } }
@@ -56,6 +58,8 @@ namespace UnityEngine
         public T AddComponent<T>() where T : Component { return default(T); }
         public T GetComponent<T>() { return default(T); }
         public T GetComponentInParent<T>() { return default(T); }
+        public T GetComponentInChildren<T>() { return default(T); }
+        public T[] GetComponentsInChildren<T>() where T : Component { return null; }
     }
 
     public class Transform : Component, System.Collections.IEnumerable
@@ -111,6 +115,12 @@ namespace UnityEngine
         AfterSceneLoad,
         BeforeSplashScreen,
         AfterAssembliesLoaded
+    }
+
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public sealed class RequireComponentAttribute : Attribute
+    {
+        public RequireComponentAttribute(System.Type requiredType) { }
     }
 
     // ---------- Math & geometry ----------
@@ -204,6 +214,7 @@ namespace UnityEngine
         public static float SmoothStep(float from, float to, float t) { return 0f; }
         public static int RoundToInt(float f) { return 0; }
         public static float Repeat(float t, float length) { return 0f; }
+        public static float Pow(float f, float p) { return 0f; }
         public static float MoveTowards(float current, float target,
             float maxDelta) { return 0f; }
     }
@@ -276,7 +287,12 @@ namespace UnityEngine
         public static int sleepTimeout { get; set; }
         public static int width { get { return 0; } }
         public static int height { get { return 0; } }
+        public static Rect safeArea { get { return new Rect(); } }
+        public static bool fullScreen { get; set; }
+        public static FullScreenMode fullScreenMode { get; set; }
     }
+
+    public enum FullScreenMode { ExclusiveFullScreen, FullScreenWindow, MaximizedFullScreen, Windowed }
 
     public static class SleepTimeout
     {
@@ -306,7 +322,7 @@ namespace UnityEngine
 
     public enum QueryTriggerInteraction { UseGlobal, Ignore, Collide }
 
-    public class Collider : Component
+    public class Collider : Behaviour
     {
         public bool isTrigger { get; set; }
         public Rigidbody attachedRigidbody { get { return null; } }
@@ -376,6 +392,7 @@ namespace UnityEngine
     public class Material : Object
     {
         public Material(Shader shader) { }
+        public Material(Material source) { }
         public Color color { get; set; }
         public Texture mainTexture { get; set; }
         public int renderQueue { get; set; }
@@ -439,11 +456,37 @@ namespace UnityEngine
         public static ShadowQuality shadows { get; set; }
     }
 
+    public enum RuntimePlatform
+    {
+        OSXEditor,
+        OSXPlayer,
+        WindowsPlayer,
+        WindowsEditor,
+        IPhonePlayer,
+        Android,
+        LinuxPlayer,
+        LinuxEditor,
+        GameCoreXboxOne,
+        GameCoreXboxSeries,
+        GameCorePS5,
+        PS4,
+        PS5,
+        XboxOne,
+        Switch,
+        EmbeddedLinuxArm64,
+        EmbeddedLinuxX64,
+        QNX,
+        WebGLPlayer,
+        WSAPlayerX64,
+        Lumin
+    }
+
     public static class Application
     {
         public static void Quit() { }
         public static bool isPlaying { get { return false; } }
         public static int targetFrameRate { get; set; }
+        public static RuntimePlatform platform { get { return RuntimePlatform.WindowsEditor; } }
     }
 
     public static class Resources
@@ -554,7 +597,30 @@ namespace UnityEngine
 
     public struct Rect
     {
-        public Rect(float x, float y, float width, float height) { }
+        public float x, y, width, height;
+        public Rect(float x, float y, float width, float height)
+        {
+            this.x = x; this.y = y;
+            this.width = width; this.height = height;
+        }
+        public Vector2 position
+        {
+            get { return new Vector2(x, y); }
+            set { x = value.x; y = value.y; }
+        }
+        public Vector2 size
+        {
+            get { return new Vector2(width, height); }
+            set { width = value.x; height = value.y; }
+        }
+        public static bool operator ==(Rect a, Rect b)
+        {
+            return a.x == b.x && a.y == b.y
+                && a.width == b.width && a.height == b.height;
+        }
+        public static bool operator !=(Rect a, Rect b) { return !(a == b); }
+        public override bool Equals(object other) { return other is Rect r && this == r; }
+        public override int GetHashCode() { return x.GetHashCode() ^ width.GetHashCode(); }
     }
 
     public enum TextureFormat { Alpha8, RGB24, RGBA32, ARGB32 }
@@ -597,6 +663,7 @@ namespace UnityEngine
         public bool loop { get; set; }
         public AudioClip clip { get; set; }
         public bool isPlaying { get { return false; } }
+        public float time { get; set; }
         public void PlayOneShot(AudioClip clip) { }
         public void PlayOneShot(AudioClip clip, float volumeScale) { }
         public void Play() { }

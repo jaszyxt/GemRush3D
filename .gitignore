@@ -47,3 +47,6 @@ Assets/Screenshots/
 # Release signing secrets — never commit these
 tools/gemrush.keystore
 tools/signing.txt
+
+# ZCode session artifacts
+.zcode/

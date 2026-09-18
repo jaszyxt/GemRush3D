@@ -210,6 +210,24 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "lefty", value ? 1 : 0); Save(); }
         }
 
+        /// Desktop-only display mode: borderless fullscreen when true,
+        /// windowed when false. Mobile builds never read it — they are
+        /// always fullscreen.
+        public static bool FullscreenOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "fullscreen", 1) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "fullscreen", value ? 1 : 0); Save(); }
+        }
+
+        /// Larger UI text for low-vision players: every label re-derives
+        /// from its designed size (UIManager.ApplyTextSize), so Large mode
+        /// never overflows a layout fitted for the default.
+        public static bool TextLargeOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "textlarge", 0) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "textlarge", value ? 1 : 0); Save(); }
+        }
+
         static void Save()
         {
             PlayerPrefs.Save();

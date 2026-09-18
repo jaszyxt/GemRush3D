@@ -78,12 +78,16 @@ namespace GemRush
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                if (State == GameState.Playing) PauseGame();
-                else if (State == GameState.Paused) ResumeGame();
+                HandleBackNavigation();
             }
 
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             {
+                // Enter confirms whatever screen is on top; while an overlay
+                // (Settings, quit dialog) holds the menu, it must not fire
+                // the shortcuts underneath it.
+                if (ui.SettingsOpen || ui.QuitOpen) return;
+
                 switch (State)
                 {
                     case GameState.Menu:
@@ -105,6 +109,46 @@ namespace GemRush
             }
         }
 
+        // Android's back button arrives as KeyCode.Escape and desktop Escape
+        // maps to the same action, so both follow one navigation stack: close
+        // the quit-confirm dialog, then Settings, then pause/resume. Only
+        // from the menu — and only on desktop — does back offer to quit, and
+        // always through the confirmation dialog, never a hard quit. Won,
+        // GameOver and Complete screens have no back action.
+        void HandleBackNavigation()
+        {
+            if (ui.CloseQuitConfirm()) return; // Escape over the dialog = CANCEL
+            if (ui.SettingsOpen)
+            {
+                ui.CloseSettings();
+                return;
+            }
+            switch (State)
+            {
+                case GameState.Playing:
+                    PauseGame();
+                    break;
+                case GameState.Paused:
+                    ResumeGame();
+                    break;
+                case GameState.Menu:
+                    if (IsDesktopPlatform())
+                        ui.ShowQuitConfirm(delegate { Application.Quit(); });
+                    break;
+            }
+        }
+
+        // Platforms where Escape from the menu may offer to quit the app.
+        // Android never quits from back — the OS owns app lifetime there.
+        static bool IsDesktopPlatform()
+        {
+            return Application.platform == RuntimePlatform.WindowsPlayer
+                || Application.platform == RuntimePlatform.OSXPlayer
+                || Application.platform == RuntimePlatform.LinuxPlayer
+                || Application.platform == RuntimePlatform.OSXEditor
+                || Application.platform == RuntimePlatform.WindowsEditor;
+        }
+
         // ---------- Flow ----------
 
         public void PlayContinue()
@@ -115,6 +159,7 @@ namespace GemRush
         public void PlayLevel(int index)
         {
             Time.timeScale = 1f;
+            ui.CloseQuitConfirm(); // the dialog lives over the menu only
             CurrentLevel = Mathf.Clamp(index, 0, LevelLibrary.Levels.Length - 1);
             GemsCollected = 0;
             Lives = 3;
@@ -143,6 +188,7 @@ namespace GemRush
             if (State != GameState.Playing) return;
             State = GameState.Paused;
             Time.timeScale = 0f;
+            AudioManager.Instance.PlayPauseSound();
             ui.ShowPaused();
         }
 
@@ -151,13 +197,16 @@ namespace GemRush
             if (State != GameState.Paused) return;
             Time.timeScale = 1f;
             State = GameState.Playing;
+            AudioManager.Instance.PlayResumeSound();
             ui.HidePaused();
         }
 
         void ShowMenu()
         {
             Time.timeScale = 1f;
+            ui.CloseQuitConfirm(); // defensive: never rebuild a screen under it
             State = GameState.Menu;
+            AudioManager.Instance.SetMood(SoundMood.Menu);
             ui.ShowMenu();
         }
 
@@ -168,7 +217,7 @@ namespace GemRush
             CurrentLevelDefinition = level;
             GemsTotal = level.GemCount;
             SpawnPoint = level.Spawn;
-            AudioManager.Instance.SetMood(level.DarkRealm);
+            AudioManager.Instance.SetMood(level.ResolveMood());
         }
 
         public void OnHeartCollected()
@@ -190,11 +239,14 @@ namespace GemRush
             SpawnPoint = position;
         }
 
-        public void OnPlayerDied()
+        /// fell: Pip went past the kill line (wind-rush death) rather than
+        /// hitting a hazard (crack death).
+        public void OnPlayerDied(bool fell)
         {
             if (State != GameState.Playing) return;
             Lives--;
-            AudioManager.Instance.PlayDie();
+            AudioManager.ResetPickupStreak();
+            AudioManager.Instance.PlayDie(fell);
             Haptics.Heavy();
             Fx.Burst(GameBootstrap.Player.transform.position,
                 ArtLib.HazardRed * 1.5f, 26);
@@ -203,14 +255,22 @@ namespace GemRush
             if (Lives <= 0)
             {
                 State = GameState.GameOver;
+                AudioManager.Instance.PlayGameOver();
                 ui.ShowGameOver();
             }
             else
             {
+                if (Lives == 1) AudioManager.Instance.PlayLivesLow();
                 GameBootstrap.Player.TeleportTo(SpawnPoint);
                 GameBootstrap.CameraRig.SnapToTarget();
+                AudioManager.Instance.RestartMusicAtTonic();
                 ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
             }
+        }
+
+        public void OnPlayerDied()
+        {
+            OnPlayerDied(false);
         }
 
         public void OnReachGoal()
@@ -227,15 +287,21 @@ namespace GemRush
             Fx.Burst(GameBootstrap.Player.transform.position,
                 ArtLib.PortalCyan * 1.5f, 40);
 
-            // Sky Garden: victory blooms every bud on the course.
+            // Sky Garden: victory blooms every bud on the course, and the
+            // bloom wave sings a rising run under the fanfare.
             if (GameBootstrap.World != null && CurrentLevelDefinition != null)
+            {
+                if (CurrentLevelDefinition.SkyGarden)
+                    AudioManager.Instance.PlayBloom();
                 BloomFlower.Trigger(GameBootstrap.World.transform,
                     CurrentLevelDefinition.Portal);
+            }
 
             bool lastLevel = CurrentLevel >= LevelLibrary.Levels.Length - 1;
             if (lastLevel)
             {
                 State = GameState.Complete;
+                AudioManager.Instance.PlayComplete();
                 ui.ShowComplete(SaveSystem.TotalStars(LevelLibrary.Levels.Length),
                     LevelLibrary.Levels.Length * 3);
             }

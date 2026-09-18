@@ -141,6 +141,7 @@ namespace GemRush
             l.Name = "The Blooming Gate";
             l.Mission = "Every garden has a front gate, and this one has kept the sky realm's oldest promise: whoever tends it may pass. Three guardians. One of them is a light sleeper — the garden apologizes in advance. Ring the course with your steps and the gate will open in flowers.";
             l.WinLine = "The Blooming Gate opened in a wave of color you chose, gem by gem. The guardians clapped. Slowly. They're still waking up.";
+            l.Milestone = "REGION CHARTED: THE SKY GARDEN. The page bloomed while it was drawn.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 6f, 1f, 6f));
@@ -167,7 +168,7 @@ namespace GemRush
             l.Checkpoints.Add(new Vector3(0f, 6.5f, 63f));
             l.Checkpoints.Add(new Vector3(0f, 10.5f, 101f));
 
-            l.StoryBeats.Add("The light sleeper's name is Red nine. It dreams of being a carousel. Be kind.");
+            l.StoryBeats.Add("The light sleeper's name is Red Nine. He dreams of being a carousel. Be kind.");
             l.StoryBeats.Add("Past the last bed, the petals go quiet — they only get this quiet right before something wonderful.");
 
             l.Gems.Add(new Vector3(0f, 1.6f, 10f));

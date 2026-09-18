@@ -34,8 +34,6 @@ namespace GemRush
         {
             if (!Input.touchSupported) return;
 
-            bool lefty = SaveSystem.LeftyOn;
-
             GameObject root = new GameObject("TouchControls");
             root.transform.SetParent(hudParent, false);
             RectTransform rootRect = root.AddComponent<RectTransform>();
@@ -65,10 +63,8 @@ namespace GemRush
             GameObject jumpGo = NewCircleImage(root.transform, "JumpButton",
                 circle, new Color(1f, 0.45f, 0.2f, 0.8f), true);
             controls.jumpRect = jumpGo.GetComponent<RectTransform>();
-            controls.jumpRect.anchorMin = new Vector2(lefty ? 0f : 1f, 0f);
-            controls.jumpRect.anchorMax = new Vector2(lefty ? 0f : 1f, 0f);
             controls.jumpRect.sizeDelta = new Vector2(180f, 180f);
-            controls.jumpRect.anchoredPosition = new Vector2(lefty ? 150f : -150f, 160f);
+            controls.ApplySide();
 
             JumpTouch jump = jumpGo.AddComponent<JumpTouch>();
 
@@ -83,6 +79,19 @@ namespace GemRush
             label.alignment = TextAnchor.MiddleCenter;
             label.raycastTarget = false;
             StretchFull(label.rectTransform);
+        }
+
+        /// Re-anchors the jump button from the current LeftyOn setting so
+        /// flipping the Settings row mirrors the HUD immediately, without
+        /// rebuilding the controls or restarting the level. The joystick's
+        /// touch-region logic already reads LeftyOn live in Update.
+        public void ApplySide()
+        {
+            if (jumpRect == null) return;
+            bool lefty = SaveSystem.LeftyOn;
+            jumpRect.anchorMin = new Vector2(lefty ? 0f : 1f, 0f);
+            jumpRect.anchorMax = new Vector2(lefty ? 0f : 1f, 0f);
+            jumpRect.anchoredPosition = new Vector2(lefty ? 150f : -150f, 160f);
         }
 
         /// Clears interrupted-touch state: if the OS (call, notification

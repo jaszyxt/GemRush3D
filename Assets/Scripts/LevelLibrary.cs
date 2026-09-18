@@ -25,7 +25,10 @@ namespace GemRush
                     + LevelPackFive.Levels.Length
                     + LevelPackSix.Levels.Length
                     + LevelPackSeven.Levels.Length
-                    + LevelPackEight.Levels.Length];
+                    + LevelPackEight.Levels.Length
+                    + LevelPackNine.Levels.Length
+                    + LevelPackTen.Levels.Length
+                    + LevelPackBSides.Levels.Length];
             int n = 0;
             for (int i = 0; i < baseLevels.Length; i++) all[n++] = baseLevels[i];
             for (int i = 0; i < LevelPackTwo.Levels.Length; i++)
@@ -42,6 +45,12 @@ namespace GemRush
                 all[n++] = LevelPackSeven.Levels[i];
             for (int i = 0; i < LevelPackEight.Levels.Length; i++)
                 all[n++] = LevelPackEight.Levels[i];
+            for (int i = 0; i < LevelPackNine.Levels.Length; i++)
+                all[n++] = LevelPackNine.Levels[i];
+            for (int i = 0; i < LevelPackTen.Levels.Length; i++)
+                all[n++] = LevelPackTen.Levels[i];
+            for (int i = 0; i < LevelPackBSides.Levels.Length; i++)
+                all[n++] = LevelPackBSides.Levels[i];
             return all;
         }
 
@@ -141,12 +150,13 @@ namespace GemRush
         // Level 3 — "The Ascent": a vertical climb chained together with
         // elevators, rest islands and a high spinner arena.
         // ------------------------------------------------------------------
-        static LevelDefinition TheAscent()
+        internal static LevelDefinition TheAscent()
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "The Ascent";
             l.Mission = "Gloomfang waits at the summit, holding the last light and a grudge the size of the weather. Every legend ends at the top. Climb, Pip. Take the sky back.";
             l.WinLine = "The summit is yours. Somewhere above, a very large storm quietly apologizes.";
+            l.Milestone = "REGION CHARTED: THE STORM. The atlas has its first ink.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));       // start
             l.Platforms.Add(new PlatformSpec(0f, 3.5f, 19f, 6f, 1f, 6f));    // rest 1

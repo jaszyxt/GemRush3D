@@ -5,8 +5,10 @@ namespace GemRush
     /// A tailwind gust: every Period seconds, a wall of wind blows along
     /// Direction for ActiveTime seconds, carrying Pip across the gap it
     /// spans. Telegraphed by drifting petals; the streaks brighten while
-    /// the gust is live. The default period matches two music chords, so
-    /// the gusts breathe with the soundtrack.
+    /// the gust is live. Timing is phase-locked to the music pad — the
+    /// default period and active time divide the 8.8 s loop, so every
+    /// onset lands on a chord boundary — and each onset adds a wind swell
+    /// on the chord root.
     public class GustZone : MonoBehaviour
     {
         public Vector3 direction = new Vector3(0f, 0f, 1f);
@@ -19,8 +21,13 @@ namespace GemRush
         Transform[] petals;
         Material streakMat;
         float t;
+        bool wasActive;
+        bool wasTelegraph;
         float streakLength;
         Vector3 volumeSize;
+
+        /// How long before the blow Nim giggles — just enough time to step in.
+        const float GiggleLead = 0.55f;
 
         public static void Create(Transform parent, Vector3 center,
             Vector3 size, Vector3 direction, float period, float activeTime,
@@ -97,11 +104,37 @@ namespace GemRush
             }
         }
 
+        /// Gust phase within the period, read from the music clock so every
+        /// onset lands on a chord boundary (period and active time both
+        /// divide the 8.8 s pad loop). The clock keeps its own beat while
+        /// the music is silent, so the visuals never freeze.
+        float GustPhase()
+        {
+            float clock = AudioManager.Instance != null
+                ? AudioManager.Instance.GetMusicPhase() : t;
+            return Mathf.Repeat(clock, period);
+        }
+
         void Update()
         {
             t += Time.deltaTime;
-            float phase = Mathf.Repeat(t, period);
+            float phase = GustPhase();
             bool active = phase < activeTime;
+
+            // Each onset adds a wind swell on the chord root — the gust
+            // audibly plays the chord it is locked to.
+            if (active && !wasActive && AudioManager.Instance != null)
+                AudioManager.Instance.PlayGustSwell();
+            wasActive = active;
+
+            // Nim's giggle just before the blow: the invitation the levels
+            // promise ("wait for Nim's giggle"). Fires once per cycle in
+            // the last half-second of the lull, quieter with distance.
+            bool telegraph = !active && phase >= period - GiggleLead;
+            if (telegraph && !wasTelegraph && AudioManager.Instance != null)
+                AudioManager.Instance.PlayGiggle(
+                    AudioManager.Falloff(transform.position, 26f));
+            wasTelegraph = telegraph;
 
             // While blowing, grab every PlayerController whose collider is
             // inside the volume — an OverlapBox, because OnTriggerStay
@@ -163,10 +196,9 @@ namespace GemRush
 
         void OnTriggerStay(Collider other)
         {
-            // Re-derives the phase from the shared clock rather than the
-            // frame-time accumulator: correct even after pauses.
-            float phase = Mathf.Repeat(t, period);
-            if (phase >= activeTime) return;
+            // Re-derives the phase from the shared music clock rather than
+            // the frame-time accumulator: correct even after pauses.
+            if (GustPhase() >= activeTime) return;
             PlayerController player = other.GetComponentInParent<PlayerController>();
             if (player == null) return;
             player.SetGustPush(direction * strength, lift);

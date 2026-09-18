@@ -22,7 +22,8 @@ namespace GemRush
 
             "And Pip? Pip went back to the little island where all of this started, " +
             "put the last gem on the shelf, and watched two suns set. " +
-            "Somewhere far below, a very large storm was learning to hum.",
+            "Somewhere far below, a very large storm was learning to hum — and " +
+            "somewhere above the garden, a very small one was perfecting the snore.",
 
             "The Far Isles chart now hangs in the Sky-Keeper's hall — every island " +
             "named in Pip's small, determined handwriting, and one line in the " +
@@ -38,11 +39,15 @@ namespace GemRush
             "Gloomfang's diary, page 1: 'Today I stole the sun again. Still lonely.'",
             "The Sky-Keeper's review of Pip: 'small, determined, excellent at falling upward.'",
             "A storm's heart is a lantern nobody lit. Pip fixes that.",
-            "Twelve levels. Three lives. One very apologetic storm.",
+            "Three lives. One very apologetic storm. And the realm keeps growing.",
             "The guardians spin because nobody ever asked them to stop. Ask nicely.",
             "The Two Suns playground: no storm, no pressure, all bounce.",
             "The Far Isles: where the wind does the climbing.",
-            "Gloomfang's job title, officially: weather support (probationary)."
+            "Gloomfang's job title, officially: weather support (probationary).",
+            "Nim's first word was a gust. There was weather everywhere. Gloomfang has never been prouder.",
+            "The bell towers once sang storms home. Now they ring one in to work.",
+            "Red Nine still dreams of being a carousel. On weekends, he practices.",
+            "The Sky-Keeper's map has one word in the corner: 'more.' It's a to-do list."
         };
 
         public static string MenuQuote()

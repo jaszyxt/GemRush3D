@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GemRush
@@ -33,8 +34,15 @@ namespace GemRush
         /// Places decorations on one platform. Positions are local: the
         /// platform centre is the origin and its top surface sits at
         /// y = platformSize.y * 0.5. Same seed always yields the same layout.
+        /// Spinner arm reach plus canopy margin: props keep this distance
+        /// from any guardian, so spinning arms never sweep through trees.
+        const float SpinnerClearRadius = 5.2f;
+
+        /// Decorates a platform. keepClearZones are local-xz circles (guardian
+        /// positions) that props must stay clear of.
         public static void DressPlatform(Transform platformTransform, Vector3 platformSize,
-            int seed, Material trunkMat, Material leafMat, Material rockMat)
+            int seed, Material trunkMat, Material leafMat, Material rockMat,
+            IList<Vector2> keepClearZones = null)
         {
             if (platformTransform == null) return;
 
@@ -49,7 +57,7 @@ namespace GemRush
             for (int i = 0; i < count; i++)
             {
                 Vector3 spot;
-                if (!TryPickSpot(rng, halfX, halfZ, out spot)) continue;
+                if (!TryPickSpot(rng, halfX, halfZ, keepClearZones, out spot)) continue;
                 PlaceProp(rng, platformTransform, topY, spot, rockMat);
             }
 
@@ -58,7 +66,7 @@ namespace GemRush
             if (minSide >= 8f && rng.NextDouble() < 0.4)
             {
                 Vector3 spot;
-                if (TryPickSpot(rng, halfX, halfZ, out spot))
+                if (TryPickSpot(rng, halfX, halfZ, keepClearZones, out spot))
                     Tree(rng, platformTransform, topY, spot, trunkMat, leafMat);
             }
         }
@@ -105,24 +113,46 @@ namespace GemRush
         /// Random spot inside the footprint minus the edge margin that also
         /// stays clear of the centre gameplay strip. Returns false when the
         /// platform is too small to host anything outside the strip.
-        static bool TryPickSpot(System.Random rng, float halfX, float halfZ, out Vector3 spot)
+        static bool TryPickSpot(System.Random rng, float halfX, float halfZ,
+            IList<Vector2> keepClearZones, out Vector3 spot)
         {
             for (int attempt = 0; attempt < 16; attempt++)
             {
                 float x = ((float)rng.NextDouble() * 2f - 1f) * halfX;
                 float z = ((float)rng.NextDouble() * 2f - 1f) * halfZ;
                 if (Mathf.Abs(x) < CenterClear && Mathf.Abs(z) < CenterClear) continue;
+                if (InKeepClearZone(x, z, keepClearZones)) continue;
                 spot = new Vector3(x, 0f, z);
                 return true;
             }
 
             // Deterministic fallback: the inset corner farthest from centre.
+            // Still respects the zones; if the corner is inside one, the
+            // platform simply goes without this prop.
             if (halfX >= CenterClear || halfZ >= CenterClear)
             {
-                spot = new Vector3(halfX, 0f, halfZ);
-                return true;
+                Vector3 corner = new Vector3(halfX, 0f, halfZ);
+                if (!InKeepClearZone(corner.x, corner.z, keepClearZones))
+                {
+                    spot = corner;
+                    return true;
+                }
             }
             spot = Vector3.zero;
+            return false;
+        }
+
+        /// True when a local-xz point sits inside any guardian keep-clear
+        /// circle (arm reach + canopy margin).
+        static bool InKeepClearZone(float x, float z, IList<Vector2> zones)
+        {
+            if (zones == null) return false;
+            for (int i = 0; i < zones.Count; i++)
+            {
+                if ((new Vector2(x, z) - zones[i]).sqrMagnitude <
+                    SpinnerClearRadius * SpinnerClearRadius)
+                    return true;
+            }
             return false;
         }
 

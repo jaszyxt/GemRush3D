@@ -132,7 +132,7 @@ namespace GemRush
             // Post-befriending packs: Gloomfang tags along as weather support.
             // Unless you ARE him, in which case, one of you is enough.
             if (levelIndex >= 9 && !level.BonusFlight && Player != null)
-                Gloomfang.Create(World.transform, Player.transform);
+                Gloomfang.Create(World.transform, Player.transform, level.MirrorSkies);
         }
     }
 }

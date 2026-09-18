@@ -3,6 +3,23 @@ using UnityEngine;
 
 namespace GemRush
 {
+    /// The musical identity of a level. Auto derives one from the level's
+    /// realm flags; anything distinctive (golden hour, wind realms, bell
+    /// towers) sets an explicit mood in its pack file.
+    public enum SoundMood
+    {
+        Auto,
+        Menu,
+        Day,
+        Dark,
+        Sunset,
+        Garden,
+        Wind,
+        Bells,
+        Flight,
+        Mirror
+    }
+
     /// Pure data describing one level. No behaviour lives here — LevelBuilder
     /// turns a definition into GameObjects.
     public class LevelDefinition
@@ -10,6 +27,28 @@ namespace GemRush
         public string Name = "Untitled";
         public string Mission = "";
         public string WinLine = "";
+
+        /// Atlas stamp shown on the win screen. Set on the last level of
+        /// each pack, so finishing a region feels like the world growing
+        /// one page.
+        public string Milestone = "";
+
+        /// Which score the AudioManager plays here. Auto resolves from the
+        /// realm flags below (flight/dark/garden/mirror); daylight levels
+        /// land on Day unless the pack asks for something else.
+        public SoundMood Mood = SoundMood.Auto;
+
+        /// The resolved mood: explicit assignment first, then the realm
+        /// that most defines how this level feels.
+        public SoundMood ResolveMood()
+        {
+            if (Mood != SoundMood.Auto) return Mood;
+            if (BonusFlight) return SoundMood.Flight;
+            if (DarkRealm) return SoundMood.Dark;
+            if (SkyGarden) return SoundMood.Garden;
+            if (MirrorSkies) return SoundMood.Mirror;
+            return SoundMood.Day;
+        }
 
         /// One line of story shown when each checkpoint is touched, in order.
         /// Fewer lines than checkpoints is fine; extra lines are ignored.
@@ -47,6 +86,13 @@ namespace GemRush
 
         /// Hidden bridges that exist only while their bell's echo rings.
         public List<EchoBridgeSpec> EchoBridges = new List<EchoBridgeSpec>();
+
+        /// Paired mirror doors: walking into A exits at B, and back.
+        public List<MirrorDoorSpec> MirrorDoors = new List<MirrorDoorSpec>();
+
+        /// Mirror Skies levels: a translucent Gloomfang drifts on the
+        /// mirrored side of the sky, copying your every move.
+        public bool MirrorSkies = false;
 
         /// Bonus flight level: Pip stays home and Gloomfang is playable —
         /// no gravity, gentle drift, no fall deaths.
@@ -207,6 +253,18 @@ namespace GemRush
             Center = new Vector3(x, y, z);
             Size = size;
             BellIndex = bellIndex;
+        }
+    }
+    public class MirrorDoorSpec
+    {
+        public Vector3 DoorA;
+        public Vector3 DoorB;
+
+        public MirrorDoorSpec(float ax, float ay, float az,
+            float bx, float by, float bz)
+        {
+            DoorA = new Vector3(ax, ay, az);
+            DoorB = new Vector3(bx, by, bz);
         }
     }
 }

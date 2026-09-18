@@ -59,6 +59,20 @@ namespace GemRush
                 fillColor.a = pulse;
                 fillMaterial.color = fillColor;
             }
+
+            // Proximity hum: the goal is heard before it is seen. The
+            // manager fades the hum toward whatever we report, so reporting
+            // zero while not playing lets it decay away gracefully.
+            float proximity = 0f;
+            if (GameManager.Instance != null &&
+                GameManager.Instance.State == GameState.Playing &&
+                GameBootstrap.Player != null)
+            {
+                float d = Vector3.Distance(GameBootstrap.Player.transform.position,
+                    transform.position);
+                proximity = Mathf.Clamp01(1f - d / 28f);
+            }
+            AudioManager.Instance.SetPortalProximity(proximity);
         }
 
         void OnTriggerEnter(Collider other)

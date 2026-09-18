@@ -1,5 +1,8 @@
 # Gem Rush 3D — Design Bible
 
+> Story, voice, canon and tone are governed by **docs/Story-Bible.md** —
+> on story matters, that document wins over this one.
+
 The north star: the game **gradually develops** — each pack adds exactly one
 new idea, teaches it gently, then combines it with everything before it. It
 becomes **more interesting and creative** without ever becoming meaner, and

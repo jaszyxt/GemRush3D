@@ -8,7 +8,7 @@ from code. Even the app icon is painted procedurally at build time.
 
 ## Release build (already configured)
 
-`Builds/GemRush3D.apk` is a **release-signed** build (v1.10.1, IL2CPP,
+`Builds/GemRush3D.apk` is a **release-signed** build (v1.12.0, IL2CPP,
 arm64). Signing uses `tools/gemrush.keystore`; its password lives in
 `tools/signing.txt`. Both are git-ignored — back them up somewhere safe:
 all updates to a published game must be signed with the same key.
@@ -123,6 +123,24 @@ each:
 25. **The Silent Spire** — the tallest tower, the quietest bell, and the
     one note no one has ever heard. + heart.
 
+**Pack Ten — Mirror Skies** (a mirrored sky over the Far Isles)
+26. **Mirror Lake** — walk into a **mirror door**, walk out of its twin
+    across the water. The way in is never the way out. 12 gems.
+27. **Twin Towers** — one door exits five floors up: a staircase made of
+    light, guarded by someone who never noticed it. 14 gems + heart.
+28. **The Mirror Meadow** — three door pairs over the meadow, and a
+    translucent Gloomfang drifting on the wrong side of the glass,
+    copying your every move. 15 gems + heart.
+
+**The B-Sides** (remixed night versions of your favorites, unlocked late)
+29. **Gust Alley — Nightfall** — the same alley after dark, with a night
+    safety isle and Nim's snores in the lanes. 15 gems.
+30. **The Garden That Dreams** — the sleeping garden, now with wind lanes
+    that sway the beds in time. + heart.
+31. **The Ascent — Nightfall** — climb the beacon route in the dark, the
+    way the first keepers did. From the summit: every portal you ever
+    lit, still burning.
+
 **Pack Ten — Mirror Skies** (a mirrored sky appears over the Far Isles)
 26. **Mirror Lake** — the lake has gone perfectly still, and its
     reflection shows **mirror doors**: step into one, step out of its
@@ -143,13 +161,21 @@ columns** in the Far Isles let Pip float to places jumps can't reach.
 tone sings. **Tailwind gusts** in Storm Chasers carry Pip across gaps
 too wide to jump. **Mirror doors** in the Mirror Skies hop Pip between
 paired points.
-The menu has level select (locked levels unlock as you clear), settings
-for sound/haptics/shadows, and every level starts with a short mission card.
-Checkpoints flash one-line **story beats** as you pass them — every level
+The menu has level select (locked levels unlock as you clear; touch
+devices page the grid and open it on the newest level), settings for
+sound, screen shake, haptics, shadows, left-handed touch controls, text
+size — and fullscreen on desktop (reachable from the pause menu too, so
+nothing needs quitting mid-run) — and every level starts with a short
+mission card. Checkpoints flash one-line **story beats** as you pass them — every level
 has them — clearing the last level of a pack stamps a milestone banner on
 the win screen (the atlas grows a page), finishing the last level plays a
 four-page **epilogue**, and
 the menu rotates Gloomfang flavor quotes. Pause anytime with the HUD button or Esc.
+Esc/back always walks the navigation stack: it closes dialogs and settings
+first, then pauses/resumes, and from the desktop title menu it asks before
+quitting — it never hard-quits. Every screen keeps clear of phone notches,
+punch-hole cameras and gesture bars, and touch buttons hold a ~48 dp
+minimum size.
 
 ## The sound of the realm (all synthesized at runtime)
 
@@ -203,7 +229,8 @@ C-major pentatonic, which means playing the game literally plays music:
 | `CameraFollow` | Smooth third-person follow camera |
 | `MovingPlatform` / `Spinner` / `Gem` / `Checkpoint` / `GoalPortal` / `HazardMarker` | The interactive pieces |
 | `TouchControls` | Floating virtual joystick + JUMP button, auto-created on touch devices |
-| `UIManager` | Menu with level select, mission intro cards, HUD, pause, settings, win/game-over/completion screens — all built in code |
+| `SafeArea` | Fits the UI root to the device safe area (notches, punch-holes, rounded corners, gesture bars) |
+| `UIManager` | Menu with paged level select on touch, mission intro cards, HUD (change-cached, split canvases), pause with settings, win/game-over/completion screens — all built in code |
 | `SfxSynth` / `MusicSynth` / `AudioManager` | The whole game's audio, synthesized at runtime: a chime/breath DSP toolbox, per-realm mood loops and ambience beds, and the channels that play them; respects the sound setting |
 | `Haptics` | Short vibration pulses (jump/gem/checkpoint/death/win), settings-aware; amplitude control on Android, system buzz on iOS |
 | `Fx` / `ArtLib` | Particle bursts, shared procedural sprites, material palette |

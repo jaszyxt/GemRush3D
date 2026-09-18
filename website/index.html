@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gem Rush 3D — A Cozy 3D Platformer for Android &amp; Windows</title>
+  <meta name="description" content="Play Gem Rush 3D free. Help Pip, a very small hero, out-hop a very apologetic storm across floating sky islands. Weather is the level design, the music plays itself, and the realm keeps growing. Download for Android and Windows.">
+  <meta name="theme-color" content="#4075ED">
+
+  <!-- Open Graph / Twitter. If the site moves to its own domain, update these absolute URLs. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Gem Rush 3D">
+  <meta property="og:title" content="Gem Rush 3D — a very small hero, a very large storm">
+  <meta property="og:description" content="A cozy 3D platformer where weather is the level design and the music plays itself. Free on Android and Windows.">
+  <meta property="og:url" content="https://jaszyxt.github.io/GemRush3D/">
+  <meta property="og:image" content="https://jaszyxt.github.io/GemRush3D/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Gem Rush 3D key art: Pip the tiny orange hero on a floating island under a blue sky with pink gems.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gem Rush 3D — a very small hero, a very large storm">
+  <meta name="twitter:description" content="A cozy 3D platformer where weather is the level design and the music plays itself. Free on Android and Windows.">
+  <meta name="twitter:image" content="https://jaszyxt.github.io/GemRush3D/assets/img/og-image.png">
+
+  <link rel="canonical" href="https://jaszyxt.github.io/GemRush3D/">
+  <link rel="icon" href="assets/img/icons/favicon.ico" sizes="48x48">
+  <link rel="icon" href="assets/img/icons/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="assets/img/icons/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="assets/img/icons/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Gem Rush 3D",
+    "url": "https://jaszyxt.github.io/GemRush3D/",
+    "image": "https://jaszyxt.github.io/GemRush3D/assets/img/og-image.png",
+    "description": "A cozy 3D platformer: Pip, the Sky-Keeper's little helper, hops floating sky islands to reclaim the Sunstones from Gloomfang — a very apologetic storm. Weather is the level design and every note of music is synthesized live as you play.",
+    "genre": ["Platformer", "Indie", "Family", "Casual"],
+    "gamePlatform": ["Android", "PC Windows"],
+    "operatingSystem": ["Android", "Windows 10", "Windows 11"],
+    "applicationCategory": "Game",
+    "gameEdition": "Single-player",
+    "playMode": "SinglePlayer",
+    "inLanguage": "en",
+    "author": { "@type": "Person", "name": "jaszyxt" },
+    "publisher": { "@type": "Person", "name": "jaszyxt" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+    "sameAs": ["https://github.com/jaszyxt/GemRush3D"]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" data-header>
+    <nav class="nav container" aria-label="Main">
+      <a class="brand" href="#top" aria-label="Gem Rush 3D — back to top">
+        <svg class="brand-gem" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l10 10-10 18L6 12z" fill="#FA4DBF"/><path d="M16 7l5.5 5.5L16 22l-5.5-9.5z" fill="#FFB3CC"/></svg>
+        <span class="brand-name">Gem&nbsp;Rush&nbsp;<em>3D</em></span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="nav-menu">
+        <span class="nav-toggle-box" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="visually-hidden">Menu</span>
+      </button>
+      <div class="nav-menu" id="nav-menu" data-nav-menu>
+        <a href="#features">Game</a>
+        <a href="#story">Story</a>
+        <a href="#realms">Realms</a>
+        <a href="#sound">Sound</a>
+        <a href="#faq">FAQ</a>
+        <a href="presskit.html">Press kit</a>
+        <a class="btn btn-gold btn-sm" href="#download">Download</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="top">
+      <div class="hero-sky" aria-hidden="true">
+        <span class="cloud cloud-1"></span>
+        <span class="cloud cloud-2"></span>
+        <span class="cloud cloud-3"></span>
+        <span class="hero-sun"></span>
+        <svg class="float-gem gem-a" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l10 10-10 18L6 12z" fill="#FA4DBF"/><path d="M16 7l5.5 5.5L16 22l-5.5-9.5z" fill="#FFB3CC"/></svg>
+        <svg class="float-gem gem-b" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l10 10-10 18L6 12z" fill="#FA4DBF"/><path d="M16 7l5.5 5.5L16 22l-5.5-9.5z" fill="#FFB3CC"/></svg>
+        <svg class="float-gem gem-c" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l10 10-10 18L6 12z" fill="#FA4DBF"/><path d="M16 7l5.5 5.5L16 22l-5.5-9.5z" fill="#FFB3CC"/></svg>
+      </div>
+
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="hero-kicker">A cozy 3D platformer &middot; free</p>
+          <h1 class="hero-title">Gem Rush&nbsp;3D</h1>
+          <p class="hero-tagline">Pip vs.&nbsp;Gloomfang — a very small hero, a very large&nbsp;storm.</p>
+          <p class="hero-pitch">
+            A storm with abandonment issues swallowed the sky realm&rsquo;s Sunstones.
+            Hop the floating islands, reclaim the light, light every portal — and
+            befriend the weather while you&rsquo;re at it.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-gold" href="https://github.com/jaszyxt/GemRush3D/releases/latest" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Get it on Android
+            </a>
+            <a class="btn btn-cloud" href="https://github.com/jaszyxt/GemRush3D/releases/latest" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5l7.5-1v7H3zM12 4.2L21 3v8.5h-9zM3 12.5h7.5v7L3 18.5zM12 12.5h9V21l-9-1.3z" fill="currentColor"/></svg>
+              Download for Windows
+            </a>
+          </div>
+          <ul class="hero-chips" aria-label="Quick facts">
+            <li>Free, no ads</li>
+            <li>Single-player</li>
+            <li>Touch &amp; keyboard</li>
+            <li>Kid-friendly</li>
+          </ul>
+        </div>
+
+        <div class="hero-art" aria-hidden="false">
+          <figure class="shot-frame frame-back">
+            <img src="assets/img/screenshots/gemrush-b-side-nightfall.png" alt="A night-time B-Side remix: Pip stands on a green island under a dark sky while Nim the baby cloud floats nearby." loading="eager" width="642" height="1062">
+          </figure>
+          <figure class="shot-frame frame-front">
+            <img src="assets/img/screenshots/gemrush-gameplay-first-steps.png" alt="Pip hops between grassy sky islands, collecting pink sun-gems beneath a warm blue sky." loading="eager" width="642" height="1062">
+          </figure>
+        </div>
+      </div>
+
+      <a class="hero-scroll" href="#features" aria-label="Scroll to discover the game">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="section section-pale" id="features">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">The game</p>
+          <h2>Weather is memory,<br>and memory is level design.</h2>
+          <p class="section-lead">
+            Every realm is a feeling, and every feeling is one new way for the sky to
+            move you. Soft shapes, soft light, and platforming that forgives.
+          </p>
+        </header>
+
+        <div class="feature-grid">
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-sky" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 8h9a3 3 0 10-3-3M3 12h13a3 3 0 11-3 3M3 16h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </span>
+            <h3>Weather plays with you</h3>
+            <p>Tailwind gusts carry you over impossible gaps, updrafts lift you home,
+               and a certain baby cloud giggles half a second before every blow.</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-red" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </span>
+            <h3>Guardians, not enemies</h3>
+            <p>The red spinners wake only when you linger too long. Nobody here is a
+               villain — some of them just need to be asked nicely.</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-gold" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="17.5" cy="16" r="2.5" fill="currentColor"/></svg>
+            </span>
+            <h3>Playing plays the music</h3>
+            <p>Gems climb a melody as you chain them, gusts land on the beat, and every
+               star goes <em>ding</em> exactly where it should. The game is the soundtrack.</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-pip" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 21c-4.4 0-8-2.9-8-7.5S7.6 3 12 3s8 5.9 8 10.5-3.6 7.5-8 7.5z" fill="currentColor"/><circle cx="9.2" cy="10" r="1.7" fill="#fff"/><circle cx="14.8" cy="10" r="1.7" fill="#fff"/></svg>
+            </span>
+            <h3>Falling upward</h3>
+            <p>Coyote time, jump buffering, squash-and-stretch — precision where it
+               counts, forgiveness everywhere else. Losing is just taking a nap.</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-gem" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 2l9 9-9 11L3 11z" fill="currentColor"/><path d="M12 6.5L16.5 11 12 17l-4.5-6z" fill="#fff" opacity=".85"/></svg>
+            </span>
+            <h3>Stars, medals &amp; best times</h3>
+            <p>Every level hides a full gem run. Sweep them all for three stars, chase
+               the gold medal, then race your own best time.</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-gold" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="13" rx="2.5" fill="currentColor"/><path d="M12 8v13M3.5 12h17M12 8c-4 0-5.5-2-4.5-3.5S12 5 12 8zm0 0c4 0 5.5-2 4.5-3.5S12 5 12 8z" fill="none" stroke="#fff" stroke-width="1.6"/></svg>
+            </span>
+            <h3>Gloomfang&rsquo;s Gifts</h3>
+            <p>One hidden golden gem waits somewhere unlocked, every day. Miss a day
+               and nothing bad happens — ever.</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-sky" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="10" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10.5v3M6.5 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="12" r="1.4" fill="currentColor"/></svg>
+            </span>
+            <h3>Touch or keyboard</h3>
+            <p>A floating joystick appears only on touch screens; desktop gets crisp
+               WASD and Space. Left-handed mode, bigger text, and a lefty-friendly
+               jump button included.</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon icon-grass" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <h3>A cozy promise</h3>
+            <p>No ads, no energy meters, no streaks, no guilt-trip notifications.
+               Comfort settings for shake, haptics and shadows — comfort is a feature,
+               not a menu afterthought.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STORY ============ -->
+    <section class="section" id="story">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">The story</p>
+          <h2>A storm took the light.<br>A small hero brought him home.</h2>
+          <p class="section-lead">
+            Gloomfang stole the Sunstones because he feared the dark below.
+            Pip — the Sky-Keeper&rsquo;s little helper — sets out to take them back,
+            and discovers the storm was never the villain. He was just weather
+            with feelings.
+          </p>
+        </header>
+
+        <div class="cast-grid">
+          <article class="cast-card reveal">
+            <div class="cast-portrait portrait-pip" aria-hidden="true">
+              <svg viewBox="0 0 120 120">
+                <ellipse cx="60" cy="66" rx="34" ry="40" fill="#FF8C26"/>
+                <ellipse cx="60" cy="80" rx="22" ry="22" fill="#FFA94D"/>
+                <ellipse cx="92" cy="66" rx="9" ry="7" fill="#D94D1A"/>
+                <circle cx="48" cy="52" r="9.5" fill="#fff"/><circle cx="49.5" cy="53" r="4.4" fill="#1E1E28"/>
+                <circle cx="72" cy="52" r="9.5" fill="#fff"/><circle cx="73.5" cy="53" r="4.4" fill="#1E1E28"/>
+              </svg>
+            </div>
+            <h3>Pip</h3>
+            <p class="cast-role">The Sky-Keeper&rsquo;s little helper</p>
+            <p class="cast-quote">&ldquo;Small, determined, excellent at falling upward.&rdquo;</p>
+          </article>
+
+          <article class="cast-card reveal">
+            <div class="cast-portrait portrait-gloom" aria-hidden="true">
+              <svg viewBox="0 0 120 120">
+                <path d="M25 72a16 16 0 0110-28 20 20 0 0138-6 17 17 0 0114 30c2 3 2 8-2 10H30c-4 0-6-3-5-6z" fill="#39406E"/>
+                <circle cx="49" cy="56" r="8.5" fill="#fff"/><circle cx="50" cy="58" r="4" fill="#1E1E28"/>
+                <circle cx="72" cy="56" r="8.5" fill="#fff"/><circle cx="73" cy="58" r="4" fill="#1E1E28"/>
+                <path d="M42 92l-3 8M60 94l-3 8M78 92l-3 8" stroke="#8FD3F0" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>Gloomfang</h3>
+            <p class="cast-role">A very large storm &middot; weather support (probationary)</p>
+            <p class="cast-quote">&ldquo;Never the villain. Just weather with feelings.&rdquo;</p>
+          </article>
+
+          <article class="cast-card reveal">
+            <div class="cast-portrait portrait-nim" aria-hidden="true">
+              <svg viewBox="0 0 120 120">
+                <path d="M30 70a13 13 0 018-23 17 17 0 0132-5 14 14 0 0112 25c1.5 2.5 1 6.5-2 8H35c-3.5 0-6-2.5-5-5z" fill="#F3F7FF"/>
+                <path d="M50 58q3 3 6 0M68 58q3 3 6 0" stroke="#5A628C" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <circle cx="49" cy="65" r="3.5" fill="#FFB3CC"/><circle cx="75" cy="65" r="3.5" fill="#FFB3CC"/>
+              </svg>
+            </div>
+            <h3>Nim</h3>
+            <p class="cast-role">A runaway baby cloud</p>
+            <p class="cast-quote">&ldquo;The size of a pillow with the volume of a parade.&rdquo;</p>
+          </article>
+
+          <article class="cast-card reveal">
+            <div class="cast-portrait portrait-keeper" aria-hidden="true">
+              <svg viewBox="0 0 120 120">
+                <path d="M28 96a32 32 0 0164 0z" fill="#E8B23A"/>
+                <circle cx="60" cy="56" r="22" fill="#FFE3B3"/>
+                <path d="M38 52a22 22 0 0144 0l-4 2a18 18 0 00-36 0z" fill="#C98F2B"/>
+                <circle cx="53" cy="58" r="2.8" fill="#1E1E28"/><circle cx="67" cy="58" r="2.8" fill="#1E1E28"/>
+                <path d="M55 68q5 4 10 0" stroke="#B0761F" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M88 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#FFD640"/>
+              </svg>
+            </div>
+            <h3>The Sky-Keeper</h3>
+            <p class="cast-role">Mapmaker of the sky realm</p>
+            <p class="cast-quote">&ldquo;She charted the whole realm in ink — and wrote one word in the corner: <em>more</em>.&rdquo;</p>
+          </article>
+        </div>
+
+        <p class="story-footnote reveal">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l10 10-10 18L6 12z" fill="#FA4DBF"/><path d="M16 7l5.5 5.5L16 22l-5.5-9.5z" fill="#FFB3CC"/></svg>
+          Play it with a six-year-old. Or be the six-year-old. Both work.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ REALMS ============ -->
+    <section class="section section-pale" id="realms">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">The atlas</p>
+          <h2>Realms to chart, portals to light</h2>
+          <p class="section-lead">
+            The Sky-Keeper&rsquo;s atlas grows one realm at a time — each with its own sky,
+            its own weather, and one new idea to master. The realm keeps growing.
+          </p>
+        </header>
+
+        <ul class="realm-grid">
+          <li class="realm-card realm-storm reveal">
+            <h3>The Storm</h3>
+            <p>Where the atlas has its first ink — first steps under a freshly charted sky.</p>
+          </li>
+          <li class="realm-card realm-rematch reveal">
+            <h3>The Rematch</h3>
+            <p>Settle the score with a very sorry storm.</p>
+          </li>
+          <li class="realm-card realm-undercloud reveal">
+            <h3>The Undercloud</h3>
+            <p>The storm&rsquo;s secret — where the realm lights from below.</p>
+          </li>
+          <li class="realm-card realm-twosuns reveal">
+            <h3>The Two Suns</h3>
+            <p>A golden celebration lap under two warm suns.</p>
+          </li>
+          <li class="realm-card realm-farisles reveal">
+            <h3>The Far Isles</h3>
+            <p>Where the wind has a return address.</p>
+          </li>
+          <li class="realm-card realm-dayoff reveal">
+            <h3>Gloomfang&rsquo;s Day Off</h3>
+            <p>A hidden realm where you play as the storm himself. No gravity — hold jump to rise.</p>
+          </li>
+          <li class="realm-card realm-garden reveal">
+            <h3>The Sky Garden</h3>
+            <p>A garden that blooms in one great wave when you light the gate.</p>
+          </li>
+          <li class="realm-card realm-chasers reveal">
+            <h3>Storm Chasers</h3>
+            <p>Chase a runaway baby cloud through the gustiest skies in the realm.</p>
+          </li>
+          <li class="realm-card realm-bells reveal">
+            <h3>The Bell Towers</h3>
+            <p>Hidden bridges stay real only while the bell still sings.</p>
+          </li>
+          <li class="realm-card realm-mirror reveal">
+            <h3>Mirror Skies</h3>
+            <p>Glassy skies, mirror doors — and a reflection learning to be one.</p>
+          </li>
+          <li class="realm-card realm-bonus reveal">
+            <h3>The B-Sides</h3>
+            <p>Hidden night remixes of familiar skies. Same bones, different sky.</p>
+          </li>
+          <li class="realm-card realm-next reveal">
+            <h3>Still being charted</h3>
+            <p><em>The Probation Season</em> is already written — new realms like The Long
+               Winter and The Aurora Festival are on their way. Every ending here is
+               just a portal to the next adventure.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ SOUND ============ -->
+    <section class="section section-dark" id="sound">
+      <div class="container sound-grid">
+        <div class="sound-copy reveal">
+          <p class="section-kicker">The sound</p>
+          <h2>A soundtrack that doesn&rsquo;t exist</h2>
+          <p>
+            Gem Rush 3D ships with <strong>zero audio files</strong>. Every note you
+            hear — the chimes, the wind, the bells, the rain — is synthesized live on
+            your device the moment you press play.
+          </p>
+          <p>
+            Positive events ring in C-major pentatonic, so chaining gems literally
+            composes a riff, and gusts land on chord boundaries. The heart pickup
+            sounds, in the composer&rsquo;s notes, like <em>&ldquo;a hug in C.&rdquo;</em>
+          </p>
+          <ul class="mood-chips" aria-label="Musical moods">
+            <li>Day</li><li>Sunset</li><li>Garden</li><li>Wind</li><li>Bells</li><li>Flight</li><li>Mirror</li><li>Menu</li>
+          </ul>
+        </div>
+        <div class="sound-visual reveal" aria-hidden="true">
+          <div class="eq">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <p class="sound-caption">&ldquo;Playing the game literally plays music.&rdquo;</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GALLERY ============ -->
+    <section class="section" id="media">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">Postcards from the realm</p>
+          <h2>Every surface a primitive,<br>every sky a mood</h2>
+        </header>
+
+        <div class="gallery">
+          <figure class="shot reveal">
+            <button class="shot-btn" type="button" data-lightbox-open
+                    data-full="assets/img/screenshots/gemrush-gameplay-first-steps.png"
+                    data-caption="First Steps — every legend starts with a single hop.">
+              <img src="assets/img/screenshots/gemrush-gameplay-first-steps.png" alt="Pip hops between grassy sky islands, collecting pink sun-gems beneath a warm blue sky." loading="lazy" width="642" height="1062">
+              <span class="shot-zoom" aria-hidden="true">＋</span>
+            </button>
+            <figcaption>First Steps — every legend starts with a single hop.</figcaption>
+          </figure>
+          <figure class="shot reveal">
+            <button class="shot-btn" type="button" data-lightbox-open
+                    data-full="assets/img/screenshots/gemrush-menu.png"
+                    data-caption="The menu — your atlas of charted realms.">
+              <img src="assets/img/screenshots/gemrush-menu.png" alt="The main menu: the GEM RUSH 3D title above the atlas of level buttons." loading="lazy" width="642" height="1062">
+              <span class="shot-zoom" aria-hidden="true">＋</span>
+            </button>
+            <figcaption>The menu — your atlas of charted realms.</figcaption>
+          </figure>
+          <figure class="shot reveal">
+            <button class="shot-btn" type="button" data-lightbox-open
+                    data-full="assets/img/screenshots/gemrush-gameplay-day.png"
+                    data-caption="Soft shapes, soft light — one warm palette.">
+              <img src="assets/img/screenshots/gemrush-gameplay-day.png" alt="Daylight islands with moving platforms under a warm blue sky." loading="lazy" width="642" height="1062">
+              <span class="shot-zoom" aria-hidden="true">＋</span>
+            </button>
+            <figcaption>Soft shapes, soft light — one warm palette.</figcaption>
+          </figure>
+          <figure class="shot reveal">
+            <button class="shot-btn" type="button" data-lightbox-open
+                    data-full="assets/img/screenshots/gemrush-undercloud.png"
+                    data-caption="The Undercloud — the realm lights from below.">
+              <img src="assets/img/screenshots/gemrush-undercloud.png" alt="The Undercloud realm: a dark indigo sky with islands lit from below." loading="lazy" width="642" height="1062">
+              <span class="shot-zoom" aria-hidden="true">＋</span>
+            </button>
+            <figcaption>The Undercloud — the realm lights from below.</figcaption>
+          </figure>
+          <figure class="shot reveal">
+            <button class="shot-btn" type="button" data-lightbox-open
+                    data-full="assets/img/screenshots/gemrush-b-side-nightfall.png"
+                    data-caption="B-Sides — same bones, different sky.">
+              <img src="assets/img/screenshots/gemrush-b-side-nightfall.png" alt="A B-Side night remix: Pip on a green island under a dark sky, Nim the cloud nearby." loading="lazy" width="642" height="1062">
+              <span class="shot-zoom" aria-hidden="true">＋</span>
+            </button>
+            <figcaption>B-Sides — same bones, different sky.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DOWNLOAD ============ -->
+    <section class="section section-download" id="download">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="section-kicker">Come play</p>
+          <h2>Free. No ads. All heart.</h2>
+          <p class="section-lead">
+            Grab the latest release, drop it on your device, and go light your first
+            portal. The storm is waiting — very politely.
+          </p>
+        </header>
+
+        <div class="download-grid">
+          <article class="download-card reveal">
+            <div class="dl-icon dl-android" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7.6 8.5A5.5 5.5 0 0112 6.5c1.8 0 3.3.8 4.4 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 4.5l-1-1.7M15 4.5l1-1.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 9h13v7a4.5 4.5 0 01-4.5 4.5h-4A4.5 4.5 0 015.5 16z" fill="currentColor"/><circle cx="9.8" cy="5.2" r=".9" fill="currentColor"/><circle cx="14.2" cy="5.2" r=".9" fill="currentColor"/><path d="M3.5 10.5v4M20.5 10.5v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <h3>Android</h3>
+            <p class="dl-meta">Release-signed APK &middot; phones &amp; tablets &middot; touch controls</p>
+            <a class="btn btn-gold btn-block" href="https://github.com/jaszyxt/GemRush3D/releases/latest" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Download APK
+            </a>
+            <p class="dl-note">Tap the latest release, grab <code>GemRush3D.apk</code>, open it,
+               and allow installs from your browser when asked.</p>
+          </article>
+
+          <article class="download-card reveal">
+            <div class="dl-icon dl-windows" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 5.5l7.5-1v7H3zM12 4.2L21 3v8.5h-9zM3 12.5h7.5v7L3 18.5zM12 12.5h9V21l-9-1.3z" fill="currentColor"/></svg>
+            </div>
+            <h3>Windows</h3>
+            <p class="dl-meta">64-bit &middot; portable — no installer &middot; keyboard &amp; fullscreen</p>
+            <a class="btn btn-gold btn-block" href="https://github.com/jaszyxt/GemRush3D/releases/latest" rel="noopener">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Download for Windows
+            </a>
+            <p class="dl-note">Unzip, double-click <code>GemRush3D.exe</code>, play.
+               WASD / Arrows to move, Space to jump.</p>
+          </article>
+        </div>
+
+        <p class="dl-version reveal">Current release:
+          <strong data-release-version>v1.12.1</strong>
+          <span class="dl-updated" data-release-note></span>
+        </p>
+
+        <div class="coming-soon reveal">
+          <p class="coming-soon-label">Also headed for</p>
+          <ul class="store-chips" aria-label="Future platforms">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5c2 .8 6 .8 8 0M8 14c2-.8 6-.8 8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Steam <em>Coming soon</em></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3.5l12 8.5-12 8.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg> Google Play <em>Coming soon</em></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> App Store <em>Coming soon</em></li>
+          </ul>
+          <p class="coming-soon-note">
+            Following the journey is the nicest kind of wishlist:
+            <a href="https://github.com/jaszyxt/GemRush3D" rel="noopener">star the project on GitHub</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="section section-pale" id="faq">
+      <div class="container container-narrow">
+        <header class="section-head reveal">
+          <p class="section-kicker">Questions</p>
+          <h2>Asked nicely, answered kindly</h2>
+        </header>
+
+        <div class="faq-list reveal">
+          <details>
+            <summary>Is Gem Rush 3D really free?</summary>
+            <p>Yes. No ads, no in-app purchases, no energy meters, no paid anything.
+               You download it, you play it, and the only thing it asks of you is to
+               have a nice time.</p>
+          </details>
+          <details>
+            <summary>What do I need to run it?</summary>
+            <p>An Android phone or tablet with touch controls, or a Windows PC with a
+               keyboard. The game plays in landscape at a smooth frame rate, and
+               everything on screen is generated live — there&rsquo;s nothing heavy to load.</p>
+          </details>
+          <details>
+            <summary>Is it good for kids?</summary>
+            <p>It&rsquo;s built for them — warm, wry, and gentle. Hazards are &ldquo;guardians&rdquo;,
+               running out of lives is &ldquo;taking a nap&rdquo;, and the whole game passes a
+               photosensitivity audit: no flashing strobes, ever. The design test for
+               every part of it: <em>would a six-year-old who just lost feel invited back?</em></p>
+          </details>
+          <details>
+            <summary>What are Gloomfang&rsquo;s Gifts?</summary>
+            <p>Once a day, a single hidden golden gem appears somewhere in the levels
+               you&rsquo;ve unlocked. Find it or don&rsquo;t — miss a day and nothing bad happens,
+               ever. It&rsquo;s a small reason to smile, not a chore.</p>
+          </details>
+          <details>
+            <summary>Any hints?</summary>
+            <p>Guardians wake only when you linger — keep moving or tiptoe away. Nim
+               giggles half a second before each gust, so listen. The goal portal hums
+               before you can see it. And the checkpoints? They tell the story.</p>
+          </details>
+          <details>
+            <summary>I write about games. Where&rsquo;s the press kit?</summary>
+            <p>Right this way: <a href="presskit.html">the press kit</a> has the factsheet,
+               description, artwork and screenshots. Or say hello through the
+               <a href="https://github.com/jaszyxt/GemRush3D/issues" rel="noopener">issue tracker</a>.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-quote">&ldquo;Every ending here is just a portal to the next adventure.&rdquo;</p>
+      <div class="footer-cols">
+        <div class="footer-brand">
+          <a class="brand brand-invert" href="#top">
+            <svg class="brand-gem" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l10 10-10 18L6 12z" fill="#FA4DBF"/><path d="M16 7l5.5 5.5L16 22l-5.5-9.5z" fill="#FFB3CC"/></svg>
+            <span class="brand-name">Gem&nbsp;Rush&nbsp;<em>3D</em></span>
+          </a>
+          <p>A tiny warm hero in a big soft sky. Built with Unity 6 — every surface a
+             primitive, every sound synthesized live.</p>
+        </div>
+        <nav aria-label="Footer — game">
+          <h3>The game</h3>
+          <a href="#features">Features</a>
+          <a href="#story">Story</a>
+          <a href="#realms">Realms</a>
+          <a href="#sound">Sound</a>
+          <a href="#download">Download</a>
+        </nav>
+        <nav aria-label="Footer — community">
+          <h3>Community</h3>
+          <a href="https://github.com/jaszyxt/GemRush3D" rel="noopener">GitHub</a>
+          <a href="https://github.com/jaszyxt/GemRush3D/releases" rel="noopener">Releases</a>
+          <a href="https://github.com/jaszyxt/GemRush3D/issues" rel="noopener">Say hello</a>
+        </nav>
+        <nav aria-label="Footer — press">
+          <h3>Press</h3>
+          <a href="presskit.html">Press kit</a>
+          <a href="https://github.com/jaszyxt/GemRush3D/issues" rel="noopener">Contact</a>
+        </nav>
+      </div>
+      <p class="footer-legal">
+        &copy; 2026 Gem Rush 3D. Website hand-coded with the game&rsquo;s own zero-asset spirit.
+      </p>
+    </div>
+  </footer>
+
+  <dialog class="lightbox" data-lightbox aria-label="Screenshot viewer">
+    <button class="lightbox-close" data-lightbox-close aria-label="Close viewer">&times;</button>
+    <button class="lightbox-nav lightbox-prev" data-lightbox-prev aria-label="Previous screenshot">&#8249;</button>
+    <figure>
+      <img data-lightbox-img src="" alt="">
+      <figcaption data-lightbox-caption></figcaption>
+    </figure>
+    <button class="lightbox-nav lightbox-next" data-lightbox-next aria-label="Next screenshot">&#8250;</button>
+  </dialog>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
