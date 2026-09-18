@@ -37,6 +37,16 @@ except D11**) → this file.
   DualSense through the Windows exe) — still owed; virtual-pad rigs
   (`Assets/Editor/PadProbe.cs`, `PadProbe2.cs`, `WinterProbe.cs`) cover
   everything else.
+- **Auto-install to the laptop (user request, 2026-09-19):** every build
+  now ends with `DeployWindowsInstall()` in the build script — the fresh
+  Windows player is copied to `%LOCALAPPDATA%\Programs\GemRush3D\` and
+  the Desktop shortcut `Gem Rush 3D.lnk` is (re)written to launch it, so
+  each update is playable the moment the build finishes. Runs
+  automatically at the end of `BuildAndroid.Build()`; standalone via
+  `GemRush/Install Windows Build (Local)`. Locked-file conflicts (game
+  running) warn instead of failing the build. The old manual copy at
+  `Desktop\GemRush3D\` is STALE (v1.13.0) — safe to delete; the shortcut
+  now points at the auto-installed copy.
 
 ## Shipped in v1.14.0 — Pack 11 "The Long Winter" (this session)
 - **New mechanic (one spec + one piece + one builder loop, per the bible):**
