@@ -150,7 +150,7 @@ namespace UnityEngine
         public static Vector3 right { get { return new Vector3(); } }
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t) { return a; }
         public static Vector3 MoveTowards(Vector3 current, Vector3 target,
-            float maxDelta) { return a; }
+            float maxDelta) { return current; }
         public static float Distance(Vector3 a, Vector3 b) { return 0f; }
         public void Normalize() { }
         public static bool operator ==(Vector3 a, Vector3 b) { return true; }
