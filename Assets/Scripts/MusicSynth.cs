@@ -99,6 +99,13 @@ namespace GemRush
             new float[] { 98.0f, 220.0f, 293.7f }
         };
 
+        static readonly float[][] WinterChords = { // Am7 - Fmaj7 - Cmaj7 - Gsus2, low and hushed
+            new float[] { 110.0f, 164.8f, 261.6f },
+            new float[] { 87.3f, 174.6f, 220.0f },
+            new float[] { 130.8f, 196.0f, 329.6f },
+            new float[] { 98.0f, 146.8f, 246.9f }
+        };
+
         static MoodSpec Spec(SoundMood mood)
         {
             MoodSpec s = new MoodSpec();
@@ -159,6 +166,18 @@ namespace GemRush
                     s.Harmonic2 = 0.16f;
                     s.Sub = 0.08f;
                     s.Shimmer = 0.12f;
+                    break;
+                case SoundMood.Winter:
+                    // The quietest pack: long hushed chords (3.4 s each,
+                    // a 13.6 s loop) and a handful of distant music-box
+                    // twinkles, like snowfall catching light.
+                    s.Chords = WinterChords;
+                    s.ChordSeconds = 3.4f;
+                    s.Harmonic2 = 0.14f;
+                    s.Sub = 0.14f;
+                    s.Shimmer = 0.10f;
+                    s.MotifNotes = new float[] { E5, G5, A5, D5, C5 };
+                    s.MotifTimes = new float[] { 2.1f, 5.4f, 8.2f, 10.6f, 12.4f };
                     break;
                 default: // Day — the realm's home sound, close to the original.
                     s.Chords = DayChords;

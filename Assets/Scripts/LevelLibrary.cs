@@ -28,7 +28,8 @@ namespace GemRush
                     + LevelPackEight.Levels.Length
                     + LevelPackNine.Levels.Length
                     + LevelPackTen.Levels.Length
-                    + LevelPackBSides.Levels.Length];
+                    + LevelPackBSides.Levels.Length
+                    + LevelPackEleven.Levels.Length];
             int n = 0;
             for (int i = 0; i < baseLevels.Length; i++) all[n++] = baseLevels[i];
             for (int i = 0; i < LevelPackTwo.Levels.Length; i++)
@@ -51,6 +52,8 @@ namespace GemRush
                 all[n++] = LevelPackTen.Levels[i];
             for (int i = 0; i < LevelPackBSides.Levels.Length; i++)
                 all[n++] = LevelPackBSides.Levels[i];
+            for (int i = 0; i < LevelPackEleven.Levels.Length; i++)
+                all[n++] = LevelPackEleven.Levels[i];
             return all;
         }
 

@@ -51,6 +51,13 @@ namespace GemRush
                 grading.saturation.Override(-12f);
                 grading.contrast.Override(10f);
             }
+            else if (level.LongWinter)
+            {
+                // The Long Winter: a hush of cool — slightly desaturated,
+                // gently bluer, contrast left soft so nothing turns harsh.
+                grading.saturation.Override(-8f);
+                grading.contrast.Override(2f);
+            }
             else
             {
                 grading.saturation.Override(4f);

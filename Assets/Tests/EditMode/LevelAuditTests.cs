@@ -450,6 +450,78 @@ namespace GemRush.Tests
         }
 
         // ------------------------------------------------------------------
+        // The Long Winter (pack 11): the lantern/ice-gate contract
+        // ------------------------------------------------------------------
+
+        [Test]
+        public void EveryIceGate_HasTheLightFirst()
+        {
+            // The lantern shrine must stand before any frozen gate on the
+            // route (courses run +z), or the gate is an unopenable wall.
+            // Every gate must also sit on the course — within jump reach
+            // of a standable top — so melting it is always possible.
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.IceGates.Count == 0) { i++; continue; }
+                List<Top> tops = StandableTops(l);
+
+                Assert.GreaterOrEqual(l.Lanterns.Count, 1,
+                    Label(i, l) + " has ice gates but no lantern shrine.");
+                for (int g = 0; g < l.IceGates.Count; g++)
+                {
+                    Assert.IsTrue(NearAnyTop(tops, l.IceGates[g].Center,
+                        LandingReachXz),
+                        Label(i, l) + ": ice gate " + g + " at " +
+                        l.IceGates[g].Center + " floats off the course — " +
+                        "nothing standable within melt-walking reach.");
+                }
+
+                float firstGateZ = float.MaxValue;
+                for (int g = 0; g < l.IceGates.Count; g++)
+                    firstGateZ = Mathf.Min(firstGateZ, l.IceGates[g].Center.z);
+                for (int n = 0; n < l.Lanterns.Count; n++)
+                {
+                    Vector3 shrine = l.Lanterns[n].PlatformTop;
+                    Assert.IsTrue(NearAnyTop(tops, shrine, LandingReachXz),
+                        Label(i, l) + ": lantern shrine " + n +
+                        " floats off the course.");
+                    Assert.LessOrEqual(shrine.z, firstGateZ - 2f,
+                        Label(i, l) + ": lantern shrine " + n + " at z " +
+                        shrine.z + " is not clearly ahead-of/behind-of the " +
+                        "first gate (z " + firstGateZ + ") — the light must " +
+                        "come first on the route.");
+                }
+                i++;
+            }
+        }
+
+        [Test]
+        public void WinterLevels_CarryTheFullKit()
+        {
+            // A Long Winter level promises snow-soft everything and the
+            // lantern loop: it resolves to the Winter mood, has at least
+            // one gate to melt, and its palette was actually set (a winter
+            // sky is never the daylight default blue).
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (!l.LongWinter) { i++; continue; }
+                Assert.AreEqual(SoundMood.Winter, l.ResolveMood(),
+                    Label(i, l) + " is a winter level but resolves to " +
+                    l.ResolveMood() + ".");
+                Assert.GreaterOrEqual(l.IceGates.Count, 1,
+                    Label(i, l) + " is a winter level with nothing to melt.");
+                Assert.GreaterOrEqual(l.Lanterns.Count, 1,
+                    Label(i, l) + " is a winter level with no lantern.");
+                Assert.Less(l.SkyColor.b, 1f);
+                Assert.Greater(l.SkyColor.r, 0.6f,
+                    Label(i, l) + " winter sky is not the pale family.");
+                i++;
+            }
+        }
+
+        // ------------------------------------------------------------------
         // Derived data sanity
         // ------------------------------------------------------------------
 

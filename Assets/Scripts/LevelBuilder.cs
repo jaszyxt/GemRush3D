@@ -12,13 +12,19 @@ namespace GemRush
         {
             Material grass = ArtLib.Solid(ArtLib.Grass, 0f);
             Material dirt = ArtLib.Solid(ArtLib.Dirt, 0f);
+            // Snow-soft tops: winter levels swap the grass slab for snow.
+            Material snow = ArtLib.Solid(ArtLib.Snow, 0.05f);
+            Material topMat = level.LongWinter ? snow : grass;
             Material moverMat = ArtLib.Solid(ArtLib.MoverOrange, 0.15f);
             Material elevatorMat = ArtLib.Solid(ArtLib.ElevatorBlue, 0.15f);
             Material stone = ArtLib.Solid(ArtLib.Stone, 0f);
             Material cloudMat = ArtLib.Solid(ArtLib.CloudWhite, 0.25f);
             Material trunk = ArtLib.Solid(new Color(0.45f, 0.30f, 0.18f), 0f);
-            Material leaf = ArtLib.Solid(new Color(0.30f, 0.62f, 0.28f), 0f);
-            Material rock = ArtLib.Solid(new Color(0.52f, 0.54f, 0.58f), 0f);
+            // Winter props wear frost: muted white-green canopies, pale rocks.
+            Material leaf = ArtLib.Solid(
+                level.LongWinter ? ArtLib.FrostedLeaf : new Color(0.30f, 0.62f, 0.28f), 0f);
+            Material rock = ArtLib.Solid(
+                level.LongWinter ? ArtLib.FrostedRock : new Color(0.52f, 0.54f, 0.58f), 0f);
 
             int nameSeed = 0;
             for (int i = 0; i < level.Name.Length; i++) nameSeed += level.Name[i];
@@ -26,7 +32,7 @@ namespace GemRush
             for (int i = 0; i < level.Platforms.Count; i++)
             {
                 PlatformSpec p = level.Platforms[i];
-                GameObject platformObj = Platform(parent, p.Center, p.Size, grass, dirt);
+                GameObject platformObj = Platform(parent, p.Center, p.Size, topMat, dirt);
 
                 // Guardians standing on this platform own a keep-clear zone:
                 // props (especially tall trees) must never grow inside their
@@ -102,6 +108,12 @@ namespace GemRush
                 MirrorDoor.Create(parent, d.DoorA, d.DoorB);
             }
 
+            for (int i = 0; i < level.Lanterns.Count; i++)
+                Lantern.Create(parent, level.Lanterns[i]);
+
+            for (int i = 0; i < level.IceGates.Count; i++)
+                IceGate.Create(parent, level.IceGates[i]);
+
             for (int i = 0; i < level.Gems.Count; i++)
             {
                 Gem gem = Gem.Create(parent, level.Gems[i]);
@@ -119,6 +131,16 @@ namespace GemRush
             GoalPortal.Create(parent, level.Portal);
 
             DailyGem.PlaceIfActive(level, parent);
+
+            if (level.LongWinter)
+            {
+                float courseEnd = level.Portal.z + 14f;
+                for (int i = 0; i < level.Platforms.Count; i++)
+                    courseEnd = Mathf.Max(courseEnd,
+                        level.Platforms[i].Center.z +
+                        level.Platforms[i].Size.z * 0.5f);
+                Snowfall.Create(parent, courseEnd);
+            }
 
             ApplyAtmosphere(level);
 
@@ -159,7 +181,9 @@ namespace GemRush
         static void ApplyAtmosphere(LevelDefinition level)
         {
             RenderSettings.fogColor = level.FogColor;
-            RenderSettings.fogDensity = level.DarkRealm ? 0.013f : 0.008f;
+            RenderSettings.fogDensity =
+                level.DarkRealm ? 0.013f :
+                level.LongWinter ? 0.011f : 0.008f;
 
             RenderSettings.ambientMode = AmbientMode.Trilight;
             if (level.DarkRealm)
@@ -167,6 +191,14 @@ namespace GemRush
                 RenderSettings.ambientSkyColor = new Color(0.20f, 0.24f, 0.38f);
                 RenderSettings.ambientEquatorColor = new Color(0.16f, 0.18f, 0.28f);
                 RenderSettings.ambientGroundColor = new Color(0.10f, 0.10f, 0.16f);
+            }
+            else if (level.LongWinter)
+            {
+                // Winter light: everything a little paler and cooler, so
+                // the snow tops glow without the world going grey.
+                RenderSettings.ambientSkyColor = new Color(0.62f, 0.68f, 0.88f);
+                RenderSettings.ambientEquatorColor = new Color(0.52f, 0.56f, 0.66f);
+                RenderSettings.ambientGroundColor = new Color(0.44f, 0.46f, 0.50f);
             }
             else
             {
@@ -187,6 +219,12 @@ namespace GemRush
                     sun.intensity = 0.95f;
                     sun.color = new Color(0.75f, 0.82f, 1f);
                     sun.transform.rotation = Quaternion.Euler(64f, -35f, 0f);
+                }
+                else if (level.LongWinter)
+                {
+                    sun.intensity = 1.6f;
+                    sun.color = new Color(0.92f, 0.95f, 1f);
+                    sun.transform.rotation = Quaternion.Euler(40f, -30f, 0f);
                 }
                 else
                 {

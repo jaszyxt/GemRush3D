@@ -8,7 +8,7 @@ from code. Even the app icon is painted procedurally at build time.
 
 ## Release build (already configured)
 
-`Builds/GemRush3D.apk` is a **release-signed** build (v1.13.0, IL2CPP,
+`Builds/GemRush3D.apk` is a **release-signed** build (v1.14.0, IL2CPP,
 arm64). Signing uses `tools/gemrush.keystore`; its password lives in
 `tools/signing.txt`. Both are git-ignored — back them up somewhere safe:
 all updates to a published game must be signed with the same key.
@@ -53,7 +53,7 @@ setting).
 
 The storm scattered the sky realm's **Sunstones**. You are **Pip**, the
 Sky-Keeper's little helper: hop the islands, reclaim the gems, light each
-portal — and chase the storm. Thirty-one levels in ten packs and B-Sides, rated 1–3 stars
+portal — and chase the storm. Thirty-four levels in eleven packs and B-Sides, rated 1–3 stars
 each:
 
 **Pack One — The Storm**
@@ -145,14 +145,16 @@ each:
     way the first keepers did. From the summit: every portal you ever
     lit, still burning.
 
-**Pack Ten — Mirror Skies** (a mirrored sky appears over the Far Isles)
-26. **Mirror Lake** — the lake has gone perfectly still, and its
-    reflection shows **mirror doors**: step into one, step out of its
-    twin.
-27. **Twin Towers** — paired doors across two towers, and a translucent
-    mirror-Gloomfang drifting along, copying every move.
-28. **The Mirror Meadow** — doors in pairs like strung pearls, one
-    sleeping guardian, and a reflection learning to hum the lullaby.
+**Pack Eleven — The Long Winter** (the quietest pack: snow that never melts)
+32. **First Snow** — wake the **sunstone lantern** and its warm light
+    travels with Pip, melting the frozen gates in his path. The ice
+    never hurts; it only waits.
+33. **Frozen Fountains** — the updraft columns hum under the ice. Melt a
+    door while hovering, ride the ferry straight through another.
+    13 gems.
+34. **The Crystal Summit** — one last climb past a napping guardian to
+    the winter's rooftop, where every melted path refreezes into a
+    crystal map of the whole walk. 14 gems + heart.
 
 Stars: **3** = all gems, **2** = half, **1** = finished. Best times and stars
 are saved on the device; clearing a level unlocks the next. Touching a red
@@ -221,7 +223,7 @@ C-major pentatonic, which means playing the game literally plays music:
 | `GameManager` | State machine (menu/playing/paused/won/game over/complete), level progression, score, timer, lives |
 | `LevelDefinition` | Pure data for a level: platforms, movers, spinners, gems, checkpoints, bounce pads, hearts, portal, mission text, story beats, atmosphere (sky/fog/sun) |
 | `LevelLibrary` | Pack One levels in play order — add a level by adding a method + one line |
-| `LevelPackTwo` … `LevelPackTen` | Packs Two through Ten (Rematch, Undercloud, Two Suns, Far Isles, Day Off, Sky Garden, Storm Chasers, Bell Towers, Mirror Skies), same pattern |
+| `LevelPackTwo` … `LevelPackEleven` | Packs Two through Eleven (Rematch, Undercloud, Two Suns, Far Isles, Day Off, Sky Garden, Storm Chasers, Bell Towers, Mirror Skies, Long Winter), same pattern |
 | `Story` | The completion epilogue and the menu's rotating flavor quotes |
 | `BouncePad` / `HeartPickup` | Launch pad and extra-life pickup, both data-driven |
 | `Updraft` / `GustZone` | Standing-wind columns and phase-locked tailwind gusts that carry Pip |

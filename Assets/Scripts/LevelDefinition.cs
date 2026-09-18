@@ -17,7 +17,8 @@ namespace GemRush
         Wind,
         Bells,
         Flight,
-        Mirror
+        Mirror,
+        Winter
     }
 
     /// Pure data describing one level. No behaviour lives here — LevelBuilder
@@ -47,6 +48,7 @@ namespace GemRush
             if (DarkRealm) return SoundMood.Dark;
             if (SkyGarden) return SoundMood.Garden;
             if (MirrorSkies) return SoundMood.Mirror;
+            if (LongWinter) return SoundMood.Winter;
             return SoundMood.Day;
         }
 
@@ -93,6 +95,19 @@ namespace GemRush
         /// Mirror Skies levels: a translucent Gloomfang drifts on the
         /// mirrored side of the sky, copying your every move.
         public bool MirrorSkies = false;
+
+        /// Sunstone lantern shrines: light one and its warm halo follows
+        /// Pip, melting the level's ice gates as he passes. Winter levels
+        /// place the shrine on the route before any gate.
+        public List<LanternSpec> Lanterns = new List<LanternSpec>();
+
+        /// Frozen doorways on the route: solid until the carried lantern's
+        /// warmth melts them. Never harmful — they just wait.
+        public List<IceGateSpec> IceGates = new List<IceGateSpec>();
+
+        /// The Long Winter levels: snow-soft platforms, falling snow, a
+        /// pale cool sky and the quietest music in the game.
+        public bool LongWinter = false;
 
         /// Bonus flight level: Pip stays home and Gloomfang is playable —
         /// no gravity, gentle drift, no fall deaths.
@@ -265,6 +280,29 @@ namespace GemRush
         {
             DoorA = new Vector3(ax, ay, az);
             DoorB = new Vector3(bx, by, bz);
+        }
+    }
+
+    public class LanternSpec
+    {
+        /// Position of the shrine's platform TOP surface.
+        public Vector3 PlatformTop;
+
+        public LanternSpec(float x, float y, float z)
+        {
+            PlatformTop = new Vector3(x, y, z);
+        }
+    }
+
+    public class IceGateSpec
+    {
+        public Vector3 Center;
+        public Vector3 Size = new Vector3(3.4f, 3f, 0.8f);
+
+        public IceGateSpec(float x, float y, float z, float w, float h, float d)
+        {
+            Center = new Vector3(x, y, z);
+            Size = new Vector3(w, h, d);
         }
     }
 }

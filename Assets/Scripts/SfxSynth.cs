@@ -420,6 +420,52 @@ namespace GemRush
             return MakeClip(name, data);
         }
 
+        /// The Long Winter: waking the sunstone lantern — a warm two-note
+        /// rise with a soft shimmer tail, like a held breath letting go.
+        public static AudioClip LanternLight(string name)
+        {
+            float[] data = new float[(int)(2.2f * SampleRate) + 1];
+            Voice(data, 523.25f, 0.02f, 0.9f, 0.3f,
+                BoxPartials, BoxWeights, BoxDecays, 0.006f, 2f);
+            Voice(data, 783.99f, 0.16f, 1.4f, 0.28f,
+                BoxPartials, BoxWeights, BoxDecays, 0.008f, 2.2f);
+            NoiseVoice(data, 0.05f, 1.6f, 0.04f, 2400f, 3600f, 0.25f, 0.9f, 608);
+            return MakeClip(name, data);
+        }
+
+        /// An ice gate giving way to the lantern's warmth: a glassy
+        /// downward sigh, two water-drop notes at the end.
+        public static AudioClip MeltSigh(string name)
+        {
+            float[] data = new float[(int)(1.7f * SampleRate) + 1];
+            NoiseVoice(data, 0f, 1.2f, 0.10f, 3200f, 700f, 0.08f, 0.7f, 609);
+            Voice(data, 1046.5f, 0.55f, 0.7f, 0.16f,
+                BoxPartials, BoxWeights, BoxDecays, 0.004f, 2.4f);
+            Voice(data, 659.25f, 0.85f, 0.7f, 0.12f,
+                BoxPartials, BoxWeights, BoxDecays, 0.004f, 2.6f);
+            return MakeClip(name, data);
+        }
+
+        /// The Long Winter victory: the crystal map — the melted paths
+        /// refreezing as a glassy rising run with bell-like inharmonic
+        /// partials, slower and cooler than the garden's bloom.
+        public static AudioClip CrystalRun(string name)
+        {
+            float lead = 0.45f;
+            float[] notes = { 523.25f, 659.25f, 783.99f, 880f, 1046.5f, 1318.5f };
+            float dur = lead + notes.Length * 0.18f + 0.9f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            float[] partials = { 1f, 2.76f, 5.42f };
+            float[] weights = { 1f, 0.35f, 0.12f };
+            float[] decays = { 1f, 1.8f, 3f };
+            for (int i = 0; i < notes.Length; i++)
+                Voice(data, notes[i], lead + i * 0.18f, 0.9f, 0.26f,
+                    partials, weights, decays, 0.005f, 2.2f);
+            NoiseVoice(data, lead, dur - lead - 0.2f, 0.045f, 3000f, 4200f,
+                0.4f, 0.6f, 607);
+            return MakeClip(name, data);
+        }
+
         // ------------------------------------------------------------------
         // The world: wind, bells, bridges, guardians, mirrors
         // ------------------------------------------------------------------

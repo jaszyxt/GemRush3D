@@ -345,6 +345,16 @@ namespace GemRush
                     AudioManager.Instance.PlayBloom();
                 BloomFlower.Trigger(GameBootstrap.World.transform,
                     CurrentLevelDefinition.Portal);
+
+                // The Long Winter: every melted gate refreezes into a
+                // crystal shard, sweeping out from the portal — the melted
+                // paths become one map of everywhere Pip walked.
+                if (CurrentLevelDefinition.IceGates.Count > 0)
+                {
+                    AudioManager.Instance.PlayCrystal();
+                    IceGate.TriggerCrystalMap(GameBootstrap.World.transform,
+                        CurrentLevelDefinition.Portal);
+                }
             }
 
             bool lastLevel = CurrentLevel >= LevelLibrary.Levels.Length - 1;

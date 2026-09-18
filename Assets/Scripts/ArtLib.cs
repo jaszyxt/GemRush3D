@@ -29,6 +29,14 @@ namespace GemRush
         public static readonly Color Air = new Color(0.65f, 0.92f, 1f);
         public static readonly Color CheckpointOff = new Color(0.55f, 0.58f, 0.65f);
         public static readonly Color CheckpointOn = new Color(0.30f, 0.95f, 0.40f);
+        /// The Long Winter family: snow-soft tops, ice gates and frost
+        /// props share one pale glacial blue so "frozen" reads everywhere
+        /// the same way; the sunstone lantern keeps the reward gold so
+        /// "what the world gives you" stays one hue.
+        public static readonly Color Snow = new Color(0.93f, 0.95f, 0.99f);
+        public static readonly Color IceBlue = new Color(0.62f, 0.85f, 0.98f);
+        public static readonly Color FrostedLeaf = new Color(0.72f, 0.80f, 0.80f);
+        public static readonly Color FrostedRock = new Color(0.84f, 0.87f, 0.92f);
 
         static Shader standardShader;
 

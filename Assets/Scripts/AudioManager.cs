@@ -39,6 +39,8 @@ namespace GemRush
         AudioClip bridgeOff;
         AudioClip guardianWake;
         AudioClip giggle;
+        AudioClip lanternLight;
+        AudioClip meltSigh;
         AudioClip uiClick;
         AudioClip uiToggleOn;
         AudioClip uiToggleOff;
@@ -112,6 +114,8 @@ namespace GemRush
             bridgeOff = SfxSynth.BridgeOff("sfx_bridge_off");
             guardianWake = SfxSynth.GuardianWake("sfx_guardian_wake");
             giggle = SfxSynth.Giggle("sfx_giggle");
+            lanternLight = SfxSynth.LanternLight("sfx_lantern");
+            meltSigh = SfxSynth.MeltSigh("sfx_melt");
 
             uiClick = SfxSynth.UIClick("ui_click");
             uiToggleOn = SfxSynth.UIToggle("ui_toggle_on", true);
@@ -512,6 +516,30 @@ namespace GemRush
             {
                 clip = SfxSynth.BloomRun("sfx_bloom");
                 noteCache[9300] = clip;
+            }
+            source.PlayOneShot(clip);
+        }
+
+        /// The Long Winter: waking the sunstone lantern.
+        public void PlayLantern()
+        {
+            PlayIfOn(lanternLight);
+        }
+
+        /// An ice gate melting away beside Pip.
+        public void PlayMelt()
+        {
+            PlayIfOn(meltSigh);
+        }
+
+        /// The Long Winter victory: the crystal-map refreeze run.
+        public void PlayCrystal()
+        {
+            if (!SaveSystem.SoundOn) return;
+            if (!noteCache.TryGetValue(9400, out AudioClip clip))
+            {
+                clip = SfxSynth.CrystalRun("sfx_crystal");
+                noteCache[9400] = clip;
             }
             source.PlayOneShot(clip);
         }
