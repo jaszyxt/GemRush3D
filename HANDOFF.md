@@ -1,117 +1,86 @@
-# HANDOFF — deep-research session 2026-09-17 (evening)
+# HANDOFF — current state (update: v1.12.2 session, 2026-09-19)
 
-Follows the URP migration session. This session ran four research tracks
-(game feel, level design grammar, mobile UX/accessibility, adaptive
-audio/haptics) and applied the filtered findings. **Full synthesis, backlog
-and sources: `RESEARCH.md`** — read it before designing packs 11+.
+**Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
+character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
+adopted / ADAPT backlog / SKIPPED — sources included) →
+`docs/UIUX-Multiplatform-Directives.md` (UI/UX agent's P0–P2 work queue,
+D1–D12 with DoDs; D1–D4 + D8 shipped, D5–D12 open) → this file.
 
-## Committed (ff6f5cd + stub fixes) — NOT yet built into any APK
-Research pass, all in clean files only (Pack 9/10 work untouched):
-- **Bugs fixed**: touch jump fired on finger-LIFT (~80ms latency) — now
-  IPointerDownHandler; fly mode broken on touch (no held state) — JumpHeld;
-  interrupted touch bricked the joystick — ResetInput on pause/focus; no
-  auto-pause on interruption — GameManager.OnApplicationPause/Focus; heart
-  pickup shared hazard red — now HeartGold; haptic effects were semantically
-  inverted (TICK<CLICK<HEAVY_CLICK) — remapped, win=Fanfare, 120ms cooldown.
-- **Feel**: gem magnetism (2.2m slide), variable jump height (x0.5 cut once
-  per jump; never in gusts/wind/flight; pads uncuttable), terminal fall
-  -28m/s, landing overshoot spring, camera vertical soft zone (±2.5m window),
-  SaveSystem.ShakeOn groundwork, SaveSystem.LeftyOn mirrored touch layout.
-- **Audit suite**: checkpoint-grounding test, gust-exit-landing test, echo
-  bridges standable in StandableTops, LevelCount floor 24. 14 tests total.
-- **CI**: green (stubs extended: pointer interfaces, MoveTowards,
-  realtimeSinceStartup, CanvasScaler).
+## Working agreement with the user (SOP — do not regress)
+1. **Plan → research → solution → THEN simulate.** No trial-and-error in
+   the editor; one clean verification cycle per change.
+2. **Agile increments**: one milestone per session, DoD = compiles clean →
+   play-verified → dual build (APK + Windows exe) → signature-verified →
+   README true.
+3. **Pacing is law**: difficulty never rises between packs; new mechanics
+   are introduced alone, combined later; hearts before hard stretches.
+4. The user edits files in parallel sessions — **re-read before writing**;
+   their version bumps and edits are authoritative.
+5. Parallel subagents work by strict file ownership (they shipped the
+   UI/UX batch successfully); give each agent exclusive files.
 
-## ACTION NEEDED before next release build
-**Run the EditMode audit suite once the editor is out of play mode** — the
-rerun couldn't start during the Pack 9/10 playtest (2 attempts). Compile is
-verified clean; the one known failure (a Bell Towers gem on an echo bridge)
-is addressed by the StandableTops change, but the full suite hasn't gone
-green in-editor yet.
+## Current shipped state
+- **Code: v1.12.2 (versionCode 20), committed `9bc11c5` on main** — 31
+  levels, 10 packs. Windows exe refreshed in
+  `AppData\Local\Programs\GemRush3D\` + Desktop shortcut; emulator has it.
+- **Tablet (SM-X810 / R52W70BRE9E)**: last installed **v1.10.0** — needs
+  `Builds/GemRush3D.apk` (v1.12.2) on next USB; straight update, save kept.
+- **Phone (SM-A366B / RRCY5008R7M)**: last installed **v1.10.1** — same,
+  update on next connection. Old phone RFCW40396ZN (A34) is retired/offline.
+- Release signing: `tools/gemrush.keystore` + `signing.txt` (gitignored) —
+  same key since v1.1.0, so updates install over each other, save kept.
 
-## Queued (RESEARCH.md has full designs)
-Audio backlog is the highest-value next queue: combo pitch-ramp (XS),
-silence/ducking on death+win with tonic restart (S), gust→music phase-lock —
-Pack 8's signature moment (M), checkpoint cadence (S). Note: gusts currently
-DRIFT out of phase with the music forever (private t-accumulator) — fixing
-this is one float. Settings rows for Shake/Lefty + pause-button size +
-font floor are the UX queue (UIManager was mid-flight).
+## Shipped in v1.10.0 → v1.12.2 (this stretch)
+- **Pack 9 Bell Towers** (23): echo bells solidify hidden bridges while
+  the tone rings (Bell/BellRig/EchoBridge + SfxSynth.BellTone).
+- **Pack 10 Mirror Skies** (26–28): paired mirror doors (anti-ping-pong
+  exit geometry: exit offset 1.7 units past the twin's trigger) +
+  translucent mirror-Gloomfang (`Gloomfang.Create(..., mirror: true)`).
+- **B-Sides** (29–31): `Remixes.Remixed(base, mutate)` — same geometry,
+  new mood/twist; night versions of Gust Alley, First Blooms, The Ascent
+  (+ the `LevelLibrary.TheAscent()` internal accessor for init-order safety).
+- **Fixes from player reports** (root causes in git log): updraft
+  midpoint-trap (rim-fade removed; wind = constant lift, ballistic
+  pop-out), fly-forever after wind (windLift resets every physics step),
+  props now keep clear of spinner sweeps, level grid auto-fits any count.
 
-## Shipped & installed
-- **v1.9.2 (versionCode 15)** — installed and launch-verified on the
-  **tablet SM-X810 / R52W70BRE9E** (Android 16, fresh install). The phone
-  (RFCW40396ZN) was offline at build time — it is still on v1.9.1; **install
-  `Builds/GemRush3D.apk` next time it's plugged in** (straight update).
-  NOTE: the new APK also requests `android.permission.INTERNET` (pulled in
-  by the UPM package set — URP/modules; harmless, single-player unaffected).
+## Open items (prioritized)
+1. **Install v1.12.2 on tablet + phone** (both offline at ship time; A36
+   got v1.10.1, tablet v1.10.0 — `-r` update, saves kept).
+2. **D5–D12 from the directives doc** — next: gamepad (Input System,
+   Both handling; ship move+jump together), Settings-from-Pause (D9),
+   canvas split (D7), text floors (D10).
+3. **Audio ADAPT queue** in RESEARCH.md — checkpoint cadence,
+   parameterized MusicSynth intensity, gust haptic texture, milestone
+   chime. NOTE: combo pitch-ramp, ducking, tonic restart, gust
+   phase-lock + NoiseSwell are DONE (AudioManager/SfxSynth/GustZone).
+4. **Strip `[GustDebug]`/`[DoorDebug]` logs if any reappear** before
+   release builds (search Scripts/ for "Debug]").
+5. Run the EditMode audit suite in-editor once after big script batches
+   (14 tests; CI csc green as of v1.12.2).
 
-## The migration (Built-in → URP 17.6.0)
-- **Why**: Unity deprecates BiRP from 6.5 (supported only through 6.7 LTS);
-  URP is the go-forward pipeline.
-- **Pipeline assets generated by code** (`Assets/Editor/EnsureUrp.cs` →
-  `EnsureUrp.Create()`): `Assets/Settings/GemRushURP.asset` +
-  `GemRushURP-Forward.renderer` — HDR on (feeds bloom), 4x MSAA, Forward
-  renderer, shadow distance 60. Generated .asset files are committed as
-  configuration. No editor GUI was touched (zero-manual-setup rule holds).
-  URP 17 has no `Initialize()` — the renderer list is serialized field
-  `m_RendererDataList` (set via SerializedObject).
-- **Shader swaps**: `Standard`→`Universal Render Pipeline/Lit` (ArtLib),
-  `Particles/Standard Unlit`→`URP/Particles/Unlit` (Fx), fallback →
-  `URP/Unlit` (Backdrop). `_Glossiness`→`_Smoothness`; SetFade rewritten for
-  URP surface state (`_Surface`/`_Blend`/`_SURFACE_TYPE_TRANSPARENT`).
-  EnsureShaders Always-Included list updated. `Sprites/Default`,
-  `Skybox/Procedural`, `Unlit/*`, `UI/Default` work unchanged under URP.
-- **PostFx.cs (new)**: runtime global Volume (code-built VolumeProfile — no
-  assets): bloom (intensity .85, threshold .95), vignette (.24),
-  ColorAdjustments per realm (DarkRealm: sat −12 / contrast +10; day: +4/+4).
-  Camera post is enabled explicitly — **URP does NOT auto-add
-  UniversalAdditionalCameraData to code-created cameras** (pitfall).
-- **Latent bugs fixed** (exposed by the migration): the scene file's default
-  **camera** ("Main Camera", depth −1) has double-rendered under the game
-  camera and **double-AudioListener**'d since v1.0 — destroyed at Boot; the
-  scene's default **"Directional Light"** double-lit everything under BiRP
-  and is silently IGNORED by URP (one directional light only) — destroyed,
-  and sun intensity compensated (1.15→1.9 day, 0.55→0.95 DarkRealm in
-  LevelBuilder) so levels keep their shipped brightness.
-- **Removed**: embedded `com.unity.postprocessing` (superseded by URP
-  volumes). Removal left stale define/cache artifacts (`PPV2_EXISTS`
-  converter errors) — fixed by clearing `Library/Bee` + stale ScriptAssemblies
-  and an editor restart. Clean compile since.
-- `GemRush.asmdef` now references
-  `Unity.RenderPipelines.Universal.Runtime` + `Core.Runtime`; CI stubs
-  extended (Volume/Bloom/Vignette/ColorAdjustments/VolumeProfile/
-  UniversalAdditionalCameraData in tools/stubs/UnityStubs.cs).
+## Environment wisdom (hard-won)
+- The **game auto-pauses on editor focus loss** (research-backed design).
+  Physics probes read frozen while the editor is unfocused — this is NOT
+  a bug. Set `Application.runInBackground = true` in-session, resume via
+  `GameManager.ResumeGame()`, and expect focus transitions to re-pause.
+- **Stale-assembly races**: after a refresh+compile, play mode may restart
+  and probes read the old world mid-teardown (duplicate "~World",
+  leftover gems). Re-enter play, wait, then probe.
+- **The user edits files concurrently** — always re-read before Edit;
+  their version bumps in EnsureShaders.cs are authoritative (v1.12.2/19
+  at this writing; the headless Build() stamps version at build time).
+- Headless builds **fail with exit 1 if the editor holds the project** —
+  close it gracefully first (CloseMainWindow; force-kill leaves a Scene
+  Backup dialog that blocks the next launch). Better: build via the
+  in-editor menu `GemRush/Build Android APK (Release)` (includes the
+  Windows exe pass) while the editor is open.
+- Multiple Android devices: install to **every** `adb devices` entry
+  ("any android device" is the user's standing instruction).
 
-## Verification
-- Pixel-comparison vs BiRP screenshots: day level mean luminance 187 vs 196
-  (delta = intended grading/vignette), 0% magenta in ALL shots, 308/308
-  runtime materials valid (the one "magenta" cluster was bloomed gems in
-  indigo fog — false positive).
-- DarkRealm level: mean 79, 0% crushed blacks, moody as designed.
-- Frame timing (editor): CPU main 1.65ms / render 0.53ms / GPU 0.91ms vs
-  16.6ms budget — huge headroom, no regression. SRP Batcher active.
-- 12/12 level-audit tests green after migration.
-
-## Open items for next session
-1. **Install v1.9.2 on the phone** (RFCW40396ZN) — APK ready in Builds/.
-2. UNITY_EMAIL/UNITY_PASSWORD secrets still missing (user's Unity account
-   credentials — needed with UNITY_LICENSE for GameCI; UNITY_LICENSE already
-   set from Unity_lic.ulf).
-3. Don't push a `v*` tag until those two secrets exist.
-4. The concurrent-session debug line in GustZone.cs may still be around —
-   strip `[GustDebug]` before any release build if present.
-5. On-device perf spot-check of URP on the tablet/phone would be prudent
-   (editor timings are not device timings) — adb shell dumpsys gfxinfo while
-   playing works.
-
-## Windows build (added same session)
-- **v1.9.2 Windows exe** in `Builds/Windows/GemRush3D.exe`, smoke-tested
-  (10s run, process stable), **desktop shortcut "Gem Rush 3D"** created.
-  Built via MCP manage_build (scenes: Game.unity). DirectML.dll + D3D12/ ship
-  because com.unity.ai.inference is in the package set — harmless, ~14 MB;
-  removing that package would slim future builds if unwanted.
-- The editor is switched **back to Android** after the Windows build
-  (required — one active build target at a time). Repeat the
-  windows64→build→android dance for future Windows builds.
-- NOTE: the editor exited unexpectedly after the Windows build (post-build,
-  12:29; cause unclear, possibly user close). Relaunched cleanly after.
+## Environment debt (harmless, known)
+- Two zombie-ish Unity processes can linger after editor churn; they exit
+  on next reboot. `Assets/Screenshots/` + the kept `Assets/_Recovery/`
+  scene backup (from a force-kill) are local-only clutter; deletable.
+- tools/*.png, device screenshots in tools/ are untracked scratch — fine
+  per .gitignore.
