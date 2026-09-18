@@ -833,4 +833,16 @@ namespace UnityEngine.EventSystems
 {
     public class EventSystem : Component { }
     public class StandaloneInputModule : Component { }
+
+    public class PointerEventData { }
+
+    public interface IPointerDownHandler
+    {
+        void OnPointerDown(PointerEventData data);
+    }
+
+    public interface IPointerUpHandler
+    {
+        void OnPointerUp(PointerEventData data);
+    }
 }
