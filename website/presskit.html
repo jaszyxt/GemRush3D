@@ -7,6 +7,7 @@
   <meta name="description" content="Press kit for Gem Rush 3D, a cozy 3D platformer for Android and Windows: factsheet, descriptions, artwork and screenshots for coverage.">
   <meta name="theme-color" content="#4075ED">
   <meta name="robots" content="noindex">
+  <script>document.documentElement.classList.add("js");</script>
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Gem Rush 3D">
@@ -46,7 +47,11 @@
         <svg class="brand-gem" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l10 10-10 18L6 12z" fill="#FA4DBF"/><path d="M16 7l5.5 5.5L16 22l-5.5-9.5z" fill="#FFB3CC"/></svg>
         <span class="brand-name">Gem&nbsp;Rush&nbsp;<em>3D</em></span>
       </a>
-      <div class="nav-menu nav-menu-plain">
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="nav-menu">
+        <span class="nav-toggle-box" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="visually-hidden">Menu</span>
+      </button>
+      <div class="nav-menu nav-menu-plain" id="nav-menu" data-nav-menu>
         <a href="index.html">Home</a>
         <a href="index.html#realms">Realms</a>
         <a href="index.html#download">Download</a>
