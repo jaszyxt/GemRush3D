@@ -78,6 +78,36 @@ The site then lives at `https://jaszyxt.github.io/GemRush3D/`. Netlify /
 Cloudflare Pages / itch.io embeds work too — it is a plain static folder;
 just publish the contents of `website/`.
 
+## Security posture
+
+What this site does and doesn't defend against — honestly:
+
+- **Strict CSP** on every page (`<meta http-equiv="Content-Security-Policy">`):
+  scripts only from same origin plus one hashed inline snippet; styles, fonts
+  and images only from same origin; the only allowed outbound connection is
+  `api.github.com` (live version badge); `object-src 'none'`; `base-uri` and
+  `form-action` pinned to self. Verified in-browser: injected inline scripts
+  and disallowed fetches are blocked.
+- **Zero third-party requests** — fonts are self-hosted woff2 builds
+  (`assets/fonts/`, SIL OFL 1.1); no CDN, no analytics, no tracking, no
+  cookies, no forms. Visitors talk to one origin only.
+- **Nothing to hack**: static files only — no server code, no database, no
+  accounts. TLS and CDN-level protection are handled by GitHub Pages.
+- **Copying cannot be prevented** — that's how the web works (and this repo
+  is public by requirement). The legal mechanism is `website/LICENSE`
+  (all rights reserved; press use granted per press kit). "No right-click"
+  scripts would be theater and are deliberately absent.
+- **The real attack surface is the GitHub account** — enable 2FA, use a
+  strong password, review authorized OAuth apps. A leaked PAT with repo
+  write access could deface the site; branch protection on `main` adds a
+  review gate if you want it.
+- **Limits of GitHub Pages**: custom HTTP headers (`X-Frame-Options`,
+  `frame-ancestors`, HSTS) can't be set; if that ever matters, move to a
+  host with header support and add them there.
+- `/.well-known/security.txt` is published for responsible disclosure.
+- If you change the inline `js`-class script, recompute its CSP hash
+  (`sha256-...` in each page head) or it will stop executing.
+
 ## Regenerating image assets
 
 ```

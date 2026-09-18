@@ -1,0 +1,8 @@
+Contact: https://github.com/jaszyxt/GemRush3D/issues
+Preferred-Languages: en
+Canonical: https://jaszyxt.github.io/GemRush3D/.well-known/security.txt
+Policy: This is a fully static website with no accounts, forms, cookies,
+ tracking, or server-side code. Reports about the site's content security
+ (e.g., an injected script or a compromise of this domain) are welcome via
+ the GitHub issue tracker above. Please do not test denial-of-service
+ techniques against GitHub's infrastructure.
