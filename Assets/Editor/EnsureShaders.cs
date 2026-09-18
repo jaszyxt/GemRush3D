@@ -139,6 +139,147 @@ namespace GemRush.EditorTools
             }
             Debug.Log("[GemRush] Windows build: " +
                 System.IO.Path.GetFullPath(winOptions.locationPathName));
+
+            // The point of the Windows pass: the laptop copy. Install the
+            // fresh build to the local per-user folder and point the
+            // Desktop shortcut at it, so every update is playable the
+            // moment the build finishes.
+            DeployWindowsInstall();
+        }
+
+        // ------------------------------------------------------------------
+        // Local Windows install (the "laptop copy")
+        // ------------------------------------------------------------------
+
+        const string InstallDirName = "GemRush3D";
+        const string ShortcutName = "Gem Rush 3D";
+
+        static string InstallRoot()
+        {
+            return System.IO.Path.Combine(
+                System.Environment.GetFolderPath(
+                    System.Environment.SpecialFolder.LocalApplicationData),
+                "Programs", InstallDirName);
+        }
+
+        /// Copies the freshly built Windows player from Builds/ into the
+        /// per-user install folder and (re)writes the Desktop shortcut.
+        /// Runs automatically after every build; also available standalone
+        /// via the menu. Tolerates the game running: locked files skip
+        /// with a loud warning instead of failing the build.
+        [MenuItem("GemRush/Install Windows Build (Local)")]
+        public static void DeployWindowsInstall()
+        {
+            string projectRoot =
+                System.IO.Directory.GetParent(Application.dataPath).FullName;
+            string src = System.IO.Path.Combine(projectRoot, "Builds");
+            string dst = InstallRoot();
+
+            if (!System.IO.File.Exists(
+                    System.IO.Path.Combine(src, "GemRush3D.exe")))
+            {
+                Debug.LogWarning("[GemRush] No Windows build in Builds/ yet " +
+                    "— nothing to install. Build first.");
+                return;
+            }
+            System.IO.Directory.CreateDirectory(dst);
+
+            // Top-level files: the player launcher plus every loose dll.
+            int copied = 0;
+            foreach (string file in System.IO.Directory.GetFiles(src))
+            {
+                if (System.IO.Path.GetFileName(file) ==
+                    "GemRush3D_BackUpThisFolder_ButDontShipItWithYourGame")
+                    continue;
+                try
+                {
+                    string target = System.IO.Path.Combine(dst,
+                        System.IO.Path.GetFileName(file));
+                    if (System.IO.File.Exists(target))
+                        System.IO.File.Delete(target);
+                    System.IO.File.Copy(file, target, true);
+                    copied++;
+                }
+                catch (System.IO.IOException e)
+                {
+                    Debug.LogWarning("[GemRush] Could not overwrite " +
+                        file + " — is the game still running? Close it and " +
+                        "run GemRush/Install Windows Build (Local). (" +
+                        e.Message + ")");
+                }
+            }
+
+            // Whole directories: data, scripting runtime, render plugins.
+            foreach (string dirName in new string[]
+                     {
+                         "GemRush3D_Data", "MonoBleedingEdge", "D3D12"
+                     })
+            {
+                string dirSrc = System.IO.Path.Combine(src, dirName);
+                if (!System.IO.Directory.Exists(dirSrc)) continue;
+                string dirDst = System.IO.Path.Combine(dst, dirName);
+                try
+                {
+                    if (System.IO.Directory.Exists(dirDst))
+                        System.IO.Directory.Delete(dirDst, true);
+                    CopyDirectory(dirSrc, dirDst);
+                    copied++;
+                }
+                catch (System.IO.IOException e)
+                {
+                    Debug.LogWarning("[GemRush] Could not refresh " + dirName +
+                        " — is the game still running? Close it and run " +
+                        "GemRush/Install Windows Build (Local). (" +
+                        e.Message + ")");
+                }
+            }
+
+            WriteDesktopShortcut(dst);
+            Debug.Log("[GemRush] Windows install updated at " + dst +
+                " (" + copied + " items). Desktop shortcut: " +
+                ShortcutName + ".");
+        }
+
+        static void CopyDirectory(string src, string dst)
+        {
+            System.IO.Directory.CreateDirectory(dst);
+            foreach (string file in System.IO.Directory.GetFiles(src))
+                System.IO.File.Copy(file,
+                    System.IO.Path.Combine(dst,
+                        System.IO.Path.GetFileName(file)), true);
+            foreach (string dir in System.IO.Directory.GetDirectories(src))
+                CopyDirectory(dir,
+                    System.IO.Path.Combine(dst,
+                        System.IO.Path.GetFileName(dir)));
+        }
+
+        /// (Re)writes the Desktop shortcut so it always launches the
+        /// installed copy. Idempotent: same name, same target every time.
+        static void WriteDesktopShortcut(string installRoot)
+        {
+            string desktop = System.Environment.GetFolderPath(
+                System.Environment.SpecialFolder.DesktopDirectory);
+            string lnk = System.IO.Path.Combine(desktop,
+                ShortcutName + ".lnk");
+            string exe = System.IO.Path.Combine(installRoot, "GemRush3D.exe");
+            string ps = "$ws = New-Object -ComObject WScript.Shell; " +
+                "$s = $ws.CreateShortcut('" + lnk + "'); " +
+                "$s.TargetPath = '" + exe + "'; " +
+                "$s.WorkingDirectory = '" + installRoot + "'; " +
+                "$s.Save()";
+            try
+            {
+                System.Diagnostics.Process.Start(
+                    "powershell.exe",
+                    "-NoProfile -ExecutionPolicy Bypass -Command \"" +
+                    ps.Replace("\"", "\\\"") + "\"").WaitForExit(15000);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[GemRush] Desktop shortcut update failed (" +
+                    e.Message + ") — the game itself installed fine. Launch " +
+                    exe + " directly.");
+            }
         }
 
         /// The icon is painted in code (flat Pip-on-an-island scene) so the
