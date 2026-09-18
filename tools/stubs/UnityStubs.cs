@@ -149,6 +149,8 @@ namespace UnityEngine
         public static Vector3 forward { get { return new Vector3(); } }
         public static Vector3 right { get { return new Vector3(); } }
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t) { return a; }
+        public static Vector3 MoveTowards(Vector3 current, Vector3 target,
+            float maxDelta) { return a; }
         public static float Distance(Vector3 a, Vector3 b) { return 0f; }
         public void Normalize() { }
         public static bool operator ==(Vector3 a, Vector3 b) { return true; }
@@ -236,6 +238,7 @@ namespace UnityEngine
         public static float timeScale { get; set; }
         public static float unscaledDeltaTime { get { return 0f; } }
         public static float unscaledTime { get { return 0f; } }
+        public static float realtimeSinceStartup { get { return 0f; } }
     }
 
     // ---------- Input ----------
@@ -786,8 +789,11 @@ namespace UnityEngine.UI
     public class CanvasScaler : Component
     {
         public enum ScaleMode { ConstantPixelSize, ScaleWithScreenSize }
+        public enum ScreenMatchMode { MatchWidthOrHeight, Expand, Shrink }
         public ScaleMode uiScaleMode { get; set; }
         public Vector2 referenceResolution { get; set; }
+        public ScreenMatchMode screenMatchMode { get; set; }
+        public float matchWidthOrHeight { get; set; }
     }
 
     public class GraphicRaycaster : Component { }
