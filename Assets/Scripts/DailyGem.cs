@@ -72,7 +72,7 @@ namespace GemRush
                 }
                 if (nearSpinner) continue;
 
-                Material gold = ArtLib.Solid(new Color(1f, 0.84f, 0.25f), 2.2f);
+                Material gold = ArtLib.Solid(ArtLib.Gold, 2.2f);
                 ArtLib.DecorSphere(golden.transform, Vector3.zero,
                     new Vector3(0.5f, 0.5f, 0.5f), gold);
                 BoxCollider trigger = golden.AddComponent<BoxCollider>();
@@ -107,12 +107,11 @@ namespace GemRush
             taken = true;
 
             SaveSystem.AddGift(today);
-            Fx.Burst(transform.position,
-                new Color(1f, 0.84f, 0.25f) * 1.8f, 30);
+            Fx.Burst(transform.position, ArtLib.Gold * 1.8f, 30);
             if (UIManager.Instance != null)
                 UIManager.Instance.ShowStoryToast(
                     "Gloomfang's Gift found! (" + SaveSystem.Gifts + " total)");
-            AudioManager.Instance.PlayWin();
+            AudioManager.Instance.PlayGift();
             Destroy(gameObject);
         }
     }

@@ -26,12 +26,14 @@ namespace GemRush
         Text hudLives;
         Text winStats;
         Text winStory;
+        Text winMilestone;
         Text completeStats;
         RectTransform titleRect;
         Image[] winStars;
         Text[] levelButtonTexts;
         Button[] levelButtons;
-        Text[] settingsLabels; // 0 sound, 1 haptics, 2 shadows
+        Text[] settingsLabels; // 0 sound, 1 shake, 2 haptics, 3 shadows,
+                               // 4 lefty, 5 fullscreen (desktop only)
         GameObject introPanel;
         Text introTitle;
         Text introMission;
@@ -49,13 +51,22 @@ namespace GemRush
         readonly Color onColor = new Color(0.16f, 0.55f, 0.32f);
         readonly Color offColor = new Color(0.45f, 0.25f, 0.22f);
         readonly Color lockedColor = new Color(0.35f, 0.37f, 0.42f);
-        readonly Color starGold = new Color(1f, 0.84f, 0.25f);
+        readonly Color starGold = ArtLib.Gold;   // the world's reward gold
         readonly Color starDim = new Color(0.3f, 0.3f, 0.34f);
+        GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
+        System.Action quitConfirmedAction;
 
         void Awake()
         {
             Instance = this;
             font = LoadFont();
+
+            // Desktop: honor the persisted fullscreen/windowed choice
+            // before any screen exists, so the Settings toggle survives
+            // restarts. Mobile is always fullscreen and never reads it.
+            if (IsDesktopPlatform())
+                Screen.fullScreenMode = SaveSystem.FullscreenOn
+                    ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
 
             GameObject canvasGo = new GameObject("UICanvas");
             canvasGo.transform.SetParent(transform, false);
@@ -75,18 +86,39 @@ namespace GemRush
             esGo.AddComponent<EventSystem>();
             esGo.AddComponent<StandaloneInputModule>();
 
-            BuildMenu(canvasGo.transform);
-            BuildHUD(canvasGo.transform);
-            BuildWin(canvasGo.transform);
-            BuildGameOver(canvasGo.transform);
-            BuildComplete(canvasGo.transform);
-            BuildSettings(canvasGo.transform);
-            BuildPause(canvasGo.transform);
-            BuildIntro(canvasGo.transform);
-            BuildStoryToast(canvasGo.transform);
+            // Every screen parents under this full-stretch root so
+            // notches, punch-holes, rounded corners and gesture bars never
+            // clip interactive UI; SafeArea keeps it fitted as the safe
+            // area changes (rotation, resolution, device).
+            GameObject safeGo = new GameObject("SafeRoot", typeof(RectTransform));
+            safeGo.transform.SetParent(canvasGo.transform, false);
+            RectTransform safeRect = (RectTransform)safeGo.transform;
+            safeRect.anchorMin = Vector2.zero;
+            safeRect.anchorMax = Vector2.one;
+            safeRect.offsetMin = Vector2.zero;
+            safeRect.offsetMax = Vector2.zero;
+            safeGo.AddComponent<SafeArea>();
+
+            BuildMenu(safeGo.transform);
+            BuildHUD(safeGo.transform);
+            BuildWin(safeGo.transform);
+            BuildGameOver(safeGo.transform);
+            BuildComplete(safeGo.transform);
+            BuildSettings(safeGo.transform);
+            BuildPause(safeGo.transform);
+            BuildIntro(safeGo.transform);
+            BuildStoryToast(safeGo.transform);
 
             HideAll();
         }
+
+        // Star-ding scheduler: on the win screen the earned stars ding one
+        // by one (then a flourish if it's a new record). Timer-driven on
+        // unscaled time — no coroutines, no timeScale coupling.
+        int pendingStarDings;
+        int starsDinged;
+        float starDingTimer;
+        float recordFlourishTimer; // >0 counts down to the new-record chime
 
         void Update()
         {
@@ -104,6 +136,37 @@ namespace GemRush
             {
                 storyToastTimer -= Time.unscaledDeltaTime;
                 if (storyToastTimer <= 0f) storyToastPanel.SetActive(false);
+            }
+            if (pendingStarDings > 0)
+            {
+                starDingTimer -= Time.unscaledDeltaTime;
+                if (starDingTimer <= 0f)
+                {
+                    AudioManager.Instance.PlayStarDing(starsDinged);
+                    if (winStars != null && starsDinged < winStars.Length)
+                    {
+                        Image star = winStars[starsDinged];
+                        star.color = starGold;
+                        // Land big, settle small — same overshoot grammar
+                        // as Pip's squash-and-stretch.
+                        RectTransform srt = star.rectTransform;
+                        Tweener.Value(1.6f, 1f, 0.28f, delegate(float k)
+                        {
+                            srt.localScale = new Vector3(k, k, 1f);
+                        });
+                    }
+                    starsDinged++;
+                    pendingStarDings--;
+                    starDingTimer = 0.34f;
+                    if (pendingStarDings == 0 && recordFlourishTimer > 0f)
+                        recordFlourishTimer = 0.5f;
+                }
+            }
+            else if (recordFlourishTimer > 0f)
+            {
+                recordFlourishTimer -= Time.unscaledDeltaTime;
+                if (recordFlourishTimer <= 0f)
+                    AudioManager.Instance.PlayNewRecord();
             }
         }
 
@@ -127,7 +190,7 @@ namespace GemRush
             menuPanel = MakePanel(canvas, "MenuPanel", new Color(0f, 0f, 0.05f, 0.55f));
 
             Text title = MakeText(menuPanel.transform, "Title", "GEM RUSH 3D", 92,
-                new Color(1f, 0.84f, 0.25f), TextAnchor.MiddleCenter,
+                starGold, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.62f), new Vector2(1f, 0.82f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
             titleRect = title.rectTransform;
@@ -141,8 +204,15 @@ namespace GemRush
                 28, new Color(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.54f), new Vector2(1f, 0.62f), 0f, 0f, 0f, 0f);
 
+            // Touch builds pin every tappable target to at least 100x100
+            // ref units (~48 dp); keyboard and mouse keep the compact
+            // sizes. The taller touch PLAY needs headroom under the
+            // tagline, so on touch it anchors a little higher — the grid
+            // below derives its band from the same anchor.
+            bool touch = Input.touchSupported;
+            float playY = touch ? 0.5f : 0.46f;
             MakeButton(menuPanel.transform, "PLAY",
-                new Vector2(0.5f, 0.46f), new Vector2(0f, 0f),
+                new Vector2(0.5f, playY), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.PlayContinue(); });
 
             // Fifteen levels fit a 5x3 grid; smaller counts use 3 per row.
@@ -151,6 +221,33 @@ namespace GemRush
             levelButtonTexts = new Text[count];
             int perRow = count <= 4 ? count : (count > 12 ? 5 : 3);
             int rows = (count + perRow - 1) / perRow;
+            // The grid must fit between PLAY and the instructions band
+            // (top y≈0.085) however many levels exist. Spacing is derived
+            // from the row count so the last row never collides with it.
+            // On touch the buttons are pinned at 100 units tall (~48 dp),
+            // so the same derivation runs from the real button size and
+            // PLAY's higher anchor instead of the fixed band — three rows
+            // of 100-unit buttons only fit when PLAY moves up with them.
+            float gridTop = 0.395f;
+            float gridBottom = 0.135f;
+            float rowStep = rows > 1
+                ? Mathf.Min(0.075f, (gridTop - gridBottom) / (rows - 1))
+                : 0f;
+            float buttonHeight = Mathf.Min(60f, 46f + rowStep * 120f);
+            Vector2 levelSize = new Vector2(200f, buttonHeight);
+            if (touch)
+            {
+                buttonHeight = 100f;
+                levelSize = new Vector2(240f, buttonHeight);
+                float half = buttonHeight / 900f * 0.5f;
+                float margin = 0.006f;
+                gridTop = playY - half * 2f - margin;
+                gridBottom = 0.085f + half + margin;
+                rowStep = rows > 1
+                    ? Mathf.Min(buttonHeight / 900f + margin * 2f,
+                        (gridTop - gridBottom) / (rows - 1))
+                    : 0f;
+            }
             for (int i = 0; i < count; i++)
             {
                 int index = i; // capture for the delegate
@@ -159,34 +256,39 @@ namespace GemRush
                 int inRow = (row == rows - 1) ? (count - row * perRow) : perRow;
                 int col = i - row * perRow;
                 float x = 0.5f - ((inRow - 1) / 2f - col) * 0.185f;
-                float y = 0.365f - row * 0.075f;
+                float y = gridTop - row * rowStep;
                 Button b = MakeButton(menuPanel.transform, "LEVEL " + (i + 1),
-                    new Vector2(x, y), new Vector2(0f, 0f),
-                    new Vector2(200f, 60f),
+                    new Vector2(x, y), new Vector2(0f, 0f), levelSize,
                     delegate { GameManager.Instance.PlayLevel(index); });
                 levelButtons[i] = b;
                 levelButtonTexts[i] = b.GetComponentInChildren<Text>();
-                if (levelButtonTexts[i] != null) levelButtonTexts[i].fontSize = 21;
+                if (levelButtonTexts[i] != null)
+                    levelButtonTexts[i].fontSize = rowStep < 0.06f ? 19 : 21;
             }
 
+            // The floor-enlarged touch SETTINGS (220x100) would poke past
+            // the top and right edges at the keyboard/mouse anchor, so
+            // touch tucks it slightly inward.
             MakeButton(menuPanel.transform, "SETTINGS",
-                new Vector2(0.925f, 0.965f), new Vector2(0f, 0f),
-                new Vector2(190f, 54f), delegate { ShowSettings(); });
+                new Vector2(touch ? 0.905f : 0.925f, touch ? 0.93f : 0.965f),
+                new Vector2(0f, 0f),
+                touch ? new Vector2(220f, 100f) : new Vector2(190f, 54f),
+                delegate { ShowSettings(); });
 
             MakeText(menuPanel.transform, "Instructions",
                 "Move: WASD / Arrows    Jump: Space    (ENTER works too)\n" +
                 "Collect gems for stars, dodge the red spinners, reach the portal!\n" +
                 "On touch: drag left side to move, tap JUMP.",
-                20, new Color(0.85f, 0.87f, 0.92f), TextAnchor.LowerLeft,
-                new Vector2(0.03f, 0.02f), new Vector2(0.5f, 0.115f), 0f, 0f, 0f, 0f);
+                18, new Color(0.85f, 0.87f, 0.92f), TextAnchor.LowerLeft,
+                new Vector2(0.03f, 0.01f), new Vector2(0.46f, 0.085f), 0f, 0f, 0f, 0f);
 
             menuQuote = MakeText(menuPanel.transform, "MenuQuote", "", 20,
                 new Color(0.72f, 0.78f, 0.88f), TextAnchor.LowerRight,
-                new Vector2(0.52f, 0.02f), new Vector2(0.97f, 0.115f), 0f, 0f, 0f, 0f);
+                new Vector2(0.52f, 0.01f), new Vector2(0.97f, 0.085f), 0f, 0f, 0f, 0f);
             menuQuote.fontStyle = FontStyle.Italic;
 
             visitRecap = MakeText(menuPanel.transform, "VisitRecap", "", 19,
-                new Color(1f, 0.84f, 0.25f), TextAnchor.UpperLeft,
+                starGold, TextAnchor.UpperLeft,
                 new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f);
         }
 
@@ -204,7 +306,7 @@ namespace GemRush
                 if (img != null)
                 {
                     if (isDaily)
-                        img.color = new Color(1f, 0.80f, 0.2f); // golden glow
+                        img.color = starGold; // the reward gold, on a button
                     else img.color = unlocked ? onColor : lockedColor;
                 }
                 if (levelButtonTexts[i] != null)
@@ -239,14 +341,18 @@ namespace GemRush
                 Color.white, TextAnchor.MiddleCenter,
                 new Vector2(0.48f, 0.93f), new Vector2(0.62f, 1f), 4f, 4f, 4f, 2f);
 
+            // The floor-enlarged touch pause button (100 units) would poke
+            // past the top edge at the keyboard/mouse anchor, so touch sits
+            // it a little lower.
+            bool touch = Input.touchSupported;
             Button pause = MakeButton(hudPanel.transform, "II",
-                new Vector2(0.645f, 0.965f), new Vector2(0f, 0f),
+                new Vector2(0.645f, touch ? 0.93f : 0.965f), new Vector2(0f, 0f),
                 new Vector2(58f, 58f), delegate { GameManager.Instance.PauseGame(); });
             Text pauseLabel = pause.GetComponentInChildren<Text>();
             if (pauseLabel != null) pauseLabel.fontSize = 26;
 
             hudLives = MakeText(hudPanel.transform, "Lives", "Lives  3", 28,
-                new Color(1f, 0.5f, 0.45f), TextAnchor.MiddleRight,
+                starGold, TextAnchor.MiddleRight,
                 new Vector2(0.68f, 0.93f), new Vector2(1f, 1f), 8f, 4f, 24f, 2f);
 
             // Virtual joystick + jump button; only appears on touch devices.
@@ -268,12 +374,12 @@ namespace GemRush
                 GameObject dot = new GameObject("Star" + i);
                 dot.transform.SetParent(winPanel.transform, false);
                 Image img = dot.AddComponent<Image>();
-                img.sprite = Fx.CircleSprite();
+                img.sprite = Fx.StarSprite(); // a star that looks like one
                 img.raycastTarget = false;
                 RectTransform rt = img.rectTransform;
                 rt.anchorMin = new Vector2(0.5f + (i - 1) * 0.09f, 0.5f);
                 rt.anchorMax = rt.anchorMin;
-                rt.sizeDelta = new Vector2(76f, 76f);
+                rt.sizeDelta = new Vector2(84f, 84f);
                 winStars[i] = img;
             }
 
@@ -285,6 +391,15 @@ namespace GemRush
                 new Color(0.75f, 0.82f, 0.95f), TextAnchor.UpperCenter,
                 new Vector2(0.08f, 0.30f), new Vector2(0.92f, 0.38f), 0f, 0f, 0f, 0f);
             winStory.fontStyle = FontStyle.Italic;
+
+            // Atlas stamp: the last level of a pack carries a milestone
+            // line. It hangs above the title like a ribbon, so the
+            // world-grew-a-page moment is the first thing read.
+            winMilestone = MakeText(winPanel.transform, "Milestone", "", 24,
+                starGold, TextAnchor.MiddleCenter,
+                new Vector2(0.05f, 0.775f), new Vector2(0.95f, 0.855f), 0f, 0f, 0f, 0f);
+            winMilestone.fontStyle = FontStyle.Bold;
+            winMilestone.gameObject.SetActive(false);
 
             MakeButton(winPanel.transform, "NEXT  LEVEL",
                 new Vector2(0.5f, 0.26f), new Vector2(0f, 0f),
@@ -329,8 +444,8 @@ namespace GemRush
                 new Color(0.02f, 0.08f, 0.14f, 0.72f));
 
             Text title = MakeText(completePanel.transform, "Title",
-                "YOU BEAT GEM RUSH 3D!", 72,
-                new Color(1f, 0.84f, 0.25f), TextAnchor.MiddleCenter,
+                "EVERY PORTAL LIT!", 72,
+                starGold, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.58f), new Vector2(1f, 0.76f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
@@ -339,8 +454,8 @@ namespace GemRush
                 new Vector2(0f, 0.40f), new Vector2(1f, 0.54f), 0f, 0f, 0f, 0f);
 
             MakeText(completePanel.transform, "Sub",
-                "The beacon roars back to life. The clouds part. The realm exhales.\n" +
-                "The sky is bright, Pip is home — and Gloomfang is thinking\nvery hard about his choices.", 24,
+                "The storm has a job now. The map has room left.\n" +
+                "Pip's shelf keeps one spot open — for whatever comes next.", 24,
                 new Color(0.85f, 0.9f, 0.95f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.26f), new Vector2(1f, 0.40f), 0f, 0f, 0f, 0f);
             completeSub = completePanel.transform.Find("Sub")
@@ -361,6 +476,7 @@ namespace GemRush
 
         void AdvanceEpilogue()
         {
+            AudioManager.Instance.PlayPageTurn();
             epiloguePage++;
             if (epiloguePages == null || epiloguePage >= epiloguePages.Length)
             {
@@ -386,20 +502,41 @@ namespace GemRush
                 new Vector2(0f, 0.66f), new Vector2(1f, 0.78f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
-            settingsLabels = new Text[3];
-            string[] names = new string[] { "Sound", "Haptics", "Shadows" };
-            for (int i = 0; i < 3; i++)
+            // Rows: Sound, Screen Shake, Haptics, Shadows, Left-handed
+            // Controls — plus Fullscreen on desktop only. The step derives
+            // from the row count so the six-row desktop layout still keeps
+            // its last row clear of BACK below.
+            string[] names = IsDesktopPlatform()
+                ? new string[] { "Sound", "Screen Shake", "Haptics", "Shadows",
+                    "Left-handed Controls", "Fullscreen" }
+                : new string[] { "Sound", "Screen Shake", "Haptics", "Shadows",
+                    "Left-handed Controls" };
+            settingsLabels = new Text[names.Length];
+            // On touch the 100-unit-tall rows cannot stack five high
+            // between the title and BACK, so they reflow into a 2-column
+            // grid (reading order; an odd last row centers itself).
+            bool touch = Input.touchSupported;
+            for (int i = 0; i < names.Length; i++)
             {
                 int index = i;
+                float x = 0.5f;
+                float y = 0.62f - i * 0.0745f;
+                if (touch)
+                {
+                    int row = i / 2;
+                    int inRow = (i == names.Length - 1 && i % 2 == 0) ? 1 : 2;
+                    x = 0.5f + (i % 2 - (inRow - 1) / 2f) * 0.42f;
+                    y = 0.59f - row * 0.125f;
+                }
                 Button b = MakeButton(settingsPanel.transform, names[i],
-                    new Vector2(0.5f, 0.54f - i * 0.1f), new Vector2(0f, 0f),
-                    new Vector2(480f, 68f), delegate { ToggleSetting(index); });
+                    new Vector2(x, y), new Vector2(0f, 0f),
+                    new Vector2(480f, 60f), delegate { ToggleSetting(index); });
                 settingsLabels[i] = b.GetComponentInChildren<Text>();
             }
 
             MakeButton(settingsPanel.transform, "BACK",
                 new Vector2(0.5f, 0.17f), new Vector2(0f, 0f),
-                new Vector2(260f, 64f), delegate { settingsPanel.SetActive(false); });
+                new Vector2(260f, 64f), delegate { CloseSettings(); });
 
             settingsPanel.SetActive(false);
         }
@@ -408,14 +545,19 @@ namespace GemRush
         {
             RefreshSettings();
             settingsPanel.SetActive(true);
+            AudioManager.Instance.PlayPanel(true);
         }
 
         void RefreshSettings()
         {
             if (settingsLabels == null) return;
             ApplyLabel(settingsLabels[0], "Sound", SaveSystem.SoundOn);
-            ApplyLabel(settingsLabels[1], "Haptics", SaveSystem.HapticsOn);
-            ApplyLabel(settingsLabels[2], "Shadows", SaveSystem.ShadowsOn);
+            ApplyLabel(settingsLabels[1], "Screen Shake", SaveSystem.ShakeOn);
+            ApplyLabel(settingsLabels[2], "Haptics", SaveSystem.HapticsOn);
+            ApplyLabel(settingsLabels[3], "Shadows", SaveSystem.ShadowsOn);
+            ApplyLabel(settingsLabels[4], "Left-handed Controls", SaveSystem.LeftyOn);
+            if (settingsLabels.Length > 5)
+                ApplyLabel(settingsLabels[5], "Fullscreen", SaveSystem.FullscreenOn);
         }
 
         void ApplyLabel(Text label, string name, bool on)
@@ -429,13 +571,37 @@ namespace GemRush
         void ToggleSetting(int index)
         {
             if (index == 0) SaveSystem.SoundOn = !SaveSystem.SoundOn;
-            else if (index == 1) SaveSystem.HapticsOn = !SaveSystem.HapticsOn;
-            else if (index == 2)
+            else if (index == 1) SaveSystem.ShakeOn = !SaveSystem.ShakeOn;
+            else if (index == 2) SaveSystem.HapticsOn = !SaveSystem.HapticsOn;
+            else if (index == 3)
             {
                 SaveSystem.ShadowsOn = !SaveSystem.ShadowsOn;
                 QualitySettings.shadows = SaveSystem.ShadowsOn
                     ? ShadowQuality.All : ShadowQuality.Disable;
             }
+            else if (index == 4)
+            {
+                SaveSystem.LeftyOn = !SaveSystem.LeftyOn;
+                // Live-mirror the HUD: re-anchor the jump button now, no
+                // level restart needed (no-op off touch, where the controls
+                // do not exist).
+                if (TouchControls.Instance != null) TouchControls.Instance.ApplySide();
+            }
+            else if (index == 5)
+            {
+                SaveSystem.FullscreenOn = !SaveSystem.FullscreenOn;
+                Screen.fullScreenMode = SaveSystem.FullscreenOn
+                    ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
+            }
+            // A flipped setting answers with its own blip: up when it
+            // turned on, down when it turned off.
+            bool[] states =
+            {
+                SaveSystem.SoundOn, SaveSystem.ShakeOn, SaveSystem.HapticsOn,
+                SaveSystem.ShadowsOn, SaveSystem.LeftyOn, SaveSystem.FullscreenOn
+            };
+            if (index >= 0 && index < states.Length)
+                AudioManager.Instance.PlayUIToggle(states[index]);
             RefreshSettings();
         }
 
@@ -457,8 +623,11 @@ namespace GemRush
                 new Vector2(360f, 68f),
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
+            // On touch the three floor-enlarged buttons (100 units each)
+            // would collide as a stack, so the bottom one drops a step.
             MakeButton(pausePanel.transform, "MENU",
-                new Vector2(0.5f, 0.17f), new Vector2(0f, 0f),
+                new Vector2(0.5f, Input.touchSupported ? 0.16f : 0.17f),
+                new Vector2(0f, 0f),
                 new Vector2(360f, 68f), delegate { GameManager.Instance.GoToMenu(); });
 
             pausePanel.SetActive(false);
@@ -473,7 +642,7 @@ namespace GemRush
             introPanel.GetComponent<Image>().raycastTarget = false;
 
             introTitle = MakeText(introPanel.transform, "IntroTitle", "", 56,
-                new Color(1f, 0.84f, 0.25f), TextAnchor.MiddleCenter,
+                starGold, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.70f), 0f, 0f, 0f, 0f);
             introTitle.fontStyle = FontStyle.Bold;
 
@@ -495,6 +664,7 @@ namespace GemRush
                 introMission.text = def.Mission;
             introTimer = 3.5f;
             introPanel.SetActive(true);
+            AudioManager.Instance.PlayIntro();
         }
 
         /// Story beat band at the bottom of the screen, shown when a
@@ -578,11 +748,22 @@ namespace GemRush
             bool newRecord, int gems, int total)
         {
             HideAll();
+            // Stars start dim and land one by one: the ding scheduler in
+            // Update golds each star (with a small slam-settle pop) at the
+            // exact moment its ding plays. A new record gets a flourish
+            // once the last star has landed.
             if (winStars != null)
             {
                 for (int i = 0; i < winStars.Length; i++)
-                    winStars[i].color = i < stars ? starGold : starDim;
+                {
+                    winStars[i].color = starDim;
+                    winStars[i].rectTransform.localScale = Vector3.one;
+                }
             }
+            pendingStarDings = stars;
+            starsDinged = 0;
+            starDingTimer = 0.55f;
+            recordFlourishTimer = newRecord ? 0.01f : 0f;
             if (winStats != null)
             {
                 string bestText;
@@ -597,6 +778,14 @@ namespace GemRush
             if (winStory != null)
                 winStory.text = LevelLibrary.Levels[
                     Mathf.Clamp(level, 0, LevelLibrary.Levels.Length - 1)].WinLine;
+            if (winMilestone != null)
+            {
+                string milestone = LevelLibrary.Levels[
+                    Mathf.Clamp(level, 0, LevelLibrary.Levels.Length - 1)].Milestone;
+                winMilestone.text = milestone;
+                winMilestone.gameObject.SetActive(
+                    !string.IsNullOrEmpty(milestone));
+            }
             winPanel.SetActive(true);
         }
 
@@ -658,6 +847,74 @@ namespace GemRush
             return string.Format("{0}:{1:00.0}", minutes, seconds);
         }
 
+        // ---------- Back-stack support (D4) ----------
+
+        /// True while the settings panel is on screen. The GameManager
+        /// back/Escape stack closes Settings before any other back action.
+        public bool SettingsOpen => settingsPanel != null && settingsPanel.activeSelf;
+
+        /// Closes the settings panel (same as pressing its BACK button).
+        public void CloseSettings()
+        {
+            settingsPanel.SetActive(false);
+            AudioManager.Instance.PlayPanel(false);
+        }
+
+        /// Shows the quit-confirmation dialog ("QUIT THE GAME?"). Quitting
+        /// always goes through this dialog on desktop — Esc/back never quits
+        /// instantly. QUIT invokes onConfirmed then quits; CANCEL (or the
+        /// back stack) just closes the dialog.
+        public void ShowQuitConfirm(System.Action onConfirmed)
+        {
+            if (quitConfirmPanel == null) BuildQuitConfirm();
+            quitConfirmedAction = onConfirmed;
+            quitConfirmPanel.SetActive(true);
+            AudioManager.Instance.PlayPanel(true);
+        }
+
+        /// Closes the quit-confirmation dialog if it is open. Returns true
+        /// when it was open (and is now closed), so the back stack can treat
+        /// Esc/back as CANCEL; returns false when nothing was open.
+        public bool CloseQuitConfirm()
+        {
+            if (quitConfirmPanel == null || !quitConfirmPanel.activeSelf) return false;
+            quitConfirmPanel.SetActive(false);
+            AudioManager.Instance.PlayPanel(false);
+            return true;
+        }
+
+        void BuildQuitConfirm()
+        {
+            // Same settings-style overlay: full-screen dim panel with a bold
+            // title and centered buttons. Built lazily, parented under the
+            // same canvas as every other screen.
+            quitConfirmPanel = MakePanel(menuPanel.transform.parent,
+                "QuitConfirmPanel", new Color(0f, 0f, 0.05f, 0.8f));
+
+            Text title = MakeText(quitConfirmPanel.transform, "Title",
+                "QUIT THE GAME?", 64, Color.white, TextAnchor.MiddleCenter,
+                new Vector2(0f, 0.56f), new Vector2(1f, 0.70f), 0f, 0f, 0f, 0f);
+            title.fontStyle = FontStyle.Bold;
+
+            MakeButton(quitConfirmPanel.transform, "QUIT",
+                new Vector2(0.5f - 0.13f, 0.38f), new Vector2(0f, 0f),
+                new Vector2(260f, 84f), delegate { ConfirmQuit(); });
+
+            MakeButton(quitConfirmPanel.transform, "CANCEL",
+                new Vector2(0.5f + 0.13f, 0.38f), new Vector2(0f, 0f),
+                new Vector2(260f, 84f), delegate { CloseQuitConfirm(); });
+
+            quitConfirmPanel.SetActive(false);
+        }
+
+        void ConfirmQuit()
+        {
+            System.Action action = quitConfirmedAction;
+            CloseQuitConfirm();
+            if (action != null) action.Invoke();
+            Application.Quit();
+        }
+
         // ---------- Widget builders ----------
 
         static void HideAll()
@@ -715,6 +972,16 @@ namespace GemRush
             return text;
         }
 
+        /// Touch hit-target floor: on touch devices no tappable button may
+        /// be smaller than 100x100 ref units (~48 dp at the 900-unit
+        /// reference height), so requested sizes grow to meet the floor.
+        /// Keyboard and mouse builds keep their designed sizes unchanged.
+        static Vector2 TouchTarget(Vector2 size)
+        {
+            if (!Input.touchSupported) return size;
+            return new Vector2(Mathf.Max(size.x, 100f), Mathf.Max(size.y, 100f));
+        }
+
         Button MakeButton(Transform parent, string label, Vector2 anchor,
             Vector2 anchoredPos, Vector2 size, UnityEngine.Events.UnityAction onClick)
         {
@@ -726,6 +993,10 @@ namespace GemRush
             img.color = onColor;
             Button button = go.AddComponent<Button>();
             button.targetGraphic = img;
+            // Every button in the game answers with the same tiny tick,
+            // first in the listener order so it precedes the action's own
+            // sounds (whooshes, fanfares) rather than stacking on them.
+            button.onClick.AddListener(delegate { AudioManager.Instance.PlayUIClick(); });
             button.onClick.AddListener(onClick);
 
             // Press feedback: quick dip and spring back.
@@ -733,7 +1004,7 @@ namespace GemRush
             rt.anchorMin = anchor;
             rt.anchorMax = anchor;
             rt.anchoredPosition = anchoredPos;
-            rt.sizeDelta = size;
+            rt.sizeDelta = TouchTarget(size);
             button.onClick.AddListener(delegate
             {
                 Tweener.Value(0f, 1f, 0.16f, delegate(float k)
@@ -760,6 +1031,19 @@ namespace GemRush
             lrt.offsetMin = Vector2.zero;
             lrt.offsetMax = Vector2.zero;
             return button;
+        }
+
+        /// True on desktop standalone players and in the editor — the
+        /// platforms that get the Fullscreen settings row and the persisted
+        /// window mode. Mobile builds are always fullscreen.
+        static bool IsDesktopPlatform()
+        {
+            return Application.platform == RuntimePlatform.WindowsPlayer ||
+                Application.platform == RuntimePlatform.OSXPlayer ||
+                Application.platform == RuntimePlatform.LinuxPlayer ||
+                Application.platform == RuntimePlatform.WindowsEditor ||
+                Application.platform == RuntimePlatform.OSXEditor ||
+                Application.platform == RuntimePlatform.LinuxEditor;
         }
     }
 }

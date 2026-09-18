@@ -17,10 +17,16 @@ namespace GemRush
         public static readonly Color PortalCyan = new Color(0.20f, 0.90f, 0.95f);
         public static readonly Color CloudWhite = new Color(0.97f, 0.98f, 1.00f);
         public static readonly Color HazardRed = new Color(0.85f, 0.20f, 0.15f);
-        /// Reward gold for spare-life hearts: hearts must never share the
-        /// hazard red — same-hue pickups and dangers read as one thing,
-        /// especially for red-green colourblind players.
-        public static readonly Color HeartGold = new Color(1.00f, 0.78f, 0.24f);
+        /// Reward gold — hearts, bells, stars, the daily gift, gold UI
+        /// accents. One gold for everything the game gives you: rewards
+        /// must never share the hazard red (same-hue pickups and dangers
+        /// read as one thing, especially for red-green colourblind
+        /// players). New reward visuals reference this, never a literal.
+        public static readonly Color Gold = new Color(1.00f, 0.84f, 0.25f);
+        /// Moving air — updraft columns, mirror panes, Gloomfang's spark.
+        /// The wind/mirror family: one pale cyan everywhere air is the
+        /// subject, so "invisible" forces still read as one substance.
+        public static readonly Color Air = new Color(0.65f, 0.92f, 1f);
         public static readonly Color CheckpointOff = new Color(0.55f, 0.58f, 0.65f);
         public static readonly Color CheckpointOn = new Color(0.30f, 0.95f, 0.40f);
 

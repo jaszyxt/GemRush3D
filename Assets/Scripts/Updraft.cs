@@ -8,6 +8,8 @@ namespace GemRush
     public class Updraft : MonoBehaviour
     {
         float strength = 11f;
+        const float HoverDrift = -0.6f;   // gentle sink at the column rim
+        Vector3 volumeSize;
         Transform[] wisps;
         float wispHeight;
         float drift;
@@ -24,11 +26,12 @@ namespace GemRush
             volume.size = size;
             volume.center = new Vector3(0f, size.y * 0.5f, 0f);
 
-            Material windMat = ArtLib.Solid(new Color(0.65f, 0.92f, 1f), 0f);
+            Material windMat = ArtLib.Solid(ArtLib.Air, 0f);
             ArtLib.SetFade(windMat, 0.3f);
 
             Updraft up = col.AddComponent<Updraft>();
             up.strength = strength;
+            up.volumeSize = size;
             up.wispHeight = size.y;
 
             int count = Mathf.Max(3, (int)(size.y * 0.8f));
@@ -69,7 +72,19 @@ namespace GemRush
         {
             PlayerController player = other.GetComponentInParent<PlayerController>();
             if (player == null) return;
-            player.SetWindLift(strength);
+
+            // Fade the lift toward a gentle sink in the top band of the
+            // column: Pip rises, then hovers at the rim instead of bouncing
+            // against an invisible ceiling he could never fall past.
+            float topY = transform.position.y + volumeSize.y * 0.5f;
+            float fromTop = topY - player.transform.position.y;
+            float rimFade = Mathf.Clamp01(fromTop / 1.5f);
+            float lift = Mathf.Lerp(HoverDrift, strength, rimFade);
+
+            player.SetWindLift(lift);
+            // The wind bed is a heartbeat: each frame inside re-asserts the
+            // pulse, and it decays back to the mood bed when Pip hops out.
+            AudioManager.Instance.PulseWind();
         }
     }
 }

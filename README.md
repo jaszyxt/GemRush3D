@@ -8,7 +8,7 @@ from code. Even the app icon is painted procedurally at build time.
 
 ## Release build (already configured)
 
-`Builds/GemRush3D.apk` is a **release-signed** build (v1.8.1, IL2CPP,
+`Builds/GemRush3D.apk` is a **release-signed** build (v1.10.1, IL2CPP,
 arm64). Signing uses `tools/gemrush.keystore`; its password lives in
 `tools/signing.txt`. Both are git-ignored — back them up somewhere safe:
 all updates to a published game must be signed with the same key.
@@ -41,13 +41,15 @@ everything at runtime, so there is nothing to wire up by hand.
 | Move | `W A S D` or Arrow Keys |
 | Jump | `Space` |
 | Start / Play again | `Enter` (or click the buttons) |
-| Quit | `Esc` |
+| Pause / Resume | `Esc` (or Android back) |
+| Close Settings / quit dialog | `Esc` (or Android back) |
+| Quit | from the menu: `Esc`, then confirm on desktop (Android back never quits) |
 
 ## The game
 
 The storm scattered the sky realm's **Sunstones**. You are **Pip**, the
 Sky-Keeper's little helper: hop the islands, reclaim the gems, light each
-portal — and chase the storm. Fifteen levels in five packs, rated 1–3 stars
+portal — and chase the storm. Twenty-eight levels in ten packs, rated 1–3 stars
 each:
 
 **Pack One — The Storm**
@@ -94,20 +96,92 @@ each:
     guardians, two updrafts, and the corner where the atlas ends.
     15 gems + heart.
 
+**Pack Six — Gloomfang's Day Off** (secret, unlocks after level 15)
+16. **Gloomfang's Day Off** — play *as* the storm himself: no gravity,
+    hold jump to rise, deliver the last Sunstones through a sunset run.
+
+**Pack Seven — The Sky Garden** (Gloomfang's rain woke it)
+17. **First Blooms** — meet the **sleeping guardians**: they spin only
+    while you linger nearby, so keep moving and they keep dreaming.
+18. **Petal Drift** — petals ride the wind; a lift, a spare life and
+    livelier dreams.
+19. **The Blooming Gate** — three guardians, one of them a light sleeper.
+    Touch the portal and the whole garden **blooms** in a wave.
+
+**Pack Eight — Storm Chasers** (a runaway baby cloud named Nim)
+20. **Gust Alley** — the gaps are too wide to jump; wait for Nim's giggle
+    and the **tailwind gust** carries you across.
+21. **Where Nim Laughs** — gust lanes cross the sleeping garden. + heart.
+22. **The Baby's Home** — the longest wind lanes in the game, and a nest
+    of clouds with a very small snore in it. + heart.
+
+**Pack Nine — The Bell Towers** (they once sang storms home)
+23. **The First Bell** — ring an **echo bell** and hidden bridges turn
+    solid for as long as the tone sings.
+24. **Chorus in the Clouds** — three bells, three bridges, and guardians
+    who do not appreciate bell music. + heart.
+25. **The Silent Spire** — the tallest tower, the quietest bell, and the
+    one note no one has ever heard. + heart.
+
+**Pack Ten — Mirror Skies** (a mirrored sky appears over the Far Isles)
+26. **Mirror Lake** — the lake has gone perfectly still, and its
+    reflection shows **mirror doors**: step into one, step out of its
+    twin.
+27. **Twin Towers** — paired doors across two towers, and a translucent
+    mirror-Gloomfang drifting along, copying every move.
+28. **The Mirror Meadow** — doors in pairs like strung pearls, one
+    sleeping guardian, and a reflection learning to hum the lullaby.
+
 Stars: **3** = all gems, **2** = half, **1** = finished. Best times and stars
 are saved on the device; clearing a level unlocks the next. Touching a red
 spinner arm (or falling) costs a life; you carry 3 per attempt — **heart
 pickups** in the tougher levels grant one back (up to 5). **Bounce pads**
 launch Pip sky-high; gems at their apex are yours if you dare. **Updraft
-columns** in the Far Isles let Pip float to places jumps can't reach. The
-menu has
-level select (locked levels unlock as you clear), settings for
-sound/haptics/shadows, and every level starts with a short mission card.
-Checkpoints flash one-line **story beats** as you pass them — all fifteen
-levels have them — finishing level 9 plays a four-page **epilogue**, and
-the menu rotates Gloomfang flavor quotes. Each level plays a synthesized
-ambient chord loop — warm in daylight, low and dark in the Undercloud.
-Pause anytime with the HUD button or Esc.
+columns** in the Far Isles let Pip float to places jumps can't reach.
+**Sleeping guardians** in the Sky Garden only wake when you linger.
+**Echo bells** in the Bell Towers turn hidden bridges solid while their
+tone sings. **Tailwind gusts** in Storm Chasers carry Pip across gaps
+too wide to jump. **Mirror doors** in the Mirror Skies hop Pip between
+paired points.
+The menu has level select (locked levels unlock as you clear), settings
+for sound/haptics/shadows, and every level starts with a short mission card.
+Checkpoints flash one-line **story beats** as you pass them — every level
+has them — clearing the last level of a pack stamps a milestone banner on
+the win screen (the atlas grows a page), finishing the last level plays a
+four-page **epilogue**, and
+the menu rotates Gloomfang flavor quotes. Pause anytime with the HUD button or Esc.
+
+## The sound of the realm (all synthesized at runtime)
+
+Every sound — effects, score and ambience — is synthesized from raw
+samples when the game boots; there are zero audio files. Two timbre
+families carry the whole game: **chimes** (struck-crystal partials) for
+everything positive, and **breath** (filtered noise) for motion and
+weather — so the game sounds like one place. Positive events sit near
+C-major pentatonic, which means playing the game literally plays music:
+
+- **Per-realm moods** — each pack has its own pad loop: warm Day, low
+  Dark (Undercloud), golden Sunset (Two Suns), twinkling Garden (Sky
+  Garden, whose melody gems play the same scale), airy Wind (Far Isles,
+  Storm Chasers), bell-toned Bells (Bell Towers), weightless Flight
+  (Gloomfang's Day Off) and a glassy Mirror Skies. The menu hums its own
+  gentle theme. Some moods carry an ambience bed — wind in the wind
+  realms, a deep rumble in the Undercloud.
+- **Responsive world audio** — landings thud in proportion to impact,
+  falls whoosh (hazards crack), updrafts swell the wind while you're in
+  them, the goal portal hums louder as you approach, echo bridges chime
+  as they take shape and sigh as they fade, sleeping guardians growl
+  awake, and Nim **giggles** half a second before each gust — the
+  telegraph the levels promise. Gust onsets land on chord boundaries:
+  the wind audibly plays the chord it is phase-locked to.
+- **Reward grammar** — chained gem pickups climb a semitone ladder (a
+  gem run becomes a riff), win screens ding each star as it lands,
+  records get a flourish, the full-game ending swells four chords, and
+  the last life lost plays a gentle "careful now" cue before the
+  game-over sting.
+- **Polite UI** — every button answers with the same tiny tick; panels
+  breathe open and closed; settings toggles blip up (on) or down (off);
+  epilogue pages turn quietly. UI never speaks louder than gameplay.
 
 ## How it's built (code-first Unity)
 
@@ -117,10 +191,11 @@ Pause anytime with the HUD button or Esc.
 | `GameManager` | State machine (menu/playing/paused/won/game over/complete), level progression, score, timer, lives |
 | `LevelDefinition` | Pure data for a level: platforms, movers, spinners, gems, checkpoints, bounce pads, hearts, portal, mission text, story beats, atmosphere (sky/fog/sun) |
 | `LevelLibrary` | Pack One levels in play order — add a level by adding a method + one line |
-| `LevelPackTwo` / `LevelPackThree` / `LevelPackFour` | The Rematch, Undercloud and Two Suns packs, same pattern |
+| `LevelPackTwo` … `LevelPackTen` | Packs Two through Ten (Rematch, Undercloud, Two Suns, Far Isles, Day Off, Sky Garden, Storm Chasers, Bell Towers, Mirror Skies), same pattern |
 | `Story` | The completion epilogue and the menu's rotating flavor quotes |
 | `BouncePad` / `HeartPickup` | Launch pad and extra-life pickup, both data-driven |
-| `Updraft` | Standing-wind columns that carry Pip upward |
+| `Updraft` / `GustZone` | Standing-wind columns and phase-locked tailwind gusts that carry Pip |
+| `Bell` / `EchoBridge` / `MirrorDoor` | Echo bells with their solid-while-ringing bridges, and the paired mirror doors |
 | `Gloomfang` | The storm himself, tagging along as weather support on post-story levels |
 | `LevelBuilder` | Generic builder: turns any `LevelDefinition` into GameObjects |
 | `SaveSystem` | Versioned `PlayerPrefs` wrapper: best times, stars, unlocked level, settings |
@@ -129,8 +204,8 @@ Pause anytime with the HUD button or Esc.
 | `MovingPlatform` / `Spinner` / `Gem` / `Checkpoint` / `GoalPortal` / `HazardMarker` | The interactive pieces |
 | `TouchControls` | Floating virtual joystick + JUMP button, auto-created on touch devices |
 | `UIManager` | Menu with level select, mission intro cards, HUD, pause, settings, win/game-over/completion screens — all built in code |
-| `SfxSynth` / `AudioManager` | Sound effects and ambient chord-pad music synthesized at runtime; respects the sound setting |
-| `Haptics` | Short Android vibration pulses (jump/gem/checkpoint/death/win), settings-aware |
+| `SfxSynth` / `MusicSynth` / `AudioManager` | The whole game's audio, synthesized at runtime: a chime/breath DSP toolbox, per-realm mood loops and ambience beds, and the channels that play them; respects the sound setting |
+| `Haptics` | Short vibration pulses (jump/gem/checkpoint/death/win), settings-aware; amplitude control on Android, system buzz on iOS |
 | `Fx` / `ArtLib` | Particle bursts, shared procedural sprites, material palette |
 
 Game feel: squash & stretch on jump/land, landing dust, camera shake on
@@ -189,8 +264,11 @@ awake. Desktop controls keep working unchanged.
 
 ## Make a standalone build
 
-`File → Build Profiles (or Build Settings) → Windows → Build`. Because
-everything is code-driven, the built exe works out of the box.
+The headless build script produces **both** targets in one pass: the
+signed Android APK and a portable Windows build at `Builds/GemRush3D.exe`
+(no installer needed — double-click to play, files sit beside it in
+`Builds/GemRush3D_Data/`). `Builds/` holds the phone and laptop builds at
+the same version, so both devices stay in sync.
 
 ## Troubleshooting
 

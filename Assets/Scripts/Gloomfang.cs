@@ -19,6 +19,7 @@ namespace GemRush
         Material sparkMaterial;
         Vector3 velocity;
         float bob;
+        bool mirror; // mirror twin: haunts the opposite side of the sky
         float sparkTimer;
 
         /// Shared body builder: soft overlapping spheres at vapor opacity.
@@ -57,7 +58,7 @@ namespace GemRush
 
             ArtLib.DecorCube(body.transform, new Vector3(-1.0f, -0.15f, 0.45f),
                 new Vector3(0.28f, 0.28f, 0.08f), Quaternion.identity,
-                ArtLib.Solid(new Color(1f, 0.84f, 0.25f), 0.4f));
+                ArtLib.Solid(ArtLib.Gold, 0.4f));
         }
 
         static Transform BuildEye(Transform body, Material white, Material pupilMat,
@@ -79,16 +80,33 @@ namespace GemRush
             return dot.transform;
         }
 
-        public static void Create(Transform parent, Transform followTarget)
+        public static void Create(Transform parent, Transform followTarget,
+            bool mirror = false)
         {
-            GameObject go = new GameObject("Gloomfang");
+            GameObject go = new GameObject(mirror ? "MirrorGloomfang" : "Gloomfang");
             go.transform.SetParent(parent, false);
             Gloomfang g = go.AddComponent<Gloomfang>();
             g.target = followTarget;
+            g.mirror = mirror;
             BuildBody(go.transform, 1f, out g.bodyVisual, out g.pupilL, out g.pupilR);
 
+            if (mirror)
+            {
+                // The mirror twin is a reflection: same shape, ghostlier.
+                foreach (var r in go.GetComponentsInChildren<MeshRenderer>())
+                {
+                    Color c = r.sharedMaterial.color;
+                    c.a = 0.55f;
+                    Material m = new Material(r.sharedMaterial);
+                    ArtLib.SetFade(m, 0.55f);
+                    if (c.r < 0.2f && c.b > 0.05f && c.b < 0.2f) { } // pupils stay solid
+                    r.sharedMaterial = m;
+                    r.sharedMaterial.color = c;
+                }
+            }
+
             // The occasional tiny spark flicker under his belly.
-            g.sparkMaterial = ArtLib.Solid(new Color(0.65f, 0.9f, 1f), 2f);
+            g.sparkMaterial = ArtLib.Solid(ArtLib.Air, 2f);
             g.spark = ArtLib.DecorCube(g.bodyVisual,
                 new Vector3(0.35f, -0.85f, 0.3f),
                 new Vector3(0.3f, 0.45f, 0.1f), Quaternion.identity,
@@ -117,7 +135,10 @@ namespace GemRush
             if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
             right.Normalize(); fwd.Normalize();
 
-            Vector3 station = target.position
+            Vector3 anchor = mirror
+                ? new Vector3(-target.position.x, 0f, target.position.z)
+                : target.position;
+            Vector3 station = anchor
                 + right * 3.2f
                 + Vector3.up * (1.5f + Mathf.Sin(bob * 1.3f) * 0.25f)
                 - fwd * 2.2f;

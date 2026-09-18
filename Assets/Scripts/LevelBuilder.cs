@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -26,8 +27,23 @@ namespace GemRush
             {
                 PlatformSpec p = level.Platforms[i];
                 GameObject platformObj = Platform(parent, p.Center, p.Size, grass, dirt);
+
+                // Guardians standing on this platform own a keep-clear zone:
+                // props (especially tall trees) must never grow inside their
+                // sweep, or the spinning arm would pass through them.
+                List<Vector2> spinnerZones = new List<Vector2>();
+                for (int s = 0; s < level.Spinners.Count; s++)
+                {
+                    Vector3 top = level.Spinners[s].PlatformTop;
+                    float dx = top.x - p.Center.x;
+                    float dz = top.z - p.Center.z;
+                    if (Mathf.Abs(dx) <= p.Size.x * 0.5f &&
+                        Mathf.Abs(dz) <= p.Size.z * 0.5f)
+                        spinnerZones.Add(new Vector2(dx, dz));
+                }
+
                 Props.DressPlatform(platformObj.transform, p.Size,
-                    nameSeed * 17 + i * 101, trunk, leaf, rock);
+                    nameSeed * 17 + i * 101, trunk, leaf, rock, spinnerZones);
             }
 
             for (int i = 0; i < level.Movers.Count; i++)
@@ -64,6 +80,26 @@ namespace GemRush
                 GustSpec g = level.Gusts[i];
                 GustZone.Create(parent, g.Center, g.Size, g.Direction,
                     g.Period, g.ActiveTime, g.Strength);
+            }
+
+            if (level.Bells.Count > 0 || level.EchoBridges.Count > 0)
+                BellRig.Create(parent);
+
+            Material bellGold = ArtLib.Solid(ArtLib.Gold, 0.8f);
+            for (int i = 0; i < level.Bells.Count; i++)
+                Bell.Create(parent, level.Bells[i], bellGold);
+
+            for (int i = 0; i < level.EchoBridges.Count; i++)
+            {
+                EchoBridgeSpec b = level.EchoBridges[i];
+                EchoBridge.Create(parent, b,
+                    ArtLib.Solid(new Color(0.75f, 0.85f, 1f), 0f));
+            }
+
+            for (int i = 0; i < level.MirrorDoors.Count; i++)
+            {
+                MirrorDoorSpec d = level.MirrorDoors[i];
+                MirrorDoor.Create(parent, d.DoorA, d.DoorB);
             }
 
             for (int i = 0; i < level.Gems.Count; i++)
@@ -219,10 +255,12 @@ namespace GemRush
                 ArtLib.Solid(ArtLib.GemPink, 0.6f));
 
             // Level name on a small floating sign, readable from the spawn.
+            // No rotation: a TextMesh reads correctly from -Z, which is
+            // exactly where the spawn camera sits — rotating it 180° used
+            // to mirror the level name on screen.
             GameObject signGo = new GameObject("SignText");
             signGo.transform.SetParent(parent, false);
             signGo.transform.localPosition = post + new Vector3(0f, 3.4f, 0f);
-            signGo.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             TextMesh sign = signGo.AddComponent<TextMesh>();
             Font f = null;
             try { f = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); }

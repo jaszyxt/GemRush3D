@@ -97,6 +97,11 @@ namespace GemRush
             {
                 // Vibration is optional polish; never let it break gameplay.
             }
+#elif UNITY_IOS && !UNITY_EDITOR
+            // iOS: Handheld.Vibrate is the one primitive Unity exposes there
+            // (a single system-strength buzz). Amplitude gradations are an
+            // Android luxury; on iOS every pulse is the same honest buzz.
+            if (SaveSystem.HapticsOn) Handheld.Vibrate();
 #endif
         }
 
