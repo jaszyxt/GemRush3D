@@ -1,7 +1,41 @@
-# HANDOFF — URP migration session 2026-09-17 (~10:45–11:45)
+# HANDOFF — deep-research session 2026-09-17 (evening)
 
-Follows the tooling session earlier the same day (repo, CI, tests, haptics
-fix — see git history). This session: the URP migration.
+Follows the URP migration session. This session ran four research tracks
+(game feel, level design grammar, mobile UX/accessibility, adaptive
+audio/haptics) and applied the filtered findings. **Full synthesis, backlog
+and sources: `RESEARCH.md`** — read it before designing packs 11+.
+
+## Committed (ff6f5cd + stub fixes) — NOT yet built into any APK
+Research pass, all in clean files only (Pack 9/10 work untouched):
+- **Bugs fixed**: touch jump fired on finger-LIFT (~80ms latency) — now
+  IPointerDownHandler; fly mode broken on touch (no held state) — JumpHeld;
+  interrupted touch bricked the joystick — ResetInput on pause/focus; no
+  auto-pause on interruption — GameManager.OnApplicationPause/Focus; heart
+  pickup shared hazard red — now HeartGold; haptic effects were semantically
+  inverted (TICK<CLICK<HEAVY_CLICK) — remapped, win=Fanfare, 120ms cooldown.
+- **Feel**: gem magnetism (2.2m slide), variable jump height (x0.5 cut once
+  per jump; never in gusts/wind/flight; pads uncuttable), terminal fall
+  -28m/s, landing overshoot spring, camera vertical soft zone (±2.5m window),
+  SaveSystem.ShakeOn groundwork, SaveSystem.LeftyOn mirrored touch layout.
+- **Audit suite**: checkpoint-grounding test, gust-exit-landing test, echo
+  bridges standable in StandableTops, LevelCount floor 24. 14 tests total.
+- **CI**: green (stubs extended: pointer interfaces, MoveTowards,
+  realtimeSinceStartup, CanvasScaler).
+
+## ACTION NEEDED before next release build
+**Run the EditMode audit suite once the editor is out of play mode** — the
+rerun couldn't start during the Pack 9/10 playtest (2 attempts). Compile is
+verified clean; the one known failure (a Bell Towers gem on an echo bridge)
+is addressed by the StandableTops change, but the full suite hasn't gone
+green in-editor yet.
+
+## Queued (RESEARCH.md has full designs)
+Audio backlog is the highest-value next queue: combo pitch-ramp (XS),
+silence/ducking on death+win with tonic restart (S), gust→music phase-lock —
+Pack 8's signature moment (M), checkpoint cadence (S). Note: gusts currently
+DRIFT out of phase with the music forever (private t-accumulator) — fixing
+this is one float. Settings rows for Shake/Lefty + pause-button size +
+font floor are the UX queue (UIManager was mid-flight).
 
 ## Shipped & installed
 - **v1.9.2 (versionCode 15)** — installed and launch-verified on the
