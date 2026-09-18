@@ -87,8 +87,8 @@ namespace GemRush.EditorTools
         public static void Build()
         {
             PlayerSettings.productName = "Gem Rush 3D";
-            PlayerSettings.bundleVersion = "1.12.2";
-            PlayerSettings.Android.bundleVersionCode = 21;
+            PlayerSettings.bundleVersion = "1.13.0";
+            PlayerSettings.Android.bundleVersionCode = 22;
 
             // Desktop window UX (D8): a resizable borderless-fullscreen
             // window at the UI's native reference size that keeps running

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace GemRush
 {
@@ -55,6 +56,7 @@ namespace GemRush
             if (paused && State == GameState.Playing)
             {
                 TouchControls.ResetInput();
+                Haptics.StopRumble();
                 PauseGame();
             }
         }
@@ -64,8 +66,14 @@ namespace GemRush
             if (!focused && State == GameState.Playing)
             {
                 TouchControls.ResetInput();
+                Haptics.StopRumble();
                 PauseGame();
             }
+        }
+
+        void OnApplicationQuit()
+        {
+            Haptics.StopRumble();
         }
 
         void Update()
@@ -76,17 +84,55 @@ namespace GemRush
                 ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
             }
 
-            if (Input.GetKeyDown(KeyCode.Escape))
+            // Rumble housekeeping: motors stop when a burst expires; the
+            // gamepad's B walks the same back stack as Escape/Android back,
+            // and Start toggles pause. Both mark the last-used device so
+            // the menu hints follow the pad.
+            Haptics.TickRumble();
+            bool keyboardBack = Input.GetKeyDown(KeyCode.Escape);
+            bool padBack = GamepadInput.BackPressed;
+            if (keyboardBack) GamepadInput.MarkOther();
+            if (padBack) GamepadInput.MarkGamepad();
+            if (keyboardBack || padBack)
             {
                 HandleBackNavigation();
             }
 
+            if (GamepadInput.StartPressed)
+            {
+                GamepadInput.MarkGamepad();
+                if (State == GameState.Playing) PauseGame();
+                else if (State == GameState.Paused) ResumeGame();
+            }
+
+            // The touch-style level list pages with the pad's shoulders;
+            // the on-screen arrows stay touch/mouse targets.
+            if (State == GameState.Menu && !ui.SettingsOpen && !ui.QuitOpen)
+            {
+                if (GamepadInput.PageLeftPressed)
+                {
+                    GamepadInput.MarkGamepad();
+                    ui.FlipPage(-1);
+                }
+                else if (GamepadInput.PageRightPressed)
+                {
+                    GamepadInput.MarkGamepad();
+                    ui.FlipPage(1);
+                }
+            }
+
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             {
+                GamepadInput.MarkOther();
                 // Enter confirms whatever screen is on top; while an overlay
                 // (Settings, quit dialog) holds the menu, it must not fire
-                // the shortcuts underneath it.
+                // the shortcuts underneath it. And when a menu button
+                // already holds focus, the UI module's Submit has confirmed
+                // it — the shortcut below is for the pre-focus keyboard
+                // flow only, or PLAY would fire twice in one press.
                 if (ui.SettingsOpen || ui.QuitOpen) return;
+                EventSystem es = EventSystem.current;
+                if (es != null && es.currentSelectedGameObject != null) return;
 
                 switch (State)
                 {
@@ -188,6 +234,7 @@ namespace GemRush
             if (State != GameState.Playing) return;
             State = GameState.Paused;
             Time.timeScale = 0f;
+            Haptics.StopRumble();
             AudioManager.Instance.PlayPauseSound();
             ui.ShowPaused();
         }
@@ -204,6 +251,7 @@ namespace GemRush
         void ShowMenu()
         {
             Time.timeScale = 1f;
+            Haptics.StopRumble();
             ui.CloseQuitConfirm(); // defensive: never rebuild a screen under it
             State = GameState.Menu;
             AudioManager.Instance.SetMood(SoundMood.Menu);
@@ -248,6 +296,7 @@ namespace GemRush
             AudioManager.ResetPickupStreak();
             AudioManager.Instance.PlayDie(fell);
             Haptics.Heavy();
+            Haptics.GamepadBurst(0.85f, 0.55f, 0.45f);
             Fx.Burst(GameBootstrap.Player.transform.position,
                 ArtLib.HazardRed * 1.5f, 26);
             GameBootstrap.CameraRig.Shake(0.35f, 0.25f);
@@ -284,6 +333,7 @@ namespace GemRush
 
             AudioManager.Instance.PlayWin();
             Haptics.Fanfare();
+            Haptics.GamepadBurst(0.3f, 0.7f, 0.35f);
             Fx.Burst(GameBootstrap.Player.transform.position,
                 ArtLib.PortalCyan * 1.5f, 40);
 

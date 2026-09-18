@@ -1,10 +1,10 @@
-# HANDOFF — current state (update: v1.12.2 session, 2026-09-19)
+# HANDOFF — current state (update: v1.13.0 session, 2026-09-19)
 
 **Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
 adopted / ADAPT backlog / SKIPPED — sources included) →
-`docs/UIUX-Multiplatform-Directives.md` (UI/UX agent's P0–P2 work queue,
-D1–D12 with DoDs; D1–D4 + D8 shipped, D5–D12 open) → this file.
+`docs/UIUX-Multiplatform-Directives.md` (UI/UX agent's P0–P2 work queue;
+**all of D1–D12 now done except D11**) → this file.
 
 ## Working agreement with the user (SOP — do not regress)
 1. **Plan → research → solution → THEN simulate.** No trial-and-error in
@@ -20,67 +20,123 @@ D1–D12 with DoDs; D1–D4 + D8 shipped, D5–D12 open) → this file.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Code: v1.12.2 (versionCode 20), committed `9bc11c5` on main** — 31
-  levels, 10 packs. Windows exe refreshed in
-  `AppData\Local\Programs\GemRush3D\` + Desktop shortcut; emulator has it.
-- **Tablet (SM-X810 / R52W70BRE9E)**: last installed **v1.10.0** — needs
-  `Builds/GemRush3D.apk` (v1.12.2) on next USB; straight update, save kept.
-- **Phone (SM-A366B / RRCY5008R7M)**: last installed **v1.10.1** — same,
-  update on next connection. Old phone RFCW40396ZN (A34) is retired/offline.
+- **Code: v1.13.0 (versionCode 22), committed on main** — 31 levels, 10
+  packs, **gamepad support (D5+D6)**. Release-signed
+  `Builds/GemRush3D.apk` (cert `CN=Gem Rush 3D, O=PipStudio`, verified
+  with apksigner) + `Builds/GemRush3D.exe` (GemRush.dll fresh, Input
+  System included). The Windows launcher stub keeps an old mtime — check
+  `GemRush3D_Data/Managed/GemRush.dll` for freshness instead.
+- **Emulator (Pixel_7:5554)**: v1.13.0 installed and launch-verified
+  (clean logcat, no script exceptions).
+- **Tablet (SM-X810 / R52W70BRE9E)** and **phone (SM-A366B / RRCY5008R7M)
+  were still offline at build time** — install `Builds/GemRush3D.apk`
+  (`adb install -r`) on next USB; straight update, save kept. Install to
+  **every** `adb devices` entry (standing instruction).
 - Release signing: `tools/gemrush.keystore` + `signing.txt` (gitignored) —
-  same key since v1.1.0, so updates install over each other, save kept.
+  same key since v1.1.0.
 
-## Shipped in v1.10.0 → v1.12.2 (this stretch)
-- **Pack 9 Bell Towers** (23): echo bells solidify hidden bridges while
-  the tone rings (Bell/BellRig/EchoBridge + SfxSynth.BellTone).
-- **Pack 10 Mirror Skies** (26–28): paired mirror doors (anti-ping-pong
-  exit geometry: exit offset 1.7 units past the twin's trigger) +
-  translucent mirror-Gloomfang (`Gloomfang.Create(..., mirror: true)`).
-- **B-Sides** (29–31): `Remixes.Remixed(base, mutate)` — same geometry,
-  new mood/twist; night versions of Gust Alley, First Blooms, The Ascent
-  (+ the `LevelLibrary.TheAscent()` internal accessor for init-order safety).
-- **Fixes from player reports** (root causes in git log): updraft
-  midpoint-trap (rim-fade removed; wind = constant lift, ballistic
-  pop-out), fly-forever after wind (windLift resets every physics step),
-  props now keep clear of spinner sweeps, level grid auto-fits any count.
+## Shipped in v1.13.0 (this session)
+- **D5+D6 Gamepad, full**: `com.unity.inputsystem` **1.20.0** (1.11.2
+  does NOT compile on Unity 6000.6 — its editor code hits the TreeView
+  hard error) + `Assets/Editor/EnsureInput.cs` pins Active Input Handling
+  to **Both** (same InitializeOnLoad write-ProjectSettings pattern as
+  EnsureShaders; needs one editor restart for the native backend).
+  - `GamepadInput.cs` — the single guarded door to the Input System (1 Hz
+    probe; every read try/catches so a non-live backend is a silent
+    no-op, never a per-frame exception).
+  - Gameplay: keyboard/touch/stick merged by max magnitude; stick has a
+    0.15 radial deadzone, rescaled. Jump = buttonSouth edge into the same
+    buffer + hold for variable height/fly. Start toggles pause, B walks
+    the D4 back stack, shoulders page the touch-style level list.
+  - Rumble: `Haptics.GamepadBurst` on death (heavy) + win (light),
+    gated by `HapticsOn`, `TickRumble()`/`StopRumble()` realtime-based so
+    it dies on pause/menu/focus loss.
+  - Menus: `InputSystemUIInputModule`, first-selected per panel
+    (`UIManager.Focus`), explicit nav via `MenuNav.cs` (grids wrap per
+    row; paged touch grid re-wires on `FlipPage` — now public), visible
+    focus via `FocusFX.cs` (brighten + 1.08×, suppressed on locked
+    buttons; `RefreshRestColor()` must be called after any code repaints
+    button tints — RefreshMenu/RefreshSettings do). Enter-shortcut in
+    GameManager is skipped while any button holds focus (Submit already
+    confirmed it — otherwise PLAY double-fired). Menu hint line is
+    input-aware (gamepad/touch/keyboard blocks, rewrites live).
+- **D8 finished**: `DesktopWindow.cs` remembers the windowed rect
+  (size via Screen.SetResolution, position via user32 on Windows only;
+  skipped in fullscreen/editor/mobile). `resizableWindow` was already
+  set in the build script.
+- **Bug fixes**: `GoalPortal.Update` NRE (unguarded `AudioManager.Instance`
+  during teardown) — guarded. `PlayerController.Update` NRE at the
+  KillY check when `GameManager.Instance` is null in half-torn-down
+  worlds (seen on every editor domain-reload during play) — guarded.
+- **Tests**: `MenuNavTests.cs` (4 pure-data tests) — suite now **21
+  EditMode tests, all green** (first run after the D1–D4/D7/D9/D10 batch,
+  which had been pending).
+- **Version bump**: 1.13.0 / versionCode 22 in EnsureShaders.Build().
 
 ## Open items (prioritized)
-1. **Install v1.12.2 on tablet + phone** (both offline at ship time; A36
-   got v1.10.1, tablet v1.10.0 — `-r` update, saves kept).
-2. **D5–D12 from the directives doc** — next: gamepad (Input System,
-   Both handling; ship move+jump together), Settings-from-Pause (D9),
-   canvas split (D7), text floors (D10).
-3. **Audio ADAPT queue** in RESEARCH.md — checkpoint cadence,
+1. **Install v1.13.0 on tablet + phone** (both offline again; emulator is
+   already current).
+2. **Gamepad hardware pass**: Xbox + DualSense pads through the Windows
+   exe — the DoD's real-hardware leg. Everything else was verified with
+   the virtual pad: `Assets/Editor/PadProbe.cs` + `PadProbe2.cs`
+   (menu `GemRush/Pad Probe/Run` / `Run 2`, play mode + editor window
+   focused; see Environment wisdom below). All 13 checks green there.
+3. **D11 string table** (P2) — the only directives item left; then that
+   doc is fully closed.
+4. **Audio ADAPT queue** in RESEARCH.md — checkpoint cadence,
    parameterized MusicSynth intensity, gust haptic texture, milestone
-   chime. NOTE: combo pitch-ramp, ducking, tonic restart, gust
-   phase-lock + NoiseSwell are DONE (AudioManager/SfxSynth/GustZone).
-4. **Strip `[GustDebug]`/`[DoorDebug]` logs if any reappear** before
-   release builds (search Scripts/ for "Debug]").
-5. Run the EditMode audit suite in-editor once after big script batches
-   (14 tests; CI csc green as of v1.12.2).
+   chime. (Combo pitch-ramp, ducking, tonic restart, gust phase-lock +
+   NoiseSwell are DONE.)
+5. Next pack (11, The Long Winter) per DESIGN.md expansion queue — one
+   pack per session; Pack 8 gust phase-lock work is a model.
 
-## Environment wisdom (hard-won)
-- The **game auto-pauses on editor focus loss** (research-backed design).
-  Physics probes read frozen while the editor is unfocused — this is NOT
-  a bug. Set `Application.runInBackground = true` in-session, resume via
-  `GameManager.ResumeGame()`, and expect focus transitions to re-pause.
-- **Stale-assembly races**: after a refresh+compile, play mode may restart
-  and probes read the old world mid-teardown (duplicate "~World",
-  leftover gems). Re-enter play, wait, then probe.
-- **The user edits files concurrently** — always re-read before Edit;
-  their version bumps in EnsureShaders.cs are authoritative (v1.12.2/19
-  at this writing; the headless Build() stamps version at build time).
-- Headless builds **fail with exit 1 if the editor holds the project** —
-  close it gracefully first (CloseMainWindow; force-kill leaves a Scene
-  Backup dialog that blocks the next launch). Better: build via the
-  in-editor menu `GemRush/Build Android APK (Release)` (includes the
-  Windows exe pass) while the editor is open.
-- Multiple Android devices: install to **every** `adb devices` entry
-  ("any android device" is the user's standing instruction).
-
-## Environment debt (harmless, known)
-- Two zombie-ish Unity processes can linger after editor churn; they exit
-  on next reboot. `Assets/Screenshots/` + the kept `Assets/_Recovery/`
-  scene backup (from a force-kill) are local-only clutter; deletable.
-- tools/*.png, device screenshots in tools/ are untracked scratch — fine
-  per .gitignore.
+## Environment wisdom (hard-won this session)
+- **Input System package on Unity 6000.6**: use **1.20.0** (registry
+  latest for 6000.0+). 1.11.2 fails with CS0619 TreeView errors. The
+  GemRush.asmdef needed `"Unity.InputSystem"` added to references
+  (auto-reference only covers predefined assemblies). In
+  **LowLevel**, `GamepadButton`/`InputState` moved there; there is no
+  `InputSystem.QueueState` and `InputState.Change` refuses bitfield
+  controls — the universal write is
+  `StateEvent.From(pad, out ptr)` + `control.WriteValueIntoEvent(value,
+  ptr)` **(argument order: value, eventPtr)** + `QueueEvent(ptr)`.
+- **The editor player loop fully suspends when the editor window is
+  unfocused**, even in play mode with `runInBackground=true` — MCP
+  probes and any time-based state machine stall. Fix: focus the Unity
+  window from the shell (`SetForegroundWindow` on the Unity process
+  main window). `EditorApplication.update` is even worse — it stops
+  entirely; drive probe rigs from a MonoBehaviour instead.
+- **`execute_code` compiles with codedom (C# 6, no extension methods,
+  no Roslyn installed)** — for anything non-trivial, write an editor
+  script and `execute_menu_item` it instead; verify `read_console` is
+  ERROR-FREE after every compile before using the new code, because a
+  failed compile silently leaves the old assembly running.
+- **A build via the in-editor menu starves the MCP bridge** for its
+  whole duration (main-thread) — "No Unity Editor instances found" from
+  MCP just means the build is running; poll `Builds/` file mtimes
+  instead of pinging.
+- **On the emulator, the Unity surface stays paused (`HasFocus=0`) when
+  the emulator window is not the desktop foreground** — `adb exec-out
+  screencap` then returns a black image; this is the designed
+  auto-pause, not a bug. Install/launch/logcat checks are the reliable
+  headless signals.
+- The game auto-pauses on editor focus loss (design). Physics probes
+  read frozen while unfocused — set `Application.runInBackground = true`
+  in-session and resume via `GameManager.ResumeGame()` if needed.
+- **Stale-assembly races**: after refresh+compile, play mode may restart
+  and read the old world mid-teardown (duplicate "~World"). Stop play,
+  re-enter, wait, then probe. The new `PlayerController` guard makes
+  this non-fatal, but probes should still re-boot.
+- The user edits files concurrently — always re-read before Edit; their
+  version bumps in EnsureShaders.cs are authoritative (this session
+  bumped 1.12.2/21 → **1.13.0/22**; the headless Build() stamps at
+  build time). Headless builds need the editor closed gracefully
+  (CloseMainWindow / `EditorApplication.Exit(0)` — blocked by
+  execute_code safety checks, call it with them disabled or close by
+  hand); force-kill leaves a Scene Backup dialog that blocks the next
+  launch. Better: build via the in-editor menu
+  `GemRush/Build Android APK (Release)` while the editor is open.
+- Two zombie Unity processes may linger after editor churn; they exit on
+  next reboot. `Assets/Screenshots/` + kept `Assets/_Recovery/` are
+  local-only clutter; deletable. `Assets/Resources/PerformanceTestRun*.json`
+  are Test-Framework build artifacts — harmless, not committed.

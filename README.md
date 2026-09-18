@@ -8,7 +8,7 @@ from code. Even the app icon is painted procedurally at build time.
 
 ## Release build (already configured)
 
-`Builds/GemRush3D.apk` is a **release-signed** build (v1.12.0, IL2CPP,
+`Builds/GemRush3D.apk` is a **release-signed** build (v1.13.0, IL2CPP,
 arm64). Signing uses `tools/gemrush.keystore`; its password lives in
 `tools/signing.txt`. Both are git-ignored — back them up somewhere safe:
 all updates to a published game must be signed with the same key.
@@ -36,20 +36,24 @@ everything at runtime, so there is nothing to wire up by hand.
 
 ## Controls
 
-| Action | Keys |
-|---|---|
-| Move | `W A S D` or Arrow Keys |
-| Jump | `Space` |
-| Start / Play again | `Enter` (or click the buttons) |
-| Pause / Resume | `Esc` (or Android back) |
-| Close Settings / quit dialog | `Esc` (or Android back) |
-| Quit | from the menu: `Esc`, then confirm on desktop (Android back never quits) |
+| Action | Keys | Gamepad |
+|---|---|---|
+| Move | `W A S D` or Arrow Keys | Left Stick / D-Pad |
+| Jump | `Space` | A / Cross (hold to fly as Gloomfang) |
+| Pause / Resume | `Esc` (or Android back) | Start |
+| Menus | Arrows + `Enter`, mouse | D-Pad/Stick choose · A confirm · B back · shoulders flip level pages |
+| Close Settings / quit dialog | `Esc` (or Android back) | B |
+| Quit | from the menu: `Esc`, then confirm on desktop (Android back never quits) | B, then confirm |
+
+The menu hint line follows the last-used device: plug a gamepad in and the
+instructions switch to the pad layout (rumble on death/win obeys the Haptics
+setting).
 
 ## The game
 
 The storm scattered the sky realm's **Sunstones**. You are **Pip**, the
 Sky-Keeper's little helper: hop the islands, reclaim the gems, light each
-portal — and chase the storm. Twenty-eight levels in ten packs, rated 1–3 stars
+portal — and chase the storm. Thirty-one levels in ten packs and B-Sides, rated 1–3 stars
 each:
 
 **Pack One — The Storm**

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 
 namespace GemRush
 {
@@ -70,6 +71,25 @@ namespace GemRush
         // pause hides while Settings is up and returns when it closes.
         bool settingsOverPause;
 
+        // Gamepad support (D5): captured buttons for first-selected focus
+        // and explicit navigation wiring.
+        Button playButton;
+        Button menuSettingsButton;
+        Button[] settingsButtons;
+        Button settingsBackButton;
+        Button winNextButton, winReplayButton, winMenuButton;
+        Button overTryButton, overMenuButton;
+        Button pauseResumeButton, pauseRestartButton, pauseMenuButton,
+            pauseSettingsButton;
+        Button quitButton, cancelButton;
+        Button completeMenuButton;
+        int menuPerRow = 3;
+
+        // Input-aware menu hints (D6): the instructions block follows the
+        // last-used device — gamepad, touch or keyboard.
+        Text instructionsText;
+        int instructionsMode = -1;
+
         // Change-cache for the HUD: callers may push every frame, but a
         // write (and its string allocation) only happens when the displayed
         // value actually moved.
@@ -115,7 +135,11 @@ namespace GemRush
             GameObject esGo = new GameObject("EventSystem");
             esGo.transform.SetParent(transform, false);
             esGo.AddComponent<EventSystem>();
-            esGo.AddComponent<StandaloneInputModule>();
+            // Input System UI module (D5): gamepad stick/dpad menu
+            // navigation plus B-cancel and A-submit, with mouse and touch
+            // pointer unchanged. Requires the "Both" input backend that
+            // EnsureInput pins at project load.
+            esGo.AddComponent<InputSystemUIInputModule>();
 
             // Every screen parents under this full-stretch root so
             // notches, punch-holes, rounded corners and gesture bars never
@@ -161,6 +185,14 @@ namespace GemRush
             {
                 titleRect.anchoredPosition =
                     new Vector2(0f, Mathf.Sin(Time.unscaledTime * 1.7f) * 9f);
+                // The hint line follows the last-used device; rewrite only
+                // on an actual flip (the mode read is throttled internally).
+                int mode = CurrentInstructionMode();
+                if (mode != instructionsMode && instructionsText != null)
+                {
+                    instructionsMode = mode;
+                    instructionsText.text = InstructionsForCurrentDevice();
+                }
             }
             if (introPanel != null && introPanel.activeSelf)
             {
@@ -246,7 +278,7 @@ namespace GemRush
             // for touch too.
             bool touch = Input.touchSupported;
             float playY = 0.46f;
-            MakeButton(menuPanel.transform, "PLAY",
+            playButton = MakeButton(menuPanel.transform, "PLAY",
                 new Vector2(0.5f, playY), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.PlayContinue(); });
 
@@ -290,6 +322,7 @@ namespace GemRush
                 levelSize = new Vector2(200f, buttonHeight);
                 levelLabelSize = rowStep < 0.06f ? 20 : 21;
             }
+            menuPerRow = perRow;
             for (int i = 0; i < count; i++)
             {
                 int index = i; // capture for the delegate
@@ -346,18 +379,20 @@ namespace GemRush
             // The floor-enlarged touch SETTINGS (220x100) would poke past
             // the top and right edges at the keyboard/mouse anchor, so
             // touch tucks it slightly inward.
-            MakeButton(menuPanel.transform, "SETTINGS",
+            menuSettingsButton = MakeButton(menuPanel.transform, "SETTINGS",
                 new Vector2(touch ? 0.905f : 0.925f, touch ? 0.93f : 0.965f),
                 new Vector2(0f, 0f),
                 touch ? new Vector2(220f, 100f) : new Vector2(190f, 54f),
                 delegate { ShowSettings(); });
 
-            MakeText(menuPanel.transform, "Instructions",
-                "Move: WASD / Arrows    Jump: Space    (ENTER works too)\n" +
-                "Collect gems for stars, dodge the red spinners, reach the portal!\n" +
-                "On touch: drag left side to move, tap JUMP.",
-                22, new Color(0.85f, 0.87f, 0.92f), TextAnchor.LowerLeft,
+            // Input-aware hints (D6): the block follows the last-used
+            // device (gamepad / touch / keyboard) and rewrites itself the
+            // moment that changes while the menu is open.
+            instructionsText = MakeText(menuPanel.transform, "Instructions", "", 22,
+                new Color(0.85f, 0.87f, 0.92f), TextAnchor.LowerLeft,
                 new Vector2(0.03f, 0.01f), new Vector2(0.46f, 0.085f), 0f, 0f, 0f, 0f);
+            instructionsMode = CurrentInstructionMode();
+            instructionsText.text = InstructionsForCurrentDevice();
 
             menuQuote = MakeText(menuPanel.transform, "MenuQuote", "", 22,
                 new Color(0.72f, 0.78f, 0.88f), TextAnchor.LowerRight,
@@ -367,6 +402,66 @@ namespace GemRush
             visitRecap = MakeText(menuPanel.transform, "VisitRecap", "", 22,
                 starGold, TextAnchor.UpperLeft,
                 new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f);
+
+            WireMenuNav(touch);
+        }
+
+        /// Explicit gamepad navigation for the menu (D5): PLAY anchors
+        /// everything, the grid wraps per row, SETTINGS hangs off PLAY's
+        /// right and drops into the grid's top-right cell. The paged touch
+        /// grid wires only its visible page, so rewire after every flip.
+        void WireMenuNav(bool touch)
+        {
+            if (playButton == null || menuSettingsButton == null ||
+                levelButtons == null || levelButtons.Length == 0) return;
+            if (!touch)
+            {
+                MenuNav.Grid(levelButtons, menuPerRow, playButton);
+                MenuNav.Set(playButton, null, levelButtons[0], null,
+                    menuSettingsButton);
+                MenuNav.Set(menuSettingsButton, null,
+                    levelButtons[menuPerRow - 1], playButton, null);
+                return;
+            }
+            int pages = PageCount();
+            int first = Mathf.Clamp(levelPage, 0, pages - 1) * PageSize;
+            int inPage = Mathf.Min(PageSize, levelButtons.Length - first);
+            Button[] page = new Button[inPage];
+            for (int i = 0; i < inPage; i++) page[i] = levelButtons[first + i];
+            MenuNav.Grid(page, menuPerRow, playButton);
+            MenuNav.Set(playButton, null, page[0], null, menuSettingsButton);
+            MenuNav.Set(menuSettingsButton, null,
+                page[Mathf.Min(menuPerRow - 1, inPage - 1)], playButton, null);
+        }
+
+        /// Which device the menu hint line should describe right now:
+        /// 2 = gamepad, 1 = touch, 0 = keyboard.
+        int CurrentInstructionMode()
+        {
+            if (GamepadInput.Available) return 2;
+            if (Input.touchSupported) return 1;
+            return 0;
+        }
+
+        string InstructionsForCurrentDevice()
+        {
+            const string goal =
+                "Collect gems for stars, dodge the red spinners, reach the portal!";
+            switch (CurrentInstructionMode())
+            {
+                case 2:
+                    return "Move: Left Stick / D-Pad    Jump: (A) / Cross    " +
+                        "Pause: Start\n" + goal +
+                        "\nMenus: D-Pad choose · (A) confirm · (B) back · " +
+                        "shoulders flip pages.";
+                case 1:
+                    return "On touch: drag the left side to move, tap JUMP.\n" +
+                        goal + "\nKeyboard: WASD / Arrows + Space.";
+                default:
+                    return "Move: WASD / Arrows    Jump: Space    (ENTER works too)\n" +
+                        goal + "\nGamepad: Left Stick + (A) — plug one in and " +
+                        "this line follows it.";
+            }
         }
 
         void RefreshMenu()
@@ -420,6 +515,10 @@ namespace GemRush
                         levelButtonTexts[i].text = "LEVEL " + (i + 1) + "\nLOCKED";
                     }
                 }
+                // The repaint above overwrites the base tint; keep any
+                // focused button's highlight honest (D5).
+                FocusFX fx = levelButtons[i].GetComponent<FocusFX>();
+                if (fx != null) fx.RefreshRestColor();
             }
         }
 
@@ -428,10 +527,13 @@ namespace GemRush
             return (levelButtons.Length + PageSize - 1) / PageSize;
         }
 
-        void FlipPage(int dir)
+        /// Public so the gamepad's shoulder buttons can page the list from
+        /// GameManager (D6); the on-screen arrows remain pointer targets.
+        public void FlipPage(int dir)
         {
             levelPage = Mathf.Clamp(levelPage + dir, 0, PageCount() - 1);
             RefreshMenu();
+            WireMenuNav(Input.touchSupported);
         }
 
         void BuildHUD(Transform canvas)
@@ -524,17 +626,22 @@ namespace GemRush
             winMilestone.fontStyle = FontStyle.Bold;
             winMilestone.gameObject.SetActive(false);
 
-            MakeButton(winPanel.transform, "NEXT  LEVEL",
+            winNextButton = MakeButton(winPanel.transform, "NEXT  LEVEL",
                 new Vector2(0.5f, 0.26f), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.StartNextLevel(); });
 
-            MakeButton(winPanel.transform, "REPLAY",
+            winReplayButton = MakeButton(winPanel.transform, "REPLAY",
                 new Vector2(0.5f - 0.14f, 0.145f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
-            MakeButton(winPanel.transform, "MENU",
+            winMenuButton = MakeButton(winPanel.transform, "MENU",
                 new Vector2(0.5f + 0.14f, 0.145f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
+
+            MenuNav.Set(winNextButton, null, winReplayButton, null, null);
+            MenuNav.Set(winReplayButton, winNextButton, winMenuButton,
+                null, winMenuButton);
+            MenuNav.Set(winMenuButton, winReplayButton, null, winReplayButton, null);
         }
 
         void BuildGameOver(Transform canvas)
@@ -551,14 +658,17 @@ namespace GemRush
                 new Color(0.9f, 0.85f, 0.85f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.40f), new Vector2(1f, 0.54f), 0f, 0f, 0f, 0f);
 
-            MakeButton(overPanel.transform, "TRY  AGAIN",
+            overTryButton = MakeButton(overPanel.transform, "TRY  AGAIN",
                 new Vector2(0.5f, 0.28f), new Vector2(0f, 0f),
                 new Vector2(360f, 84f),
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
-            MakeButton(overPanel.transform, "MENU",
+            overMenuButton = MakeButton(overPanel.transform, "MENU",
                 new Vector2(0.5f, 0.155f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
+
+            MenuNav.Set(overTryButton, null, overMenuButton, null, null);
+            MenuNav.Set(overMenuButton, overTryButton, null, null, null);
         }
 
         void BuildComplete(Transform canvas)
@@ -592,9 +702,14 @@ namespace GemRush
                 new Vector2(0.79f, 0.18f), new Vector2(0f, 0f),
                 new Vector2(240f, 78f), delegate { AdvanceEpilogue(); });
 
-            MakeButton(completePanel.transform, "MENU",
+            completeMenuButton = MakeButton(completePanel.transform, "MENU",
                 new Vector2(0.5f, 0.18f), new Vector2(0f, 0f),
                 new Vector2(300f, 78f), delegate { GameManager.Instance.GoToMenu(); });
+
+            MenuNav.Set(completeNext, null, completeMenuButton, null,
+                completeMenuButton);
+            MenuNav.Set(completeMenuButton, completeNext, null, completeNext,
+                completeNext);
         }
 
         void AdvanceEpilogue()
@@ -608,6 +723,7 @@ namespace GemRush
                 if (completeNext != null) completeNext.gameObject.SetActive(false);
                 if (completeStats != null) completeStats.gameObject.SetActive(true);
                 if (completeSub != null) completeSub.gameObject.SetActive(true);
+                Focus(completeMenuButton); // NEXT left the screen with the story
             }
             else if (completeStory != null)
             {
@@ -637,6 +753,7 @@ namespace GemRush
                 : new string[] { "Sound", "Screen Shake", "Haptics", "Shadows",
                     "Left-handed Controls", "Text Size" };
             settingsLabels = new Text[names.Length];
+            settingsButtons = new Button[names.Length];
             bool touch = Input.touchSupported;
             for (int i = 0; i < names.Length; i++)
             {
@@ -654,11 +771,38 @@ namespace GemRush
                     new Vector2(x, y), new Vector2(0f, 0f),
                     new Vector2(480f, 60f), delegate { ToggleSetting(index); });
                 settingsLabels[i] = b.GetComponentInChildren<Text>();
+                settingsButtons[i] = b;
             }
 
-            MakeButton(settingsPanel.transform, "BACK",
+            settingsBackButton = MakeButton(settingsPanel.transform, "BACK",
                 new Vector2(0.5f, touch ? 0.17f : 0.11f), new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseSettings(); });
+
+            // Gamepad navigation (D5): touch lays the rows out as a
+            // 2-column grid; desktop keeps one column. BACK sits below
+            // either layout and the bottom row(s) drop into it.
+            if (touch)
+            {
+                MenuNav.Grid(settingsButtons, 2, null);
+                int lastRowStart = (settingsButtons.Length - 1) / 2 * 2;
+                MenuNav.Set(settingsBackButton,
+                    settingsButtons[lastRowStart], null, null, null);
+                for (int i = lastRowStart; i < settingsButtons.Length; i++)
+                {
+                    Navigation nav = settingsButtons[i].navigation;
+                    nav.selectOnDown = settingsBackButton;
+                    settingsButtons[i].navigation = nav;
+                }
+            }
+            else
+            {
+                MenuNav.Chain(settingsButtons);
+                Button last = settingsButtons[settingsButtons.Length - 1];
+                MenuNav.Set(settingsBackButton, last, null, null, null);
+                Navigation nav = last.navigation;
+                nav.selectOnDown = settingsBackButton;
+                last.navigation = nav;
+            }
 
             settingsPanel.SetActive(false);
         }
@@ -674,6 +818,8 @@ namespace GemRush
             if (settingsOverPause) HidePaused();
             RefreshSettings();
             settingsPanel.SetActive(true);
+            if (settingsButtons != null && settingsButtons.Length > 0)
+                Focus(settingsButtons[0]);
             AudioManager.Instance.PlayPanel(true);
         }
 
@@ -684,6 +830,7 @@ namespace GemRush
             if (settingsOverPause && GameManager.Instance != null &&
                 GameManager.Instance.State == GameState.Paused)
                 ShowPaused();
+            else Focus(playButton); // opened from the menu: hand focus back
             settingsOverPause = false;
             AudioManager.Instance.PlayPanel(false);
         }
@@ -707,6 +854,12 @@ namespace GemRush
             }
             if (settingsLabels.Length > 6)
                 ApplyLabel(settingsLabels[6], "Fullscreen", SaveSystem.FullscreenOn);
+            // Keep the focus highlight honest after the tint repaints (D5).
+            for (int i = 0; i < settingsButtons.Length; i++)
+            {
+                FocusFX fx = settingsButtons[i].GetComponent<FocusFX>();
+                if (fx != null) fx.RefreshRestColor();
+            }
         }
 
         void ApplyLabel(Text label, string name, bool on)
@@ -784,11 +937,11 @@ namespace GemRush
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.72f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
-            MakeButton(pausePanel.transform, "RESUME",
+            pauseResumeButton = MakeButton(pausePanel.transform, "RESUME",
                 new Vector2(0.5f, 0.40f), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.ResumeGame(); });
 
-            MakeButton(pausePanel.transform, "RESTART LEVEL",
+            pauseRestartButton = MakeButton(pausePanel.transform, "RESTART LEVEL",
                 new Vector2(0.5f, 0.285f), new Vector2(0f, 0f),
                 new Vector2(360f, 68f),
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
@@ -797,13 +950,21 @@ namespace GemRush
             // are adjustable mid-run, without abandoning the level. MENU and
             // SETTINGS share the bottom row; the touch floor widens both,
             // which still clears side by side.
-            MakeButton(pausePanel.transform, "MENU",
+            pauseMenuButton = MakeButton(pausePanel.transform, "MENU",
                 new Vector2(0.5f - 0.13f, 0.165f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
 
-            MakeButton(pausePanel.transform, "SETTINGS",
+            pauseSettingsButton = MakeButton(pausePanel.transform, "SETTINGS",
                 new Vector2(0.5f + 0.13f, 0.165f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { ShowSettings(); });
+
+            MenuNav.Set(pauseResumeButton, null, pauseRestartButton, null, null);
+            MenuNav.Set(pauseRestartButton, pauseResumeButton, pauseMenuButton,
+                null, pauseSettingsButton);
+            MenuNav.Set(pauseMenuButton, pauseRestartButton, null, null,
+                pauseSettingsButton);
+            MenuNav.Set(pauseSettingsButton, pauseRestartButton, null,
+                pauseMenuButton, null);
 
             pausePanel.SetActive(false);
         }
@@ -888,6 +1049,7 @@ namespace GemRush
             if (menuQuote != null) menuQuote.text = Story.MenuQuote();
             UpdateVisitRecap();
             menuPanel.SetActive(true);
+            Focus(playButton);
         }
 
         /// Session-recap line: what changed since the app was opened. The
@@ -929,6 +1091,7 @@ namespace GemRush
         public void ShowPaused()
         {
             pausePanel.SetActive(true);
+            Focus(pauseResumeButton);
         }
 
         public void HidePaused()
@@ -979,12 +1142,14 @@ namespace GemRush
                     !string.IsNullOrEmpty(milestone));
             }
             winPanel.SetActive(true);
+            Focus(winNextButton);
         }
 
         public void ShowGameOver()
         {
             HideAll();
             overPanel.SetActive(true);
+            Focus(overTryButton);
         }
 
         public void ShowComplete(int totalStars, int maxStars)
@@ -1018,6 +1183,7 @@ namespace GemRush
                 if (completeNext != null) completeNext.gameObject.SetActive(false);
             }
             completePanel.SetActive(true);
+            Focus(hasPages ? (Button)completeNext : completeMenuButton);
         }
 
         /// Push-based HUD update with a change-cache: a steady frame does
@@ -1077,6 +1243,7 @@ namespace GemRush
             if (quitConfirmPanel == null) BuildQuitConfirm();
             quitConfirmedAction = onConfirmed;
             quitConfirmPanel.SetActive(true);
+            Focus(cancelButton); // safe default: focus never starts on QUIT
             AudioManager.Instance.PlayPanel(true);
         }
 
@@ -1104,13 +1271,17 @@ namespace GemRush
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.70f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
-            MakeButton(quitConfirmPanel.transform, "QUIT",
+            quitButton = MakeButton(quitConfirmPanel.transform, "QUIT",
                 new Vector2(0.5f - 0.13f, 0.38f), new Vector2(0f, 0f),
                 new Vector2(260f, 84f), delegate { ConfirmQuit(); });
 
-            MakeButton(quitConfirmPanel.transform, "CANCEL",
+            cancelButton = MakeButton(quitConfirmPanel.transform, "CANCEL",
                 new Vector2(0.5f + 0.13f, 0.38f), new Vector2(0f, 0f),
                 new Vector2(260f, 84f), delegate { CloseQuitConfirm(); });
+
+            // Pair left/right; CANCEL is the safe first-selected default.
+            MenuNav.Set(quitButton, null, null, null, cancelButton);
+            MenuNav.Set(cancelButton, null, null, quitButton, null);
 
             quitConfirmPanel.SetActive(false);
         }
@@ -1125,6 +1296,17 @@ namespace GemRush
 
         // ---------- Widget builders ----------
 
+        /// Controller-first menus (D5): every panel sets a first-selected
+        /// object when it opens, so a gamepad (or arrows) always lands on
+        /// a visible, sensible default. Guarded for EditMode probes where
+        /// no EventSystem exists.
+        static void Focus(Button target)
+        {
+            if (target == null || !target.gameObject.activeInHierarchy) return;
+            EventSystem es = EventSystem.current;
+            if (es != null) es.SetSelectedGameObject(target.gameObject);
+        }
+
         static void HideAll()
         {
             UIManager self = Instance;
@@ -1137,6 +1319,11 @@ namespace GemRush
             self.settingsPanel.SetActive(false);
             self.pausePanel.SetActive(false);
             self.introPanel.SetActive(false);
+            // No panel owns focus while nothing is on screen — gameplay
+            // must never leave a selectable behind for Submit to hit.
+            EventSystem es = EventSystem.current;
+            if (es != null && es.currentSelectedGameObject != null)
+                es.SetSelectedGameObject(null);
         }
 
         static GameObject MakePanel(Transform parent, string name, Color color)
@@ -1206,6 +1393,8 @@ namespace GemRush
             img.color = onColor;
             Button button = go.AddComponent<Button>();
             button.targetGraphic = img;
+            // Visible focus for gamepad/keyboard menus (D5).
+            go.AddComponent<FocusFX>();
             // Every button in the game answers with the same tiny tick,
             // first in the listener order so it precedes the action's own
             // sounds (whooshes, fanfares) rather than stacking on them.

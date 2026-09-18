@@ -472,22 +472,24 @@ too — stretching every screen off-screen. Anchors are now clamped to
 | D2 | **Done** | `TouchTarget()` floors every button at 100×100 on touch; small buttons re-anchored. **Correction to D2's original DoD:** a 5×5 grid of 100-unit buttons cannot fit the menu band — the rows overlapped and buried each other's tap area. Touch level select is therefore **paged (5×2, ‹ › arrows, "n / N" readout)** and opens on the page holding the newest unlocked level; desktop keeps the dense grid |
 | D3 | **Done** | Settings expose Screen Shake and Left-handed Controls; lefty live-mirrors the jump button via `TouchControls.ApplySide()` (no restart); Fullscreen row on desktop (bonus) |
 | D4 | **Done** | `GameManager.HandleBackNavigation()` walks the stack (dialog → settings → pause/resume → desktop menu quit-confirm); Android never quits |
-| D5/D6 | Not started | Gamepad phases — gameplay/input agent |
+| D5 | **Done** | `com.unity.inputsystem` 1.11.2 + `EnsureInput.cs` pins Active Input Handling to **Both** (same write-ProjectSettings pattern as EnsureShaders; editor restart needed once for the native backend). `InputSystemUIInputModule` replaces `StandaloneInputModule`. Every panel gets a first-selected object on open (`UIManager.Focus`), explicit `Navigation` via `MenuNav.cs` (grids wrap per row; the paged touch grid re-wires on flip — gamepad shoulders also flip pages), and a visible focus highlight (`FocusFX.cs`: brighten + 1.08× scale, suppressed for locked buttons). Mouse/touch unchanged |
+| D6 | **Done** | `GamepadInput.cs` is the single guarded door to the Input System (1 Hz probe, silent no-ops if the backend is not live). Gameplay merges keyboard axes, `GamepadInput.LeftStick` (0.15 radial deadzone, rescaled) and the touch joystick **by max magnitude**; jump = buttonSouth press edge into the same buffer + hold for variable height/fly; Start toggles pause; B walks D4's stack; rumble = `Haptics.GamepadBurst` on death (heavy) and win (light), gated by `HapticsOn`, zeroed on pause/menu/focus-loss (`TickRumble` is realtime-based). Menu instructions line is input-aware (gamepad/touch/keyboard blocks, rewrites live). **Verified via virtual gamepad injection in-editor; Xbox/DualSense hardware pass still owed before Steam** |
 | D7 | **Done** | HUD readouts on a nested `HudDynamic` canvas; `UpdateHUD` change-cached (clock ≤ 10 string builds/s, steady frames allocate nothing); `ShowHUD` resets the cache |
-| D8 | Partial | Fullscreen toggle + persisted mode done; `resizableWindow` + window-rect memory still open — platform/build agent |
+| D8 | **Done** | `resizableWindow: 1` set in the build script (runs for every build); `DesktopWindow.cs` remembers the windowed rect via PlayerPrefs (size via `Screen.SetResolution`, position via user32 on Windows only; skipped in fullscreen/editor/mobile) |
 | D9 | **Done** | SETTINGS button on the pause menu; Settings hides pause while open and restores it on close (pause draws above Settings in sibling order, so the hide is required) |
 | D10 | **Done** | Text floors raised (instructions/quote/recap → 22, desktop level sublabels ≥ 20); "Text Size: NORMAL/LARGE" row re-derives every registered label from its base at 1.15× (never compounding); Enter is guarded while overlays hold the screen |
 | D11 | Not started | String table |
 | D12 | **Done** (by art agent) | See Appendix A |
 
-**Verification state:** in-editor compile clean (Unity 6000.6, live refresh).
-New `Assets/Tests/EditMode/UIAuditTests.cs` (safe-area anchor bounds, safe-root
-parenthood, level-count parity, Text Size re-derivation) is written but **not
-yet executed** — the editor was in a play session; run the EditMode suite once
-it exits play mode (same pending-rerun note as HANDOFF.md). Touch paging and
-the pause-settings layout still need one Device-Simulator pass on a notched
-20:9 preset.
+**Verification state:** in-editor compile clean (Unity 6000.6, live
+refresh). EditMode suite (now 18 tests: the 14 above + 4 `MenuNavTests`)
+run green after the D5/D6 batch. Gamepad paths verified by injecting a
+virtual gamepad in-editor (menu focus walk, A-confirm, Start pause/resume,
+B-back, stick movement, unplug fallback); a real Xbox + DualSense hardware
+pass is still owed before any Steam submission. Touch paging and the
+pause-settings layout had one Device-Simulator pass on a notched 20:9
+preset.
 
-**Known live issue (not UI):** `GoalPortal.Update()` NRE at line 75 in the
-current working tree — thrown every frame during the editor's play session.
-Belongs to the in-flight gameplay work; flagged for its owner.
+**Resolved:** the `GoalPortal.Update()` NRE at line 75 noted on 2026-09-18
+is fixed — `AudioManager.Instance` was the unguarded dereference during
+teardown; the proximity-hum report now no-ops without an audio manager.

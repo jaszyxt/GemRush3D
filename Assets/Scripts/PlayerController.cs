@@ -140,7 +140,17 @@ namespace GemRush
             bool playing = gm != null && gm.State == GameState.Playing;
 
             if (playing && Input.GetButtonDown("Jump"))
+            {
                 lastJumpPressedTime = Time.time;
+                GamepadInput.MarkOther();
+            }
+            // Gamepad jump rides the same buffered queue as keyboard and
+            // touch; hold state feeds variable height / fly mode below.
+            if (playing && GamepadInput.JumpPressed)
+            {
+                lastJumpPressedTime = Time.time;
+                GamepadInput.MarkGamepad();
+            }
 
             if (TouchControls.JumpQueued)
             {
@@ -169,7 +179,8 @@ namespace GemRush
             // Variable jump height (release-to-cut): a short tap makes a
             // short hop. One mild cut per jump, never while wind carries the
             // player, and never in flight (hold-to-rise IS the fly control).
-            bool jumpHeld = Input.GetButton("Jump") || TouchControls.JumpHeld;
+            bool jumpHeld = Input.GetButton("Jump") || TouchControls.JumpHeld ||
+                GamepadInput.JumpHeld;
             if (!flyMode && !jumpHeld && !jumpCutApplied && grounded == false &&
                 Time.time - lastGroundedTime > coyoteTime &&
                 rb.linearVelocity.y > jumpVelocity * 0.35f &&
@@ -181,8 +192,11 @@ namespace GemRush
                 rb.linearVelocity = vel;
             }
 
-            if (tr.position.y < (gm.CurrentLevelDefinition != null
-                ? gm.CurrentLevelDefinition.KillY : -12f))
+            // gm can be null while a half-torn-down world is still ticking
+            // (editor domain reload mid-play) — treat that as kill-line-off.
+            if (gm != null &&
+                tr.position.y < (gm.CurrentLevelDefinition != null
+                    ? gm.CurrentLevelDefinition.KillY : -12f))
             {
                 if (flyMode)
                 {
@@ -274,9 +288,23 @@ namespace GemRush
             {
                 input.x = Input.GetAxisRaw("Horizontal");
                 input.y = Input.GetAxisRaw("Vertical");
+                if (input.sqrMagnitude > 0.01f) GamepadInput.MarkOther();
+                // Merge every live source by max magnitude: keyboard
+                // (full-throttle, up to √2 on diagonals), the gamepad stick
+                // (deadzone-rescaled analog) and the touch joystick.
+                Vector2 stick = GamepadInput.LeftStick;
+                if (stick.sqrMagnitude > input.sqrMagnitude)
+                {
+                    input = stick;
+                    GamepadInput.MarkGamepad();
+                }
                 if (TouchControls.Instance != null &&
-                    TouchControls.Instance.MoveVector.sqrMagnitude > 0.01f)
+                    TouchControls.Instance.MoveVector.sqrMagnitude > 0.01f &&
+                    TouchControls.Instance.MoveVector.sqrMagnitude > input.sqrMagnitude)
+                {
                     input = TouchControls.Instance.MoveVector;
+                    GamepadInput.MarkOther();
+                }
             }
 
             Vector3 wishDir = Vector3.zero;
@@ -318,6 +346,7 @@ namespace GemRush
                 // (Touch holds report through JumpHeld — onClick-only jump
                 // used to make flight rise for just the buffer window.)
                 bool rising = Input.GetButton("Jump") || TouchControls.JumpHeld ||
+                    GamepadInput.JumpHeld ||
                     Time.time - lastJumpPressedTime <= jumpBuffer;
                 float targetY = rising ? 5.5f : -1.4f;
                 vel.y = Mathf.Lerp(vel.y, targetY,

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace GemRush
 {
@@ -51,6 +52,47 @@ namespace GemRush
         public static void Fanfare()
         {
             RawPulse(60, AmplitudeHeavy, EffectDoubleClick);
+        }
+
+        // ---------- Gamepad rumble (directives D6) ----------
+
+        // realtimeSinceStartup cutoff for the current motor burst; 0 = silent.
+        static float rumbleUntil;
+
+        /// Rumbles a connected gamepad's motors for `seconds`. Same
+        /// settings gate as phone vibration — Haptics off silences it
+        /// everywhere. No-op when no pad is attached or the Input System
+        /// backend is not live yet.
+        public static void GamepadBurst(float low, float high, float seconds)
+        {
+            if (!SaveSystem.HapticsOn) return;
+            if (!GamepadInput.Available) return;
+            try
+            {
+                Gamepad.current.SetMotorSpeeds(low, high);
+                rumbleUntil = Time.realtimeSinceStartup + seconds;
+            }
+            catch (System.InvalidOperationException)
+            {
+                // Backend not active (editor awaiting restart): silent no-op.
+            }
+        }
+
+        /// Per-frame housekeeping: cut the motors when the burst expires.
+        /// Realtime-based, so it also fires while paused (timeScale = 0).
+        public static void TickRumble()
+        {
+            if (rumbleUntil <= 0f) return;
+            if (Time.realtimeSinceStartup >= rumbleUntil) StopRumble();
+        }
+
+        /// Kills any live rumble immediately — pause, menu, app switch.
+        public static void StopRumble()
+        {
+            rumbleUntil = 0f;
+            if (!GamepadInput.Available) return;
+            try { Gamepad.current.SetMotorSpeeds(0f, 0f); }
+            catch (System.InvalidOperationException) { }
         }
 
         static void Pulse(int milliseconds, int amplitude, int predefinedEffect)

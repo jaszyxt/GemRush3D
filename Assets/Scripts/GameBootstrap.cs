@@ -42,6 +42,11 @@ namespace GemRush
             // physics never teleports Pip through a platform on resume.
             Time.maximumDeltaTime = 0.1f;
 
+            // Desktop window memory (D8): reopen where the player left
+            // the window; a no-op on mobile and in fullscreen.
+            DesktopWindow.Restore();
+            Application.quitting += DesktopWindow.Save;
+
             SetupRenderSettings();
             CreateManagers();
             SaveSystem.SnapshotVisit();

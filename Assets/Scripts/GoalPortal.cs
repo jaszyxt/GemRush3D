@@ -64,7 +64,7 @@ namespace GemRush
             // manager fades the hum toward whatever we report, so reporting
             // zero while not playing lets it decay away gracefully.
             float proximity = 0f;
-            if (GameManager.Instance != null &&
+            if (GameManager.Instance != null && AudioManager.Instance != null &&
                 GameManager.Instance.State == GameState.Playing &&
                 GameBootstrap.Player != null)
             {
@@ -72,7 +72,8 @@ namespace GemRush
                     transform.position);
                 proximity = Mathf.Clamp01(1f - d / 28f);
             }
-            AudioManager.Instance.SetPortalProximity(proximity);
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.SetPortalProximity(proximity);
         }
 
         void OnTriggerEnter(Collider other)
