@@ -105,7 +105,7 @@ namespace GemRush.Tests
         {
             var clips = new[]
             {
-                SfxSynth.Jump("audit", 1f), SfxSynth.Land("audit"),
+                SfxSynth.Jump("audit", 1f), SfxSynth.Land("audit", 1f),
                 SfxSynth.GemPickup("audit", 880f), SfxSynth.CheckpointChime("audit"),
                 SfxSynth.HeartChime("audit"), SfxSynth.BounceSpring("audit"),
                 SfxSynth.GiftChime("audit"), SfxSynth.HazardDeath("audit"),
@@ -159,6 +159,56 @@ namespace GemRush.Tests
             Assert.AreEqual("f5615aa8", VoiceOver.Hash("audit"));
             Assert.AreEqual("6a8bfd45", VoiceOver.Hash("The end."));
             Assert.AreNotEqual(VoiceOver.Hash("audit"), VoiceOver.Hash("audi0"));
+        }
+
+        // ------------------------------------------------------------------
+        // Variation (fatigue pass): repeated sounds must not be single clips
+        // ------------------------------------------------------------------
+
+        [Test]
+        public void RepeatedSounds_HaveBakedVariation()
+        {
+            // Land fires on every landing: the variant pitch set must offer
+            // at least two distinct takes, and the jump set is locked too.
+            float[] landPitches = (float[])StaticField(typeof(AudioManager),
+                "LandPitches");
+            float[] jumpPitches = (float[])StaticField(typeof(AudioManager),
+                "JumpPitches");
+            Assert.GreaterOrEqual(landPitches.Length, 2, "land has no variation");
+            Assert.GreaterOrEqual(jumpPitches.Length, 2, "jump has no variation");
+        }
+
+        [Test]
+        public void Manifest_Quotes_UseGloomfangCast()
+        {
+            var asset = Resources.Load<TextAsset>("Voice/manifest");
+            var manifest = JsonUtility.FromJson<VoiceOver.VoiceManifest>(asset.text);
+            foreach (var e in manifest.entries)
+                if (e.id.StartsWith("quote_"))
+                    Assert.AreEqual(VoiceIds.Gloomfang, e.cast,
+                        e.id + " lost its Gloomfang voice");
+        }
+
+        [Test]
+        public void Resources_HasNoOrphanClips()
+        {
+            // Orphaned OGGs under Resources silently ship in the build.
+            var manifest = JsonUtility.FromJson<VoiceOver.VoiceManifest>(
+                Resources.Load<TextAsset>("Voice/manifest").text);
+            var referenced = new System.Collections.Generic.HashSet<string>();
+            foreach (var e in manifest.entries)
+                referenced.Add("Voice/" + e.file + ".ogg");
+
+            var root = Application.dataPath + "/Resources/Voice";
+            foreach (var path in System.IO.Directory.GetFiles(root, "*.ogg",
+                System.IO.SearchOption.AllDirectories))
+            {
+                string resource = path.Replace('\\', '/');
+                int cut = resource.IndexOf("Assets/Resources/");
+                resource = resource.Substring(cut + "Assets/Resources/".Length);
+                Assert.IsTrue(referenced.Contains(resource),
+                    "orphan clip not in manifest (ships dead weight): " + resource);
+            }
         }
 
         [Test]

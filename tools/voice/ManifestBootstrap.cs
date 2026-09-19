@@ -28,9 +28,21 @@ public static class ManifestBootstrap
         List<VoiceOver.VoiceEntry> fresh = CollectLines();
         System.Console.WriteLine("[boot] collected " + fresh.Count);
 
+        // Preserve file/duration from the previous manifest: lines the
+        // generator has already recorded keep their clip mapping across
+        // re-exports (same rule as the in-editor exporter).
+        Dictionary<string, VoiceOver.VoiceEntry> prior =
+            new Dictionary<string, VoiceOver.VoiceEntry>();
+        if (File.Exists(ManifestPath))
+        {
+            var old = JsonReader.Read(ManifestPath);
+            if (old != null && old.entries != null)
+                foreach (VoiceOver.VoiceEntry e in old.entries)
+                    if (!string.IsNullOrEmpty(e.hash))
+                        prior[e.cast + "/" + e.hash] = e;
+        }
+
         VoiceOver.VoiceManifest manifest = new VoiceOver.VoiceManifest();
-        System.Console.WriteLine("[boot] manifest entries null? " +
-            (manifest.entries == null));
         Dictionary<string, VoiceOver.VoiceEntry> byKey =
             new Dictionary<string, VoiceOver.VoiceEntry>();
         foreach (VoiceOver.VoiceEntry line in fresh)
@@ -39,6 +51,13 @@ public static class ManifestBootstrap
             VoiceOver.VoiceEntry entry;
             if (!byKey.TryGetValue(key, out entry))
             {
+                VoiceOver.VoiceEntry p;
+                if (prior.TryGetValue(key, out p))
+                {
+                    line.file = p.file;
+                    line.duration = p.duration;
+                    line.text = p.text;
+                }
                 manifest.entries.Add(line);
                 byKey[key] = line;
             }
@@ -93,7 +112,7 @@ public static class ManifestBootstrap
         for (int i = 0; i < Story.Epilogue.Length; i++)
             Add(lines, VoiceIds.Narrator, VoiceIds.Epilogue(i), Story.Epilogue[i]);
         for (int i = 0; i < Story.MenuQuotes.Length; i++)
-            Add(lines, VoiceIds.Narrator, VoiceIds.Quote(i), Story.MenuQuotes[i]);
+            Add(lines, VoiceIds.Gloomfang, VoiceIds.Quote(i), Story.MenuQuotes[i]);
 
         return lines;
     }
@@ -174,5 +193,75 @@ public static class ManifestBootstrap
             }
         }
         return sb.Append("\"").ToString();
+    }
+
+    /// Minimal reader for the manifest's fixed, machine-written shape
+    /// (one entry object per line-group, fields in a stable order). Only
+    /// used by this bootstrap to preserve durations across re-exports;
+    /// the runtime reads JSON through JsonUtility.
+    static class JsonReader
+    {
+        public static VoiceOver.VoiceManifest Read(string path)
+        {
+            string text = File.ReadAllText(path);
+            var manifest = new VoiceOver.VoiceManifest();
+            var re = new System.Text.RegularExpressions.Regex(
+                "\"id\":\"(?<id>[^\"]*)\",\"cast\":\"(?<cast>[^\"]*)\"," +
+                "\"hash\":\"(?<hash>[^\"]*)\",\"file\":\"(?<file>[^\"]*)\"," +
+                "\"duration\":(?<duration>[0-9.]+),\"aliases\":\\[(?<aliases>[^\\]]*)\\]," +
+                "\"text\":\"(?<text>[^\"]*)\"");
+            foreach (System.Text.RegularExpressions.Match m in re.Matches(text))
+            {
+                var aliases = new List<string>();
+                if (m.Groups["aliases"].Value.Length > 0)
+                    foreach (System.Text.RegularExpressions.Match a in
+                        System.Text.RegularExpressions.Regex.Matches(
+                            m.Groups["aliases"].Value, "\"(?<a>[^\"]*)\""))
+                        aliases.Add(a.Groups["a"].Value);
+                manifest.entries.Add(new VoiceOver.VoiceEntry
+                {
+                    id = m.Groups["id"].Value,
+                    cast = m.Groups["cast"].Value,
+                    hash = m.Groups["hash"].Value,
+                    file = m.Groups["file"].Value,
+                    duration = float.Parse(m.Groups["duration"].Value,
+                        System.Globalization.CultureInfo.InvariantCulture),
+                    aliases = aliases.ToArray(),
+                    text = Unescape(m.Groups["text"].Value)
+                });
+            }
+            return manifest;
+        }
+
+        static string Unescape(string s)
+        {
+            var sb = new StringBuilder(s.Length);
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == '\\' && i + 1 < s.Length)
+                {
+                    i++;
+                    switch (s[i])
+                    {
+                        case 'n': sb.Append('\n'); break;
+                        case 'r': sb.Append('\r'); break;
+                        case 't': sb.Append('\t'); break;
+                        case '"': sb.Append('"'); break;
+                        case '\\': sb.Append('\\'); break;
+                        case 'u':
+                            if (i + 4 < s.Length)
+                            {
+                                sb.Append((char)System.Convert.ToInt32(
+                                    s.Substring(i + 1, 4), 16));
+                                i += 4;
+                            }
+                            break;
+                        default: sb.Append(s[i]); break;
+                    }
+                }
+                else sb.Append(s[i]);
+            }
+            return sb.ToString();
+        }
     }
 }

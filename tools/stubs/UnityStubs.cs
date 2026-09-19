@@ -306,6 +306,9 @@ namespace UnityEngine
         public static bool GetButtonDown(string buttonName) { return false; }
         public static bool GetKey(KeyCode key) { return false; }
         public static bool GetKeyDown(KeyCode key) { return false; }
+        public static bool GetMouseButton(int button) { return false; }
+        public static bool GetMouseButtonDown(int button) { return false; }
+        public static bool GetMouseButtonUp(int button) { return false; }
         public static bool touchSupported { get { return false; } }
         public static int touchCount { get { return 0; } }
         public static Touch GetTouch(int index) { return new Touch(); }

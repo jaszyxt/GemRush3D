@@ -11,6 +11,10 @@ namespace GemRush
     {
         public const string Narrator = "narrator";
 
+        /// Phase 2 pilot: Gloomfang reads his own menu flavor quotes in a
+        /// kinder, deeper storm voice (cast.py: am_michael, pitched).
+        public const string Gloomfang = "gloomfang";
+
         /// Lowercase; every non-alphanumeric becomes '_' — same rule as
         /// SaveSystem.Key(), applied to level names.
         public static string Key(string name)

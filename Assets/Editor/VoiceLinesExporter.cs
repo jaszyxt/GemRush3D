@@ -130,7 +130,7 @@ namespace GemRush.EditorTools
                 Add(lines, VoiceIds.Narrator, VoiceIds.Epilogue(i),
                     Story.Epilogue[i]);
             for (int i = 0; i < Story.MenuQuotes.Length; i++)
-                Add(lines, VoiceIds.Narrator, VoiceIds.Quote(i),
+                Add(lines, VoiceIds.Gloomfang, VoiceIds.Quote(i),
                     Story.MenuQuotes[i]);
 
             return lines;

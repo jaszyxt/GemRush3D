@@ -193,12 +193,13 @@ namespace GemRush
         }
 
         /// A landing: soft body thump plus a little dust puff. Louder
-        /// landings scale up at the call site via PlayOneShot's volume.
-        public static AudioClip Land(string name)
+        /// landings scale up at the call site via PlayOneShot's volume;
+        /// pitchScale bakes variants so hop-after-hop never sounds sampled.
+        public static AudioClip Land(string name, float pitchScale)
         {
             float dur = 0.16f;
             float[] data = new float[(int)(dur * SampleRate) + 1];
-            Voice(data, 170f, 0f, 0.13f, 0.5f,
+            Voice(data, 170f * pitchScale, 0f, 0.13f, 0.5f,
                 new float[] { 1f, 0.5f }, new float[] { 1f, 0.4f }, new float[] { 1f, 0.8f },
                 0.002f, 1.8f);
             NoiseVoice(data, 0.004f, 0.11f, 0.2f, 1000f, 380f, 0.003f, 0.06f, 202, 1.4f);

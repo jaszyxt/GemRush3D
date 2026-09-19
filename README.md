@@ -262,10 +262,13 @@ Design rules of the narration:
 - **One voice at a time.** The newest line wins; pause, level change or
   the Voice setting stops it instantly. Voice rides under the master
   Sound toggle (`SaveSystem.VoiceOn`).
-- **Casting is data.** The narrator is Kokoro's `af_heart` at 0.95×; a
-  deeper, warmer Gloomfang voice slot is pre-tuned in `tools/voice/cast.py`
-  for his quotes, and swapping the whole engine (e.g. Qwen3-TTS) only
-  means reimplementing one Python function.
+- **Casting is data.** The narrator is Kokoro's `af_heart` at 0.95×;
+  the menu's flavor quotes are read by **Gloomfang himself** — a deeper,
+  warmer voice (`tools/voice/cast.py`) — and swapping the whole engine
+  (e.g. Qwen3-TTS) only means reimplementing one Python function.
+- **Nothing fatigues.** Sounds you hear hundreds of times (jumps,
+  landings, buttons, melody notes) carry baked pitch variants and
+  micro-jitter, so no two playbacks are identical.
 
 ## How it's built (code-first Unity)
 

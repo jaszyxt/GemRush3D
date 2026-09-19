@@ -139,7 +139,24 @@ audio owner must know:
 - **One voice, one source**: newest line interrupts; pause, level change
   (`BuildWorld` stops voice + unloads clips) and the `VoiceOn`/`SoundOn`
   gates silence it immediately.
-- **Casting**: narrator = `af_heart` @ 0.95×. `cast.py` pre-tunes a
+- **Casting**: narrator = `af_heart` @ 0.95×. **Phase-2 pilot live:** the
+  13 menu quotes now use the `gloomfang` cast (am_michael @ 0.92×,
+  pitched 0.89, bass-shelved) — Gloomfang mutters his own lines. Marked
+  pilot: the listen pass decides whether it stays. The manifest's cast
+  field controls per-line casting; the exporter and bootstrap both
+  emit quotes as `gloomfang`, locked by `Manifest_Quotes_UseGloomfangCast`.
+- **Fatigue pass (2026-09-20):** repeated sounds never play one static
+  take. Land has 3 baked pitch variants; jump adds volume jitter
+  (±1 dB) on top of its variants; UI clicks jitter ±1.5 dB; melody
+  notes get music-box humanization (±1 dB). Variant pitch sets are
+  locked by `RepeatedSounds_HaveBakedVariation`. Levels unchanged
+  (verified via measure_mix.py).
+- **Bootstrap restore:** the offline ManifestBootstrap now preserves
+  file/duration from the prior manifest (a re-export had zeroed 172
+  durations — caught by `Manifest_EveryLine_HashMatchesText` in CI
+  shape; durations were ffprobe-restored). `Resources_HasNoOrphanClips`
+  keeps unreferenced OGGs out of the build.
+- **Casting (original):** narrator = `af_heart` @ 0.95×. `cast.py` pre-tunes a
   Gloomfang voice (deeper, bass-shelved) for phase 2 quotes, and the
   generator is deliberately engine-agnostic — upgrading to
   Qwen3-TTS/Chatterbox later is one function swap, not a redesign.

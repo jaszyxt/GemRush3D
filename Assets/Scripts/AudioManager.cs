@@ -24,6 +24,12 @@ namespace GemRush
 
         // ---- One-shot effects, synthesized once in Awake ----
         AudioClip[] jumpVariants;
+        AudioClip[] landVariants;
+
+        // Baked variant pitches (fatigue pass): the ear flags an identical
+        // take faster than an identical loudness.
+        static readonly float[] JumpPitches = { 0.96f, 1f, 1.05f };
+        static readonly float[] LandPitches = { 0.94f, 1f, 1.06f };
         AudioClip land;
         AudioClip pickup;
         AudioClip checkpoint;
@@ -104,15 +110,14 @@ namespace GemRush
             humSource.loop = true;
             humSource.volume = 0f;
 
-            // Pip's movement: three baked pitch variants so hop chains
-            // never sound like a sampled loop.
-            jumpVariants = new AudioClip[]
-            {
-                SfxSynth.Jump("sfx_jump_a", 0.96f),
-                SfxSynth.Jump("sfx_jump_b", 1f),
-                SfxSynth.Jump("sfx_jump_c", 1.05f)
-            };
-            land = SfxSynth.Land("sfx_land");
+            // Pip's movement: baked pitch variants so repeated moves never
+            // sound like a sampled loop (locked by AudioAuditTests).
+            jumpVariants = new AudioClip[JumpPitches.Length];
+            for (int i = 0; i < JumpPitches.Length; i++)
+                jumpVariants[i] = SfxSynth.Jump("sfx_jump_" + i, JumpPitches[i]);
+            landVariants = new AudioClip[LandPitches.Length];
+            for (int i = 0; i < LandPitches.Length; i++)
+                landVariants[i] = SfxSynth.Land("sfx_land_" + i, LandPitches[i]);
             pickup = SfxSynth.GemPickup("sfx_pickup", 880f);
             checkpoint = SfxSynth.CheckpointChime("sfx_checkpoint");
             win = SfxSynth.WinFanfare("sfx_win");
@@ -448,7 +453,16 @@ namespace GemRush
         public void PlayJump()
         {
             if (jumpVariants == null) return;
-            PlayIfOn(jumpVariants[Random.Range(0, jumpVariants.Length)]);
+            PlayIfOn(jumpVariants[Random.Range(0, jumpVariants.Length)],
+                Random.Range(0.92f, 1.05f));
+        }
+
+        /// Per-playback volume jitter: the ear flags an identical sample
+        /// faster than an identical loudness, so repeated one-shots wobble
+        /// slightly around their calibrated level (never more than ~1 dB).
+        static float Jitter(float min, float max)
+        {
+            return Random.Range(min, max);
         }
 
         /// Landing impact, from soft walk-offs (2.5) to terminal-velocity
@@ -456,8 +470,10 @@ namespace GemRush
         public void PlayLand(float impactSpeed)
         {
             if (impactSpeed < 2.5f) return;
+            if (landVariants == null) return;
             float strength = Mathf.Clamp01((impactSpeed - 2.5f) / 14f);
-            PlayIfOn(land, 0.45f + 0.55f * strength);
+            PlayIfOn(landVariants[Random.Range(0, landVariants.Length)],
+                (0.45f + 0.55f * strength) * Jitter(0.94f, 1.06f));
         }
 
         // ------------------------------------------------------------------
@@ -807,14 +823,16 @@ namespace GemRush
                 clip = SfxSynth.Note("note_" + key, frequency, 0.35f, 0.4f);
                 noteCache[key] = clip;
             }
-            source.PlayOneShot(clip);
+            // Music-box humanization: slight dynamics so a gem trail reads
+            // as played, not sequenced.
+            source.PlayOneShot(clip, Jitter(0.89f, 1.12f));
         }
 
         // ------------------------------------------------------------------
         // UI: tiny, polite, never louder than gameplay
         // ------------------------------------------------------------------
 
-        public void PlayUIClick() { PlayIfOn(uiClick); }
+        public void PlayUIClick() { PlayIfOn(uiClick, Jitter(0.85f, 1.15f)); }
         public void PlayUIToggle(bool on) { PlayIfOn(on ? uiToggleOn : uiToggleOff); }
         public void PlayPanel(bool open) { PlayIfOn(open ? panelOpen : panelClose); }
         public void PlayPauseSound() { PlayIfOn(pauseBlip); }
