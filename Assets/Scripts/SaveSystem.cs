@@ -245,6 +245,26 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "aurora", value ? 1 : 0); Save(); }
         }
 
+        /// The date of Pip's very first flight on this device, recorded
+        /// once on first boot. The living calendar celebrates its
+        /// anniversary with a festival week of confetti skies — gently,
+        /// with no FOMO ever.
+        public static string FirstFlightDate
+        {
+            get
+            {
+                MigrateIfNeeded();
+                string date = PlayerPrefs.GetString(Prefix + "firstflight", "");
+                if (string.IsNullOrEmpty(date))
+                {
+                    date = System.DateTime.Today.ToString("yyyy-MM-dd");
+                    PlayerPrefs.SetString(Prefix + "firstflight", date);
+                    Save();
+                }
+                return date;
+            }
+        }
+
         static void Save()
         {
             PlayerPrefs.Save();

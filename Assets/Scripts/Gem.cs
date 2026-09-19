@@ -90,7 +90,7 @@ namespace GemRush
             if (other.GetComponentInParent<PlayerController>() == null) return;
             collected = true;
             bool hasNote = noteFrequency > 0f;
-            GameManager.Instance.OnGemCollected(!hasNote);
+            GameManager.Instance.OnGemCollected(!hasNote, transform.position);
             if (hasNote)
             {
                 // The trail's own note replaces the generic pickup blip.

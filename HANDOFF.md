@@ -245,6 +245,37 @@ except D11**) → this file.
 - EditMode suite is now **37 tests** (parallel sessions added audio
   audits), all green.
 
+## Shipped in v1.24.0 — "Gentle aliveness": living calendar + spark (this session)
+- **Living calendar** (`SkyCalendar.cs`): Tuesdays bring Gloomfang's rain
+  (canon: his rain-carrying day) to any ordinary-skied level — real
+  rainfall particles (`Rainfall.cs`, stretched billboards, snowfall
+  budget), rain-washed palette/ambient/sun/grading, and a new
+  `SoundMood.Rain` (WindChords + new `AmbienceKind.Rain` = existing
+  WindLoop at rain-band params; moodWindBase 0.50 slots into the audio
+  session's calibrated scale — they may fine-tune). The week around the
+  anniversary of Pip's first flight (`SaveSystem.FirstFlightDate`,
+  written once on first boot) brings `ConfettiSky.cs` festival drift.
+  Rain applies ONLY to levels resolving Day; realms keep their weather.
+  Seam: `GameBootstrap.BuildWorld` remixes via `Remixes.Remixed` (name-
+  keyed saves unaffected — ghosts/daily gems still key correctly).
+- **Gloomfang near-collect spark**: `OnGemCollectedNear(gemPos)` (mirrors
+  OnPipJumped; 1.2 s cooldown, NearbyRadius) — spark flashes, wobble,
+  pale mote burst. Gem passes position through
+  `GameManager.OnGemCollected(bool, Vector3)`.
+- **Fixes found by the study**: `Remixes.Remixed` now carries
+  LongWinter/AuroraFestival/Mood scalars (latent B-side gap); shelf
+  check name-based (a rainy remix rebuilds the level object — reference
+  equality would drop the shelf on Tuesdays).
+- **Verified**: `CalendarProbe` (`GemRush/Calendar Probe/Run`) 12/12 —
+  date table (Tuesday rain, festival window, ordinary clear), rain
+  build on a Day level (particle + palette + mood), winter realm stays
+  dry, home shelf survives rain, menu works, spark hook clean. Probe
+  snapshots the firstflight key and calendar override (restore after).
+  EditMode suite 40/40 (parallel session added tests).
+- **Devices**: Samsung phone SM-A566B (R5CY34G48CK) installed v1.24.0
+  over the release key (first install needed a clean uninstall — it had
+  debug-signed v1.0). Tablet SM-X810 still awaits USB.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).

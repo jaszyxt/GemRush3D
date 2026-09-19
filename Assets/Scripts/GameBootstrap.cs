@@ -114,6 +114,12 @@ namespace GemRush
 
             levelIndex = Mathf.Clamp(levelIndex, 0, LevelLibrary.Levels.Length - 1);
             LevelDefinition level = LevelLibrary.Levels[levelIndex];
+
+            // The living calendar: on Tuesdays, Gloomfang's rain falls on
+            // any ordinary-sky level — same bones, rain-washed sky (the
+            // weather-remix seam; name-keyed saves are unaffected).
+            if (SkyCalendar.RainAppliesTo(level))
+                level = Remixes.Remixed(level, SkyCalendar.RainMutation);
             DailyGem.ActiveLevelIndex = levelIndex;
             LevelBuilder.Build(level, World.transform);
 

@@ -16,7 +16,7 @@ namespace GemRush
         const int SampleRate = 44100;
 
         /// Ambience bed a mood wants under its pad (played by AudioManager).
-        public enum AmbienceKind { None, Wind, WindHigh, Rumble }
+        public enum AmbienceKind { None, Wind, WindHigh, Rumble, Rain }
 
         struct MoodSpec
         {
@@ -185,6 +185,14 @@ namespace GemRush
                     s.Shimmer = 0.10f;
                     s.MotifNotes = new float[] { E5, G5, A5, D5, C5 };
                     s.MotifTimes = new float[] { 2.1f, 5.4f, 8.2f, 10.6f, 12.4f };
+                    break;
+                case SoundMood.Rain:
+                    // A rainy Tuesday: the wind realm's soft suspended
+                    // chords under rain ambience — pensive, never gloomy.
+                    s.Chords = WindChords;
+                    s.Harmonic2 = 0.14f;
+                    s.Sub = 0.16f;
+                    s.Ambience = AmbienceKind.Rain;
                     break;
                 case SoundMood.Festival:
                     // The realm's celebration: bright open chords with a

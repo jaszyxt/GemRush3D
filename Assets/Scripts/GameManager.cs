@@ -320,11 +320,15 @@ namespace GemRush
             ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
         }
 
-        public void OnGemCollected(bool playPickupSound = true)
+        public void OnGemCollected(bool playPickupSound = true,
+            Vector3 gemPosition = default)
         {
             if (State != GameState.Playing) return;
             GemsCollected++;
             if (playPickupSound) AudioManager.Instance.PlayPickup();
+            // Gloomfang loves watching his old job done well: collecting
+            // near him earns a delighted spark.
+            Gloomfang.OnGemCollectedNear(gemPosition);
         }
 
         public void SetSpawn(Vector3 position)

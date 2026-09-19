@@ -29,6 +29,9 @@ namespace GemRush
             l.DarkRealm = baseLevel.DarkRealm;
             l.SkyGarden = baseLevel.SkyGarden;
             l.MirrorSkies = baseLevel.MirrorSkies;
+            l.LongWinter = baseLevel.LongWinter;
+            l.AuroraFestival = baseLevel.AuroraFestival;
+            l.Mood = baseLevel.Mood;
             l.BonusFlight = false;
 
             // Spec objects are shared by reference: mutations must never

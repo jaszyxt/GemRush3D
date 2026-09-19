@@ -235,6 +235,35 @@ namespace GemRush
             if (ReferenceEquals(Companion, this)) Companion = null;
         }
 
+        // Near-collect spark: a delighted blink when Pip gathers gems
+        /// close by — he loves watching his old job done well.
+        const float SparkCooldown = 1.2f;
+        const float SparkHoldSeconds = 0.5f;
+        static float nextSparkAt;
+
+        /// Pip collected a gem somewhere near Gloomfang: the spark flashes
+        /// on, a happy wobble, a mote of weather-pale light. Cooldown keeps
+        /// gem trails from strobing him.
+        public static void OnGemCollectedNear(Vector3 gemPosition)
+        {
+            Gloomfang g = Companion;
+            if (g == null) return;
+            if (Time.time < nextSparkAt) return;
+            Vector3 flat = gemPosition - g.transform.position;
+            flat.y = 0f;
+            if (flat.sqrMagnitude > NearbyRadius * NearbyRadius) return;
+
+            nextSparkAt = Time.time + SparkCooldown;
+            if (g.spark != null && !g.spark.gameObject.activeSelf)
+            {
+                g.spark.gameObject.SetActive(true);
+                g.sparkTimer = SparkHoldSeconds;
+            }
+            g.wobble = 0.7f;
+            g.wobbleAge = 0f;
+            Fx.Burst(g.transform.position, ArtLib.Air * 1.3f, 8);
+        }
+
         /// Pip jumped nearby: a happy wobble, a shy giggle, and — his old
         /// joy, remembered — one soft raindrop that blooms where it lands.
         public static void OnPipJumped(Vector3 pipPosition)

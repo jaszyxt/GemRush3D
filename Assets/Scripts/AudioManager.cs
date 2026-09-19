@@ -190,7 +190,8 @@ namespace GemRush
                     ambienceLoops[(int)amb] = moodBed;
                 }
                 moodWindBase = amb == MusicSynth.AmbienceKind.Rumble ? 0.42f
-                    : amb == MusicSynth.AmbienceKind.WindHigh ? 0.45f : 0.55f;
+                    : amb == MusicSynth.AmbienceKind.WindHigh ? 0.45f
+                    : amb == MusicSynth.AmbienceKind.Rain ? 0.50f : 0.55f;
             }
             if (windSource.clip != moodBed)
             {
@@ -211,6 +212,11 @@ namespace GemRush
                     return MusicSynth.WindLoop("amb_wind_high", 0.22f, 950f, 0.5f, 78);
                 case MusicSynth.AmbienceKind.Rumble:
                     return MusicSynth.RumbleLoop("amb_rumble", 0.2f);
+                case MusicSynth.AmbienceKind.Rain:
+                    // Rain is a wind loop in rain's clothes: higher cutoff
+                    // (a soft steady hiss on the roofs), almost no swell.
+                    return MusicSynth.WindLoop("amb_rain", 0.14f, 1700f,
+                        0.08f, 79);
                 default:
                     return null;
             }

@@ -58,6 +58,13 @@ namespace GemRush
                 grading.saturation.Override(-8f);
                 grading.contrast.Override(2f);
             }
+            else if (level.RainyDay)
+            {
+                // A rainy Tuesday: the world softly rinsed — a touch less
+                // saturation, contrast calm, nothing gloomy.
+                grading.saturation.Override(-6f);
+                grading.contrast.Override(3f);
+            }
             else
             {
                 grading.saturation.Override(4f);

@@ -19,7 +19,8 @@ namespace GemRush
         Flight,
         Mirror,
         Winter,
-        Festival
+        Festival,
+        Rain
     }
 
     /// Pure data describing one level. No behaviour lives here — LevelBuilder
@@ -51,6 +52,7 @@ namespace GemRush
             if (MirrorSkies) return SoundMood.Mirror;
             if (LongWinter) return SoundMood.Winter;
             if (AuroraFestival) return SoundMood.Festival;
+            if (RainyDay) return SoundMood.Rain;
             return SoundMood.Day;
         }
 
@@ -110,6 +112,11 @@ namespace GemRush
         /// The Long Winter levels: snow-soft platforms, falling snow, a
         /// pale cool sky and the quietest music in the game.
         public bool LongWinter = false;
+
+        /// A rainy day on the living calendar: rain-washed palette, real
+        /// rainfall, rain-hushed music. Set by SkyCalendar's remix on
+        /// ordinary-skied levels; realms never take it.
+        public bool RainyDay = false;
 
         /// Aurora ribbons: flowing light-bridges that carry Pip across a
         /// gap with a gentle sideways sway. The festival's ride.

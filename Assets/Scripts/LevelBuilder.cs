@@ -143,22 +143,27 @@ namespace GemRush
 
             DailyGem.PlaceIfActive(level, parent);
 
+            float courseLength = level.Portal.z + 14f;
+            for (int i = 0; i < level.Platforms.Count; i++)
+                courseLength = Mathf.Max(courseLength,
+                    level.Platforms[i].Center.z +
+                    level.Platforms[i].Size.z * 0.5f);
+
             if (level.LongWinter)
-            {
-                float courseEnd = level.Portal.z + 14f;
-                for (int i = 0; i < level.Platforms.Count; i++)
-                    courseEnd = Mathf.Max(courseEnd,
-                        level.Platforms[i].Center.z +
-                        level.Platforms[i].Size.z * 0.5f);
-                Snowfall.Create(parent, courseEnd);
-            }
+                Snowfall.Create(parent, courseLength);
+            if (level.RainyDay)
+                Rainfall.Create(parent, courseLength);
+            if (SkyCalendar.TodayWeather() == SkyCalendar.Weather.FestivalWeek)
+                ConfettiSky.Create(parent, courseLength);
 
             if (level.AuroraFestival)
                 AuroraBand.Create(parent, level.Portal.z + 20f);
 
             // Pip's shelf lives on the home island only — the start
-            // platform of First Steps, next to the flag post.
-            if (level == LevelLibrary.Levels[0])
+            // platform of First Steps, next to the flag post. Name-based:
+            // a rainy-day remix rebuilds the definition object, so
+            // reference equality would lose the shelf on Tuesdays.
+            if (level.Name == LevelLibrary.Levels[0].Name)
                 Shelf.Create(parent,
                     new Vector3(-2.6f, level.Platforms[0].Center.y +
                         level.Platforms[0].Size.y * 0.5f, -1.6f));
@@ -204,7 +209,8 @@ namespace GemRush
             RenderSettings.fogColor = level.FogColor;
             RenderSettings.fogDensity =
                 level.DarkRealm ? 0.013f :
-                level.LongWinter ? 0.011f : 0.008f;
+                level.LongWinter ? 0.011f :
+                level.RainyDay ? 0.010f : 0.008f;
 
             RenderSettings.ambientMode = AmbientMode.Trilight;
             if (level.DarkRealm)
@@ -220,6 +226,14 @@ namespace GemRush
                 RenderSettings.ambientSkyColor = new Color(0.62f, 0.68f, 0.88f);
                 RenderSettings.ambientEquatorColor = new Color(0.52f, 0.56f, 0.66f);
                 RenderSettings.ambientGroundColor = new Color(0.44f, 0.46f, 0.50f);
+            }
+            else if (level.RainyDay)
+            {
+                // Rain-washed light: softer, cooler, the world under a
+                // friendly blanket of cloud.
+                RenderSettings.ambientSkyColor = new Color(0.48f, 0.56f, 0.70f);
+                RenderSettings.ambientEquatorColor = new Color(0.42f, 0.48f, 0.58f);
+                RenderSettings.ambientGroundColor = new Color(0.36f, 0.39f, 0.44f);
             }
             else
             {
@@ -246,6 +260,12 @@ namespace GemRush
                     sun.intensity = 1.6f;
                     sun.color = new Color(0.92f, 0.95f, 1f);
                     sun.transform.rotation = Quaternion.Euler(40f, -30f, 0f);
+                }
+                else if (level.RainyDay)
+                {
+                    sun.intensity = 1.15f;
+                    sun.color = new Color(0.82f, 0.88f, 1f);
+                    sun.transform.rotation = Quaternion.Euler(55f, -35f, 0f);
                 }
                 else
                 {
