@@ -194,6 +194,29 @@ except D11**) → this file.
 - **Play-verified**: PhotoProbe 5/5 incl. real PNG on disk; share card
   visually verified (gold stars, framed card over the live world).
 
+## Shipped in v1.22.0 — Ghost runs (this session)
+- **Race your best run**: `Assets/Scripts/GhostRun.cs` — GhostStore
+  (encode/decode), GhostRecorder (10 Hz position sampling while a level
+  is Playing), GhostRunner (translucent Pip shell, pure kinematics).
+  - Format: 10 Hz positions as int16 deltas (5 mm quantization),
+    base64 in PlayerPrefs under `ghost_<level>`; ~2 KB for a 100 s run;
+    corrupt data decodes to null (never breaks a level).
+  - Only a run that BEATS the best stores its recording
+    (GameManager.OnReachGoal, newRecord), so the ghost is always the
+    pace to beat. Recording stops on death/respawn/pause — ghosts are
+    honest routes, teleports included.
+  - Ghost spawns in BuildWorld once a level has been cleared at least
+    once; advances on the GAME clock (pause pauses the race — fair);
+    never touches physics.
+- **Play-verified**: `Assets/Editor/GhostProbe.cs` (`GemRush/Ghost
+  Probe/Run`) — 4/4: encode/decode roundtrip (5 mm accuracy), corrupt
+  input safe, ghost spawns with a planted recording, replay fidelity
+  (elapsed 0.57 s -> z 5.72, exactly on path). Probe cleans its save.
+- Probe-environment note (for future rigs): the editor's focus-loss
+  auto-pause freezes game-clock advance, so wall-clock assertions on
+  game-time behavior are flaky — assert state-consistency (like the
+  fidelity check) instead.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).

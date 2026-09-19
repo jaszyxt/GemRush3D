@@ -143,6 +143,17 @@ namespace GemRush
             // Unless you ARE him, in which case, one of you is enough.
             if (levelIndex >= 9 && !level.BonusFlight && Player != null)
                 Gloomfang.Create(World.transform, Player.transform, level.MirrorSkies);
+
+            // Ghost run: your best-time path, replayed as a translucent Pip
+            // to race (only once the level has been cleared at least once).
+            if (!level.BonusFlight &&
+                SaveSystem.BestTime(levelIndex) >= 0f)
+            {
+                var path = GhostStore.Decode(
+                    GhostStore.Load(level.Name));
+                if (path != null && path.Count > 4)
+                    GhostRunner.Create(World.transform, path);
+            }
         }
     }
 }

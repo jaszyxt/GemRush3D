@@ -221,9 +221,13 @@ namespace GemRush
             PlayLevel(Mathf.Clamp(SaveSystem.UnlockedLevel, 0, LevelLibrary.Levels.Length - 1));
         }
 
+        GhostRecorder ghostRecorder;
+
         public void PlayLevel(int index)
         {
             EndHitStop();
+            ghostRecorder = GhostRecorder.Create(GameBootstrap.World.transform);
+            ghostRecorder.Begin();
             Time.timeScale = 1f;
             ui.CloseQuitConfirm(); // the dialog lives over the menu only
             CurrentLevel = Mathf.Clamp(index, 0, LevelLibrary.Levels.Length - 1);
@@ -393,6 +397,17 @@ namespace GemRush
 
             gemsToStars();
             newRecord = SaveSystem.RecordResult(CurrentLevel, Elapsed, starsEarned);
+
+            // A record run becomes tomorrow's ghost: only recordings that
+            // beat the best are kept, so the ghost is always the pace.
+            if (newRecord && ghostRecorder != null)
+            {
+                var path = ghostRecorder.Finish();
+                if (path != null)
+                    GhostStore.Save(CurrentLevelDefinition.Name,
+                        GhostStore.Encode(path));
+            }
+            if (ghostRecorder != null) ghostRecorder.Stop();
             SaveSystem.UnlockLevel(Mathf.Min(CurrentLevel + 1,
                 LevelLibrary.Levels.Length - 1));
 
