@@ -147,3 +147,30 @@ audio owner must know:
   are non-commercial / ToS-gray for a published game; Kokoro and
   Qwen3-TTS are Apache-2.0, Chatterbox MIT. CC0 voice libraries cannot
   voice custom prose.
+
+## 8. Audit log
+
+**Audit v1 — 2026-09-19 (post-generation, against v1.22.0)**
+
+- **Hook integrity**: all 7 `VoiceOver.Play` call sites, keep-alive
+  fields, `DuckFor`, `VoiceOn` and manager wiring verified present in
+  HEAD after two intervening feature commits — no clobbering.
+- **Text drift**: manifest re-collected from current code; 185/185
+  hashes identical to the shipped manifest — every clip still matches
+  its prose (B-Sides aliases included).
+- **Clip DSP** (all 185): uniform Vorbis/24 kHz/mono; zero clipping,
+  zero DC offset, no dead air > 1 s lead / 1.5 s trail; speech rate
+  1.3–4.2 words/s on every line (no truncated or garbled output).
+- **Loudness**: −16 LUFS ±0.7 across spot checks (mission, epilogue,
+  quote, beat, win) — on the mobile narration target.
+- **Runtime path (in-editor probe)**: manifest parses via the exact
+  `JsonUtility` path; 185/185 clips resolve via `Resources.Load`;
+  loaded length 1470.7 s matches the manifest (no import truncation);
+  importer settings confirmed (mono/24 kHz).
+- **Hash chain in-editor**: `VoiceOver.Hash` recomputation matches
+  stored hashes for all 185 entries; 13 alias links resolve; the
+  mission-1 play gate passes.
+- **Known-benign**: Unity logs "Warnings during import of AudioClip"
+  for ffmpeg-produced Vorbis files — the muxer's vendor tag in the
+  Vorbis ident header is format-mandated and cannot be stripped. Clips
+  import fully and load cleanly; no action possible or needed.
