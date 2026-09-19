@@ -174,3 +174,37 @@ audio owner must know:
   for ffmpeg-produced Vorbis files — the muxer's vendor tag in the
   Vorbis ident header is format-mandated and cannot be stripped. Clips
   import fully and load cleanly; no action possible or needed.
+
+## 9. Mix calibration v2 (2026-09-19, measured)
+
+`tools/audio/measure_mix.py` replicates the runtime DSP in Python and
+prints the game's true loudness map (peak / gated RMS / ITU-R BS.1770
+LUFS / spectral centroid per clip at play level). Run it after any
+synth change; judge against the table, not by ear at 2 am.
+
+**Measured before calibration** (grounded in industry norms: mobile
+≈ −18 LUFS integrated, priority hierarchy voice > key SFX > music >
+ambience, 6–12 dB separation for clarity moments):
+
+1. **The score masked the game.** Music measured −15.6..−18.5 LUFS —
+   as loud as or louder than the pickups/checkpoints it should sit
+   under (0 dB separation; norms say 6–12 dB).
+2. **All noise was hiss, not breath.** Single-pole filtered noise left
+   spectral centroids at 5.2–6.7 kHz on the gust/fall/mirror family —
+   "static", the hidden half of the annoying-gust complaint.
+3. **Bells sustained at −16 LUFS for up to 9 s**, the loudest world
+   sound, with a shrill 8.93× inharmonic top.
+4. **Panel/intro/page whooshes were mute** (−41..−43 RMS, ~12 dB under
+   the UI click) — designed moments that phone speakers cannot play.
+5. **Narration at −16 LUFS** was on the mobile ceiling rather than in
+   the world.
+
+**Applied calibration (device-level targets):** music bed −27..−30
+LUFS (`MusicVolume` 0.55 → 0.26); key SFX unchanged at −17..−21
+(8–10 dB separation); bells −19 (0.42 → 0.30 + softened 5.42×/8.93×
+partials); narration −20.4 (VoiceOver source 0.62) with music ducked
+~12 dB under it (DuckFor fraction 0.3); UI whooshes raised into
+audibility (−31..−33); NoiseVoice and NoiseSwell upgraded to cascaded
+two-pole filters (−12 dB/oct) with ~+4 dB gain compensation — gust
+centroid 6715 → 3194 Hz, fall death 5217 → 2379, land 3634 → 1090
+(now reads as a thump, not static).

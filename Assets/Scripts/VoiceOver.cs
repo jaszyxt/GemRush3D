@@ -97,7 +97,9 @@ namespace GemRush
             source.playOnAwake = false;
             source.spatialBlend = 0f;
             source.priority = 0; // voice outranks everything
-            source.volume = 1f;
+            // Calibrated to ~-20 LUFS at play level: present in the world,
+            // not shouting over it (mobile norm ~-18; narration sits lower).
+            source.volume = 0.62f;
         }
 
         static void EnsureManifest()
@@ -163,7 +165,7 @@ namespace GemRush
             source.clip = clip;
             source.Play();
             if (AudioManager.Instance != null)
-                AudioManager.Instance.DuckFor(entry.duration + 1.2f, 0.16f);
+                AudioManager.Instance.DuckFor(entry.duration + 1.2f, 0.3f);
         }
 
         public void Stop()

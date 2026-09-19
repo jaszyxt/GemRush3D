@@ -116,7 +116,11 @@ namespace GemRush
             int samples = Mathf.Min((int)(durSec * SampleRate), data.Length - start);
             if (samples <= 0) return;
             System.Random rng = new System.Random(seed);
-            float y = 0f;
+            // Two cascaded one-poles (-12 dB/oct). A single pole leaves a
+            // -6 dB/oct hiss tail that reads as "static" instead of breath;
+            // the measured spectral centroids proved it. The 1.5x gain
+            // compensates the second stage's ~4 dB RMS loss.
+            float y1 = 0f, y2 = 0f;
             float attackSamples = Mathf.Max(1f, attackSec * SampleRate);
             float releaseSamples = Mathf.Max(1f, releaseSec * SampleRate);
             for (int i = 0; i < samples; i++)
@@ -124,12 +128,13 @@ namespace GemRush
                 float t = (float)i / samples;
                 float cutoff = Mathf.Lerp(cutoffFrom, cutoffTo, t);
                 float alpha = 1f - Mathf.Exp(-2f * Mathf.PI * cutoff / SampleRate);
-                y += alpha * ((float)rng.NextDouble() * 2f - 1f - y);
+                y1 += alpha * ((float)rng.NextDouble() * 2f - 1f - y1);
+                y2 += alpha * (y1 - y2);
 
                 float env = Mathf.Min(i / attackSamples, 1f) *
                             Mathf.Min((samples - i) / releaseSamples, 1f) *
                             Mathf.Pow(1f - t, decayPow);
-                data[start + i] += y * env * vol;
+                data[start + i] += y2 * 1.5f * env * vol;
             }
         }
 
@@ -149,7 +154,7 @@ namespace GemRush
 
         // Tower bell: inharmonic, hum-weighted, long body.
         static readonly float[] BellPartials = { 0.5f, 1f, 2.0f, 2.76f, 5.42f, 8.93f };
-        static readonly float[] BellWeights = { 0.35f, 1f, 0.5f, 0.4f, 0.18f, 0.07f };
+        static readonly float[] BellWeights = { 0.35f, 1f, 0.5f, 0.4f, 0.15f, 0.05f };
         static readonly float[] BellDecays = { 0.6f, 1f, 1.4f, 1.9f, 3f, 4.5f };
 
         /// Music-box note — the voice of melody gems and gentle moments.
@@ -180,7 +185,7 @@ namespace GemRush
         {
             float dur = 0.16f;
             float[] data = new float[(int)(dur * SampleRate) + 1];
-            NoiseVoice(data, 0f, 0.09f, 0.14f, 500f, 2600f, 0.004f, 0.05f, 101, 1.2f);
+            NoiseVoice(data, 0f, 0.09f, 0.18f, 500f, 2600f, 0.004f, 0.05f, 101, 1.2f);
             Voice(data, 340f * pitchScale, 0.005f, dur - 0.005f, 0.42f,
                 new float[] { 1f, 2f }, new float[] { 1f, 0.12f }, new float[] { 1f, 1.5f },
                 0.005f, 1.4f);
@@ -196,7 +201,7 @@ namespace GemRush
             Voice(data, 170f, 0f, 0.13f, 0.5f,
                 new float[] { 1f, 0.5f }, new float[] { 1f, 0.4f }, new float[] { 1f, 0.8f },
                 0.002f, 1.8f);
-            NoiseVoice(data, 0.004f, 0.11f, 0.16f, 1000f, 380f, 0.003f, 0.06f, 202, 1.4f);
+            NoiseVoice(data, 0.004f, 0.11f, 0.2f, 1000f, 380f, 0.003f, 0.06f, 202, 1.4f);
             return MakeClip(name, data);
         }
 
@@ -293,7 +298,7 @@ namespace GemRush
         {
             float dur = 0.66f;
             float[] data = new float[(int)(dur * SampleRate) + 1];
-            NoiseVoice(data, 0f, 0.5f, 0.42f, 2400f, 220f, 0.05f, 0.16f, 505, 1.5f);
+            NoiseVoice(data, 0f, 0.5f, 0.5f, 2400f, 220f, 0.05f, 0.16f, 505, 1.5f);
             Voice(data, 130f, 0.44f, 0.2f, 0.4f,
                 new float[] { 1f, 0.5f }, new float[] { 1f, 0.4f }, new float[] { 1f, 0.8f },
                 0.002f, 1.8f);
@@ -635,7 +640,7 @@ namespace GemRush
                 Voice(data, glass[i], 0f, 0.18f, 0.08f,
                     new float[] { 1f }, new float[] { 1f }, new float[] { 1f },
                     0.03f, 1.2f);
-            NoiseVoice(data, 0.05f, 0.34f, 0.3f, 800f, 2200f, 0.08f, 0.18f, 121, 0.8f);
+            NoiseVoice(data, 0.05f, 0.34f, 0.4f, 800f, 2200f, 0.08f, 0.18f, 121, 0.8f);
             Voice(data, 100f, 0.36f, 0.22f, 0.3f,
                 new float[] { 1f, 0.5f }, new float[] { 1f, 0.4f }, new float[] { 1f, 0.8f },
                 0.002f, 1.8f);
@@ -693,7 +698,7 @@ namespace GemRush
         {
             float dur = 0.17f;
             float[] data = new float[(int)(dur * SampleRate) + 1];
-            NoiseVoice(data, 0f, dur, 0.16f,
+            NoiseVoice(data, 0f, dur, 0.5f,
                 open ? 350f : 1400f, open ? 1400f : 320f, 0.03f, 0.08f, 141);
             return MakeClip(name, data);
         }
@@ -703,7 +708,7 @@ namespace GemRush
         {
             float dur = 0.42f;
             float[] data = new float[(int)(dur * SampleRate) + 1];
-            NoiseVoice(data, 0f, dur, 0.14f, 260f, 950f, 0.1f, 0.22f, 151, 0.8f);
+            NoiseVoice(data, 0f, dur, 0.45f, 260f, 950f, 0.1f, 0.22f, 151, 0.8f);
             return MakeClip(name, data);
         }
 
@@ -712,7 +717,7 @@ namespace GemRush
         {
             float dur = 0.11f;
             float[] data = new float[(int)(dur * SampleRate) + 1];
-            NoiseVoice(data, 0f, 0.06f, 0.16f, 1900f, 900f, 0.004f, 0.05f, 161, 1.2f);
+            NoiseVoice(data, 0f, 0.06f, 0.32f, 1900f, 900f, 0.004f, 0.05f, 161, 1.2f);
             Voice(data, 880f, 0.03f, 0.06f, 0.1f,
                 new float[] { 1f }, new float[] { 1f }, new float[] { 1f }, 0.002f, 2.4f);
             return MakeClip(name, data);
@@ -733,7 +738,10 @@ namespace GemRush
             int samples = Mathf.Max(1, (int)(duration * SampleRate));
             float[] data = new float[samples];
             const float rootFrequency = 130.8f;
-            float lowpassed = 0f;
+            // Two cascaded one-poles (-12 dB/oct), like NoiseVoice: the
+            // single-pole version measured a 6.7 kHz centroid — hiss, not
+            // wind. The 3.0x gain restores the two-pole's ~4 dB loss.
+            float low1 = 0f, low2 = 0f;
             float rootPhase = 0f;
             for (int i = 0; i < samples; i++)
             {
@@ -743,9 +751,10 @@ namespace GemRush
                 float arc = Mathf.Sin(t * Mathf.PI);
                 float cutoff = Mathf.Lerp(250f, 1500f, arc);
                 float alpha = Mathf.Min(1f, 2f * Mathf.PI * cutoff / SampleRate);
-                lowpassed += alpha * ((Random.value * 2f - 1f) - lowpassed);
+                low1 += alpha * ((Random.value * 2f - 1f) - low1);
+                low2 += alpha * (low1 - low2);
                 rootPhase += 2f * Mathf.PI * rootFrequency / SampleRate;
-                data[i] = (lowpassed * 2f
+                data[i] = (low2 * 3f
                     + 0.3f * Mathf.Sin(rootPhase)
                     + 0.12f * Mathf.Sin(2f * rootPhase)) * arc * volume;
             }

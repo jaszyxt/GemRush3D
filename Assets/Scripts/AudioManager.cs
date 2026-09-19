@@ -227,7 +227,10 @@ namespace GemRush
         // then ease it back on unscaled time — the sting reads in near
         // silence, and the pad breathes back in afterwards. Voice lines
         // duck deeper and longer via DuckFor (while narration plays).
-        const float MusicVolume = 0.55f;
+        // Mix calibration (measure_mix.py + industry norms): the score
+        // is a bed and must sit ~6-10 dB under key SFX — at 0.55 it measured
+        // AS LOUD as the pickups/checkpoints it should be sitting under.
+        const float MusicVolume = 0.26f;
         const float DuckFraction = 0.35f;
         const float DuckRestoreSeconds = 2.5f;
         float duckTimer;
@@ -702,7 +705,7 @@ namespace GemRush
             if (!noteCache.TryGetValue(key, out AudioClip clip))
             {
                 clip = SfxSynth.BellTone("bell_" + safe + "_" + bucket,
-                    bellFrequencies[safe], Mathf.Max(4f, toneSeconds + 1.5f), 0.42f);
+                    bellFrequencies[safe], Mathf.Max(4f, toneSeconds + 1.5f), 0.30f);
                 noteCache[key] = clip;
             }
             source.PlayOneShot(clip);
@@ -754,7 +757,7 @@ namespace GemRush
             lastGustSwellAt = Time.unscaledTime;
             if (!SaveSystem.SoundOn) return;
             if (gustSwell == null)
-                gustSwell = SfxSynth.NoiseSwell("sfx_gust", 2.2f, 0.16f);
+                gustSwell = SfxSynth.NoiseSwell("sfx_gust", 2.2f, 0.22f);
             source.PlayOneShot(gustSwell, volume);
         }
 
