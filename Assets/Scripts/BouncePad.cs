@@ -61,6 +61,9 @@ namespace GemRush
             if (player == null) return;
 
             player.Launch(LaunchVelocity);
+            // The lens breathes with the launch: fast in, eased out
+            // (motion-comfort gated inside CameraFollow).
+            GameBootstrap.CameraRig.FovKick(8f, 0.06f, 0.3f);
 
             if (padMaterial != null)
             {

@@ -97,8 +97,15 @@ namespace GemRush
                 AudioManager.Instance.PlayNote(noteFrequency);
             }
             Fx.Burst(transform.position, ArtLib.GemPink * 1.6f, 18);
+            // The "+1" ramps with the live streak: it grows and shifts
+            // toward the reward gold as the chain climbs, so mastery is
+            // visible, not just audible.
+            int streak = AudioManager.CurrentStreak;
+            float popScale = Mathf.Min(1f + 0.04f * streak, 1.5f);
+            Color popColor = Color.Lerp(ArtLib.GemPink, ArtLib.Gold,
+                Mathf.Min(streak, 12) / 12f);
             Fx.Popup(transform.position + Vector3.up * 0.4f, "+1",
-                new Color(1f, 0.92f, 0.55f));
+                popColor, popScale);
             Destroy(gameObject);
         }
     }

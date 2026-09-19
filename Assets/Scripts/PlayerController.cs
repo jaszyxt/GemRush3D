@@ -31,6 +31,17 @@ namespace GemRush
         float windLift; // set every frame by any Updraft the player is inside
         Vector3 gustPush; // set every frame by any active GustZone
         float gustLift;   // vertical sustain while inside a gust
+        WindStreaks windStreaks; // speed-line rig while wind carries Pip
+        float lastSkidTime = -99f;
+
+        // A reversal only counts at speed, and skid puffs are rate-limited
+        // so a jittery stick can't machine-gun dust.
+        const float SkidMinSpeed = 6f;
+        const float SkidCooldown = 0.25f;
+        // Wind rides hold a touch of extra lens width (CameraFollow).
+        const float WindFovHold = 5f;
+        // Jump, land and skid puffs share one soft near-white.
+        static readonly Color DustColor = new Color(0.9f, 0.9f, 0.9f);
 
         /// Bonus-flight mode (playing as Gloomfang): no gravity, hold jump
         /// to rise, gentle sink otherwise, fall deaths replaced by a clamp.
@@ -173,7 +184,7 @@ namespace GemRush
                 squash = 0.28f;
                 AudioManager.Instance.PlayJump();
                 Vector3 feet = tr.position + Vector3.down * 0.9f;
-                Fx.Burst(feet, new Color(0.9f, 0.9f, 0.9f), 8);
+                Fx.Burst(feet, DustColor, 8);
             }
 
             // Variable jump height (release-to-cut): a short tap makes a
@@ -262,8 +273,7 @@ namespace GemRush
             squash = Mathf.Clamp(-impactSpeed * 0.06f, -0.3f, 0f);
             AudioManager.Instance.PlayLand(impactSpeed);
             if (impactSpeed > 5f)
-                Fx.Burst(tr.position + Vector3.down * 0.9f,
-                    new Color(0.9f, 0.9f, 0.9f), 10);
+                Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 10);
         }
 
         void FixedUpdate()
@@ -373,9 +383,53 @@ namespace GemRush
                 }
             }
             rb.linearVelocity = vel;
+
+            UpdateSkid(vel, wishDir);
+            UpdateWindRide(vel);
+
             gustPush = Vector3.zero;
             gustLift = 0f;
             windLift = 0f;
+        }
+
+        /// A sharp reversal at speed kicks up a small dust scrape, so the
+        /// turn-around reads physical instead of a direction snap. The dot
+        /// test is the multi-axis sign flip: the input now points against
+        /// the motion.
+        void UpdateSkid(Vector3 vel, Vector3 wishDir)
+        {
+            if (!grounded || Time.time - lastSkidTime < SkidCooldown) return;
+            Vector3 flat = new Vector3(vel.x, 0f, vel.z);
+            float speed = flat.magnitude;
+            if (speed < SkidMinSpeed || wishDir.sqrMagnitude < 0.01f) return;
+            if (Vector3.Dot(flat / speed, wishDir) > -0.6f) return;
+            lastSkidTime = Time.time;
+            Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 6);
+        }
+
+        /// While any wind carries Pip this physics frame (gust push or
+        /// updraft lift — the zones re-set those fields every frame), the
+        /// ride is on: speed streaks, the gust haptic texture and a small
+        /// FOV hold. One wind-free frame ends the ride, so there is no
+        /// per-zone enter/exit bookkeeping to leak.
+        void UpdateWindRide(Vector3 vel)
+        {
+            bool riding = gustPush != Vector3.zero || windLift > 0f;
+            CameraFollow rig = GameBootstrap.CameraRig;
+            if (!riding)
+            {
+                if (windStreaks == null) return;
+                windStreaks.End();
+                windStreaks = null;
+                if (rig != null) rig.ClearFovHold();
+                return;
+            }
+            if (windStreaks == null) windStreaks = WindStreaks.Attach(tr);
+            Vector3 flow = vel;
+            if (flow.sqrMagnitude < 1f) flow = gustPush; // slow entry: aim by wind
+            windStreaks.Refresh(flow);
+            if (rig != null) rig.SetFovHold(WindFovHold);
+            Haptics.StartRideTexture();
         }
 
         bool CheckGrounded()

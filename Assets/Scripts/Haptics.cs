@@ -54,6 +54,59 @@ namespace GemRush
             RawPulse(60, AmplitudeHeavy, EffectDoubleClick);
         }
 
+        // ---------- Gust-ride texture (RESEARCH.md feel cuts) ----------
+
+        // A repeating 30/50 ms waveform at amp ~60 is a STATE, not an
+        // event: latency-tolerant (Android haptics guidance) and outside
+        // the 120 ms event-fusing rule. The rider heartbeats the state
+        // every physics frame; `rideUntil` is a realtime cutoff, so a
+        // heartbeat that stops (pause, focus loss, death) ends the buzz —
+        // the same unscaled expiry GamepadBurst uses. An event pulse in
+        // between (e.g. a pickup tick) replaces the waveform; the next
+        // heartbeat restarts the texture.
+
+        const int RideOnMs = 30;
+        const int RideOffMs = 50;
+        const float RideHeartbeat = 0.25f;
+        const float RideMotorMagnitude = 0.25f; // low motor only: a hum
+        static float rideUntil;
+
+        /// Opens (or heartbeats) the wind-ride texture. Cheap enough to
+        /// call every physics frame of a ride; the waveform itself starts
+        /// once and repeats until StopRideTexture.
+        public static void StartRideTexture()
+        {
+            if (!SaveSystem.HapticsOn) return;
+            float now = Time.realtimeSinceStartup;
+            bool fresh = now >= rideUntil;
+            rideUntil = now + RideHeartbeat;
+            if (!fresh) return;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            StartAndroidRide();
+#endif
+            StartGamepadRide();
+        }
+
+        /// Ends the ride texture. Funnelled through StopRumble so an event
+        /// burst fired right after (e.g. the death Heavy) is never swallowed.
+        public static void StopRideTexture()
+        {
+            StopRumble();
+        }
+
+        static void StartGamepadRide()
+        {
+            // A one-shot burst owns the motors while it lasts; the next
+            // fresh heartbeat re-asserts the hum once it expires.
+            if (rumbleUntil > 0f) return;
+            if (!GamepadInput.Available) return;
+            try { Gamepad.current.SetMotorSpeeds(RideMotorMagnitude, 0f); }
+            catch (System.InvalidOperationException)
+            {
+                // Backend not active (editor awaiting restart): silent no-op.
+            }
+        }
+
         // ---------- Gamepad rumble (directives D6) ----------
 
         // realtimeSinceStartup cutoff for the current motor burst; 0 = silent.
@@ -78,17 +131,25 @@ namespace GemRush
             }
         }
 
-        /// Per-frame housekeeping: cut the motors when the burst expires.
-        /// Realtime-based, so it also fires while paused (timeScale = 0).
+        /// Per-frame housekeeping: cut the motors when a burst expires and
+        /// lapse the ride texture when its heartbeat stopped. Both are
+        /// realtime-based, so they also fire while paused (timeScale = 0).
         public static void TickRumble()
         {
+            if (rideUntil > 0f && Time.realtimeSinceStartup >= rideUntil)
+                StopRideTexture();
             if (rumbleUntil <= 0f) return;
             if (Time.realtimeSinceStartup >= rumbleUntil) StopRumble();
         }
 
-        /// Kills any live rumble immediately — pause, menu, app switch.
+        /// Kills any live rumble immediately — pause, menu, app switch, or
+        /// the end of a gust ride. Also cancels the Android ride waveform.
         public static void StopRumble()
         {
+            rideUntil = 0f;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            CancelAndroidRide();
+#endif
             rumbleUntil = 0f;
             if (!GamepadInput.Available) return;
             try { Gamepad.current.SetMotorSpeeds(0f, 0f); }
@@ -197,6 +258,66 @@ namespace GemRush
                 // Fall through to the legacy path below.
             }
             return false;
+        }
+
+        // The gust-ride texture: an endless off-on-off waveform (rest 50 ms,
+        // buzz 30 ms at the light amplitude, repeat) that only cancel() —
+        // via StopRumble — ever ends. Needs API 26+ for createWaveform;
+        // older or amplitude-less devices just stay silent here.
+        static void StartAndroidRide()
+        {
+            try
+            {
+                using (AndroidJavaObject vibrator = AndroidVibrator())
+                {
+                    if (vibrator == null) return;
+                    using (AndroidJavaClass effectClass =
+                        new AndroidJavaClass("android.os.VibrationEffect"))
+                    {
+                        using (AndroidJavaObject effect = effectClass.CallStatic<
+                            AndroidJavaObject>("createWaveform",
+                            new long[] { RideOnMs, RideOffMs },
+                            new int[] { AmplitudeLight, 0 },
+                            0)) // repeat index: loop the whole pattern
+                        {
+                            if (effect != null) vibrator.Call("vibrate", effect);
+                        }
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                // Vibration is optional polish; never let it break gameplay.
+            }
+        }
+
+        static void CancelAndroidRide()
+        {
+            try
+            {
+                using (AndroidJavaObject vibrator = AndroidVibrator())
+                {
+                    if (vibrator != null) vibrator.Call("cancel");
+                }
+            }
+            catch (System.Exception)
+            {
+                // Vibration is optional polish; never let it break gameplay.
+            }
+        }
+
+        static AndroidJavaObject AndroidVibrator()
+        {
+            using (AndroidJavaClass unityPlayer =
+                new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            {
+                using (AndroidJavaObject activity =
+                    unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+                {
+                    return activity.Call<AndroidJavaObject>(
+                        "getSystemService", "vibrator");
+                }
+            }
         }
 #endif
     }

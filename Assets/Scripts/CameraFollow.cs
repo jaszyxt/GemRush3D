@@ -23,8 +23,26 @@ namespace GemRush
         float shakeTimer;
         float shakeMagnitude;
 
+        // Lens feel, gated by the same comfort setting as shake (FOV motion
+        // IS camera motion): a one-shot kick (bounce pads) plus a sustained
+        // hold (wind rides), both easing back to the fixed baseline the
+        // framing is tuned on.
+        const float BaseFov = 60f;
+        const float HoldTimeout = 0.15f; // unscaled TTL, refreshed per wind frame
+        const float MaxTotalKick = 10f;  // stays inside the backdrop quad's margins
+        Camera cam;
+        float holdExtra;
+        float holdUntil; // unscaled time the hold lapses; 0 = off
+        float holdCurrent;
+        float kickExtra;
+        float kickAge;
+        float kickAttack;
+        float kickRelease;
+
         void Start()
         {
+            cam = GetComponent<Camera>();
+            if (cam != null) cam.fieldOfView = BaseFov;
             RecalculateFraming();
         }
 
@@ -54,6 +72,34 @@ namespace GemRush
             if (!SaveSystem.ShakeOn) return;
             shakeMagnitude = magnitude;
             shakeTimer = duration;
+        }
+
+        /// One-shot FOV punch (bounce-pad launches): fast attack, eased
+        /// release. No-op under the motion-comfort setting, like Shake.
+        public void FovKick(float extraFov, float attackSeconds, float releaseSeconds)
+        {
+            if (!SaveSystem.ShakeOn) return;
+            kickExtra = extraFov;
+            kickAttack = Mathf.Max(0.01f, attackSeconds);
+            kickRelease = Mathf.Max(0.01f, releaseSeconds);
+            kickAge = 0f;
+        }
+
+        /// Sustained FOV while Pip rides wind. Refreshed every frame he is
+        /// inside a zone; lapses on its own shortly after the last refresh,
+        /// so overlapping zones need no bookkeeping and a zone destroyed
+        /// mid-ride can never leave the hold stuck on.
+        public void SetFovHold(float extraFov)
+        {
+            if (!SaveSystem.ShakeOn) return;
+            holdExtra = extraFov;
+            holdUntil = Time.unscaledTime + HoldTimeout;
+        }
+
+        /// Ends a wind hold immediately — the ride is definitively over.
+        public void ClearFovHold()
+        {
+            holdUntil = 0f;
         }
 
         void LateUpdate()
@@ -87,6 +133,23 @@ namespace GemRush
                     0f);
                 transform.position += jitter;
             }
+
+            // Kick envelope runs on the unscaled clock (it must read right
+            // through a hit-stop), the hold eases like the position blend.
+            float extraFov = 0f;
+            if (kickAge < kickAttack + kickRelease)
+            {
+                kickAge += Time.unscaledDeltaTime;
+                extraFov = kickAge < kickAttack
+                    ? kickExtra * (kickAge / kickAttack)
+                    : kickExtra * (1f - (kickAge - kickAttack) / kickRelease);
+            }
+            holdCurrent = Mathf.Lerp(holdCurrent,
+                Time.unscaledTime < holdUntil ? holdExtra : 0f,
+                1f - Mathf.Exp(-7f * Time.unscaledDeltaTime));
+            if (cam != null)
+                cam.fieldOfView = BaseFov + Mathf.Min(extraFov + holdCurrent,
+                    MaxTotalKick);
 
             transform.LookAt(lookPoint);
         }

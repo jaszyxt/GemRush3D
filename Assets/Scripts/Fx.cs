@@ -7,6 +7,8 @@ namespace GemRush
     {
         static Sprite cachedCircle;
         static Sprite cachedStar;
+        static Texture2D cachedRing;
+        static Texture2D cachedDisc;
 
         /// A soft-edged white disc with a 9-slice border, shared by
         /// particles, touch controls and UI (stretched = rounded rect).
@@ -105,8 +107,11 @@ namespace GemRush
             return cachedStar;
         }
 
-        /// Floating world-space text (e.g. "+1" on gem pickup).
-        public static void Popup(Vector3 position, string text, Color color)
+        /// Floating world-space text (e.g. "+1" on gem pickup). `scale`
+        /// lets the caller ramp the size with the combo streak so mastery
+        /// reads at a glance, not just in the pitch ramp.
+        public static void Popup(Vector3 position, string text, Color color,
+            float scale = 1f)
         {
             GameObject go = new GameObject("Popup");
             go.transform.position = position;
@@ -124,7 +129,7 @@ namespace GemRush
             tm.font = uiFont;
             tm.text = text;
             tm.fontSize = 64;
-            tm.characterSize = 0.22f;
+            tm.characterSize = 0.22f * scale;
             tm.anchor = TextAnchor.MiddleCenter;
             tm.color = color;
             MeshRenderer renderer = go.GetComponent<MeshRenderer>();
@@ -184,6 +189,192 @@ namespace GemRush
             ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
             Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
             if (shader != null) renderer.sharedMaterial = new Material(shader);
+
+            go.AddComponent<AutoDestroy>();
+            ps.Play();
+        }
+
+        /// Soft ring band (annulus) texture, white — callers tint it.
+        static Texture2D RingTexture()
+        {
+            if (cachedRing != null) return cachedRing;
+            int size = 128;
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            float half = size * 0.5f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x + 0.5f - half;
+                    float dy = y + 0.5f - half;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy) / half;
+                    // Band centred at 0.78 with soft edges, so the ring
+                    // reads chubby-cozy at world scale.
+                    float a = 1f - Mathf.Clamp01(Mathf.Abs(d - 0.78f) / 0.14f);
+                    tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+                }
+            }
+            tex.Apply();
+            cachedRing = tex;
+            return tex;
+        }
+
+        /// Milestone shockwave: a gold ring that expands around a point and
+        /// fades (~0.5 s, unscaled time). Billboarded to the camera; the
+        /// same unlit shader Fx.Burst uses, so it works wherever bursts do.
+        public static void Ring(Vector3 position, Color color)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Object.Destroy(go.GetComponent<Collider>()); // decoration only
+            go.name = "Ring";
+            go.transform.position = position;
+
+            MeshRenderer renderer = go.GetComponent<MeshRenderer>();
+            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            Material mat = null;
+            if (shader != null)
+            {
+                mat = new Material(shader);
+                mat.mainTexture = RingTexture();
+                mat.color = color;
+                renderer.sharedMaterial = mat;
+            }
+
+            Transform tr = go.transform;
+            Tweener.Value(0f, 1f, 0.5f, delegate(float k)
+            {
+                if (go == null) return; // world tore down mid-ring
+                float s = Mathf.Lerp(0.5f, 3.2f, k);
+                tr.localScale = new Vector3(s, s, 1f);
+                if (mat != null)
+                {
+                    Color c = color;
+                    c.a = 0.9f * (1f - k);
+                    mat.color = c;
+                }
+                // The quad's visible face is its -Z side, so aim its
+                // forward AWAY from the camera to face the camera.
+                Camera cam = Camera.main;
+                if (cam != null)
+                    tr.LookAt(tr.position + cam.transform.forward);
+            }, delegate { Object.Destroy(go); });
+        }
+
+        /// Soft disc texture for round celebration particles (petals).
+        static Texture2D DiscTexture()
+        {
+            if (cachedDisc != null) return cachedDisc;
+            int size = 64;
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            float half = size * 0.5f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x + 0.5f - half;
+                    float dy = y + 0.5f - half;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy) / (half - 1f);
+                    float alpha = 1f;
+                    if (d > 0.7f) alpha = Mathf.Clamp01((1f - d) / 0.3f);
+                    tex.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+            tex.Apply();
+            cachedDisc = tex;
+            return tex;
+        }
+
+        /// One-shot celebration burst that rains down with gravity: the
+        /// game's reward palette (gold, gem pink, portal cyan) as confetti,
+        /// optionally mixed with soft petal circles for the Two Suns.
+        /// Whole celebration stays under the 60-particle phone budget and
+        /// auto-destroys, exactly like Burst.
+        public static void Confetti(Vector3 position, int count,
+            bool petals = false)
+        {
+            if (count > 60) count = 60;
+            int petalCount = petals ? Mathf.Min(20, count / 2) : 0;
+            int mainCount = count - petalCount;
+
+            // One gradient, three ArtLib families: MinMaxGradient samples a
+            // random color per particle, so one emitter carries the palette.
+            Gradient palette = new Gradient();
+            palette.SetKeys(
+                new GradientColorKey[] {
+                    new GradientColorKey(ArtLib.Gold, 0f),
+                    new GradientColorKey(ArtLib.GemPink, 0.5f),
+                    new GradientColorKey(ArtLib.PortalCyan, 1f)
+                },
+                new GradientAlphaKey[] {
+                    new GradientAlphaKey(1f, 0f),
+                    new GradientAlphaKey(1f, 1f)
+                });
+
+            if (mainCount > 0)
+                Celebration(position, mainCount,
+                    new ParticleSystem.MinMaxGradient(palette),
+                    2.5f, 5.5f, 0.10f, 0.2f, 0.9f, 0.7f, 1.3f, null);
+            if (petalCount > 0)
+            {
+                ParticleSystem.MinMaxGradient pink = ArtLib.GemPink;
+                Celebration(position, petalCount, pink,
+                    0.8f, 1.8f, 0.28f, 0.45f, 0.25f, 1.4f, 2.1f, DiscTexture());
+            }
+        }
+
+        /// Shared confetti emitter: one positional burst, world-simulated,
+        /// fading out over its lifetime. `texture` rounds the particles.
+        static void Celebration(Vector3 position, int count,
+            ParticleSystem.MinMaxGradient color,
+            float speedMin, float speedMax, float sizeMin, float sizeMax,
+            float gravity, float lifeMin, float lifeMax, Texture2D texture)
+        {
+            GameObject go = new GameObject("Confetti");
+            go.transform.position = position;
+
+            ParticleSystem ps = go.AddComponent<ParticleSystem>();
+
+            ParticleSystem.MainModule main = ps.main;
+            main.duration = 0.5f;
+            main.loop = false;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(lifeMin, lifeMax);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(speedMin, speedMax);
+            main.startSize = new ParticleSystem.MinMaxCurve(sizeMin, sizeMax);
+            main.startColor = color;
+            main.gravityModifier = gravity;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+            ParticleSystem.EmissionModule emission = ps.emission;
+            emission.rateOverTime = new ParticleSystem.MinMaxCurve(0f);
+            ParticleSystem.Burst burst = new ParticleSystem.Burst(0f, (short)count);
+            emission.SetBursts(new ParticleSystem.Burst[] { burst });
+
+            ParticleSystem.ShapeModule shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.8f;
+
+            ParticleSystem.ColorOverLifetimeModule fade = ps.colorOverLifetime;
+            fade.enabled = true;
+            Gradient fadeOut = new Gradient();
+            fadeOut.SetKeys(
+                new GradientColorKey[] {
+                    new GradientColorKey(Color.white, 0f),
+                    new GradientColorKey(Color.white, 1f)
+                },
+                new GradientAlphaKey[] {
+                    new GradientAlphaKey(1f, 0f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            fade.color = new ParticleSystem.MinMaxGradient(fadeOut);
+
+            ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
+            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (shader != null)
+            {
+                Material mat = new Material(shader);
+                if (texture != null) mat.mainTexture = texture;
+                renderer.sharedMaterial = mat;
+            }
 
             go.AddComponent<AutoDestroy>();
             ps.Play();

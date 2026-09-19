@@ -44,6 +44,15 @@ namespace UnityEngine
 
     public class MonoBehaviour : Behaviour { }
 
+    // Whole-panel fades/scales (UIManager panel transitions).
+    public class CanvasGroup : Behaviour
+    {
+        public float alpha { get; set; }
+        public bool blocksRaycasts { get; set; }
+        public bool interactable { get; set; }
+        public bool ignoreParentGroups { get; set; }
+    }
+
     public sealed class GameObject : Object
     {
         public GameObject() { }
@@ -162,6 +171,7 @@ namespace UnityEngine
         public static Vector3 MoveTowards(Vector3 current, Vector3 target,
             float maxDelta) { return current; }
         public static float Distance(Vector3 a, Vector3 b) { return 0f; }
+        public static float Dot(Vector3 a, Vector3 b) { return 0f; }
         public void Normalize() { }
         public static bool operator ==(Vector3 a, Vector3 b) { return true; }
         public static bool operator !=(Vector3 a, Vector3 b) { return false; }
@@ -177,6 +187,7 @@ namespace UnityEngine
     {
         public static Quaternion identity { get { return new Quaternion(); } }
         public static Quaternion Euler(float x, float y, float z) { return new Quaternion(); }
+        public static Quaternion LookRotation(Vector3 forward) { return new Quaternion(); }
         public static Quaternion operator *(Quaternion a, Quaternion b) { return a; }
     }
 
@@ -411,7 +422,11 @@ namespace UnityEngine
     }
 
     public class MeshRenderer : Renderer { }
-    public class ParticleSystemRenderer : Renderer { }
+
+    public class ParticleSystemRenderer : Renderer
+    {
+        public float velocityScale { get; set; }
+    }
 
     public class Camera : Behaviour
     {
@@ -419,6 +434,7 @@ namespace UnityEngine
         public CameraClearFlags clearFlags { get; set; }
         public Color backgroundColor { get; set; }
         public float farClipPlane { get; set; }
+        public float fieldOfView { get; set; }
     }
 
     public enum CameraClearFlags { Skybox, SolidColor, Depth, Nothing }
@@ -917,5 +933,34 @@ namespace UnityEngine.EventSystems
     public interface IPointerUpHandler
     {
         void OnPointerUp(PointerEventData data);
+    }
+}
+
+namespace UnityEngine.InputSystem
+{
+    // Minimal slice of the Input System package used by GamepadInput and
+    // Haptics: the guarded door (try/catch + Availability probe) means only
+    // these members are ever touched.
+    public class ButtonControl
+    {
+        public bool isPressed { get { return false; } }
+        public bool wasPressedThisFrame { get { return false; } }
+    }
+
+    public class Vector2Control
+    {
+        public Vector2 ReadValue() { return new Vector2(); }
+    }
+
+    public class Gamepad
+    {
+        public static Gamepad current { get { return null; } }
+        public ButtonControl buttonSouth;
+        public ButtonControl buttonEast;
+        public ButtonControl startButton;
+        public ButtonControl leftShoulder;
+        public ButtonControl rightShoulder;
+        public Vector2Control leftStick;
+        public void SetMotorSpeeds(float lowMotor, float highMotor) { }
     }
 }

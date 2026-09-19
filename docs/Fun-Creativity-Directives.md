@@ -56,12 +56,12 @@ Built and shipped — do not rebuild, extend instead:
 | Hit-stop on death (120 ms, pause-guarded) | `GameManager.OnPlayerDied` |
 | Combo ladder (audio semitones) + visible streak | `AudioManager.PlayPickup`, `UIManager` HUD |
 | Milestone shockwave every 10th chained gem | `Fx.Ring`, gem pickup path |
-| Streak crown at octave cap | `PlayerController` crown rig |
+| Streak crown at octave cap | `ComboCrown`, `AudioManager.PlayPickup` |
 | HUD gem-counter pulse + heart low-life glow | `UIManager.RefreshHud` |
-| Win confetti (3-star) + petal mix (Two Suns) | `Fx.Confetti`, `GameManager.OnReachGoal` |
-| Panel fade/scale transitions (0.2 s) | `UIManager.ShowPanel`, `Tweener` |
-| FOV kick (bounce pads +8°, wind rides +5°) | `CameraFollow.FovKick` |
-| Skid dust, wind speed streaks, gust ride haptics | `PlayerController`, `GustZone`, `Haptics` |
+| Win confetti (3-star) + petal mix (Two Suns) | `Fx.Confetti`, `UIManager.ShowWin` |
+| Panel fade/scale transitions (0.2 s) | `UIManager` show/hide, `Tweener` |
+| FOV kick (bounce pads +8°, wind rides +5°, ShakeOn-gated, +10° cap) | `CameraFollow.FovKick` |
+| Skid dust, wind speed streaks, gust ride haptics | `PlayerController`, `WindStreaks`, `Haptics` |
 | Idle Pip ladder (glance → wave → yawn → nap under Gloomfang's shade) | `PlayerController.IdleLife` |
 | Pokeable flowers (pentatonic chime per flower) | `Props`/`FlowerPoke` |
 | Gloomfang giggle-raindrop bloom (10 s cooldown) | `Gloomfang`, `Fx` |

@@ -381,15 +381,28 @@ namespace GemRush
         // rising songs. Zeroed on death so every run starts the song over.
         static int comboStreak;
 
+        /// The live chained-gem count (read-only): the visible-mastery
+        /// layer (popups, crown) ramps on the same number the audio does.
+        public static int CurrentStreak { get { return comboStreak; } }
+
         public void PlayPickup()
         {
             int step = Mathf.Min(comboStreak, 12);
             comboStreak++;
+
+            // Visible mastery fires before the sound gate: the streak
+            // crown and the every-10th-gem shockwave are rewards the
+            // player SEES, with sound on or off.
+            ComboCrown.Notify(comboStreak);
+            bool milestone = comboStreak > 0 && comboStreak % 10 == 0;
+            if (milestone && GameBootstrap.Player != null)
+                Fx.Ring(GameBootstrap.Player.transform.position, ArtLib.Gold);
+
             if (!SaveSystem.SoundOn) return;
 
             // Every 10th chained gem sings a tiny fanfare on top — a
             // milestone in the streak, festival-style.
-            if (comboStreak > 0 && comboStreak % 10 == 0)
+            if (milestone)
                 PlayMilestoneChime();
 
             // One clip per step, cached like the notes and bells; step 0
@@ -423,6 +436,7 @@ namespace GemRush
         public static void ResetPickupStreak()
         {
             comboStreak = 0;
+            ComboCrown.Notify(0); // the crown fades with the streak
         }
 
         public void PlayCheckpoint()

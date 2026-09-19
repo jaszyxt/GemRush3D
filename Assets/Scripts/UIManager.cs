@@ -99,6 +99,20 @@ namespace GemRush
         int hudCacheLives = -1;
         int hudCacheDeciseconds = -1;
 
+        // Delight feedback state: the gem-counter pulse (token-guarded so a
+        // fast chain restarts the tween instead of stacking tweens) and the
+        // low-life heart breathing (a slow warm gold pulse, never red).
+        int gemPulseSeq;
+        float heartGlowPhase;
+        bool heartGlowing;
+
+        // Per-panel transition generations: a stale fade (show or hide) must
+        // never land on a panel whose state has since changed. The in-play
+        // HUD keeps instant show/hide — gameplay never waits on a tween.
+        readonly System.Collections.Generic.Dictionary<GameObject, int>
+            panelGenerations =
+                new System.Collections.Generic.Dictionary<GameObject, int>();
+
         // Text Size setting: every label registers its designed size here,
         // so Large mode re-derives from the base and can never overflow a
         // layout that was fitted for the default.
@@ -248,6 +262,38 @@ namespace GemRush
                 recordFlourishTimer -= Time.unscaledDeltaTime;
                 if (recordFlourishTimer <= 0f)
                     AudioManager.Instance.PlayNewRecord();
+            }
+
+            UpdateHeartGlow();
+        }
+
+        // Low-life heart glow: at the last life the hearts breathe — a slow
+        // sine on scale and warmth, GOLD-tinted and calm (0.8 s period, well
+        // under the ~1.8 Hz flash ceiling; red stays hazard-only). Stops the
+        // moment lives recover, restoring the exact resting look.
+        void UpdateHeartGlow()
+        {
+            bool low = hudPanel != null && hudPanel.activeSelf &&
+                hudCacheLives == 1 && hudLives != null;
+            if (low)
+            {
+                heartGlowing = true;
+                heartGlowPhase += Time.unscaledDeltaTime;
+                float breathe = 0.5f + 0.5f * Mathf.Sin(
+                    heartGlowPhase * (2f * Mathf.PI / 0.8f));
+                float s = 1f + 0.07f * breathe;
+                hudLives.rectTransform.localScale = new Vector3(s, s, 1f);
+                Color c = Color.Lerp(ArtLib.Gold * 0.85f, ArtLib.Gold * 1.3f,
+                    breathe);
+                c.a = Mathf.Lerp(0.85f, 1f, breathe);
+                hudLives.color = c;
+            }
+            else if (heartGlowing)
+            {
+                heartGlowing = false;
+                heartGlowPhase = 0f;
+                hudLives.rectTransform.localScale = Vector3.one;
+                hudLives.color = starGold;
             }
         }
 
@@ -915,7 +961,7 @@ namespace GemRush
             atlasRegion = 0;
             RefreshAtlas();
             WireAtlasNav();
-            atlasPanel.SetActive(true);
+            AnimateShow(atlasPanel);
             // Land on the frontier: the first not-yet-cleared level of the
             // first region that still has one, else the first row.
             Focus(FirstAtlasRow());
@@ -925,7 +971,7 @@ namespace GemRush
         public void CloseAtlas()
         {
             if (atlasPanel == null || !atlasPanel.activeSelf) return;
-            atlasPanel.SetActive(false);
+            AnimateHide(atlasPanel);
             EventSystem es = EventSystem.current;
             if (es != null && es.currentSelectedGameObject != null)
                 es.SetSelectedGameObject(null);
@@ -1050,7 +1096,7 @@ namespace GemRush
                 GameManager.Instance.State == GameState.Paused;
             if (settingsOverPause) HidePaused();
             RefreshSettings();
-            settingsPanel.SetActive(true);
+            AnimateShow(settingsPanel);
             if (settingsButtons != null && settingsButtons.Length > 0)
                 Focus(settingsButtons[0]);
             AudioManager.Instance.PlayPanel(true);
@@ -1059,7 +1105,7 @@ namespace GemRush
         /// Closes the settings panel (same as pressing its BACK button).
         public void CloseSettings()
         {
-            settingsPanel.SetActive(false);
+            AnimateHide(settingsPanel);
             if (settingsOverPause && GameManager.Instance != null &&
                 GameManager.Instance.State == GameState.Paused)
                 ShowPaused();
@@ -1281,7 +1327,7 @@ namespace GemRush
             RefreshMenu();
             if (menuQuote != null) menuQuote.text = Story.MenuQuote();
             UpdateVisitRecap();
-            menuPanel.SetActive(true);
+            AnimateShow(menuPanel);
             Focus(playButton);
         }
 
@@ -1318,18 +1364,20 @@ namespace GemRush
             hudCacheTotal = -1;
             hudCacheLives = -1;
             hudCacheDeciseconds = -1;
-            hudPanel.SetActive(true);
+            hudPanel.SetActive(true); // in-play: instant, never a transition
+            // A streak carried across a portal re-crowns the fresh Pip.
+            ComboCrown.Notify(AudioManager.CurrentStreak);
         }
 
         public void ShowPaused()
         {
-            pausePanel.SetActive(true);
+            AnimateShow(pausePanel);
             Focus(pauseResumeButton);
         }
 
         public void HidePaused()
         {
-            pausePanel.SetActive(false);
+            AnimateHide(pausePanel);
         }
 
         public void ShowWin(int level, int stars, float time, float best,
@@ -1374,14 +1422,41 @@ namespace GemRush
                 winMilestone.gameObject.SetActive(
                     !string.IsNullOrEmpty(milestone));
             }
-            winPanel.SetActive(true);
+            // Celebration rain: a perfect gem run earns the full confetti —
+            // over the Two Suns it mixes in petals — and a new best time
+            // gets a smaller burst of its own. World-space at Pip, so it
+            // reads through the win dim without ever flashing the screen.
+            if (GameBootstrap.Player != null)
+            {
+                Vector3 at = GameBootstrap.Player.transform.position
+                    + Vector3.up * 2f;
+                if (stars >= 3)
+                    Fx.Confetti(at, 60, TwoSunsRegion(level));
+                else if (newRecord)
+                    Fx.Confetti(at, 30);
+            }
+            AnimateShow(winPanel);
             Focus(winNextButton);
+        }
+
+        /// Pack 4's celebration lap: levels of the Two Suns region mix
+        /// petals into the confetti. Read-only lookup of the region the
+        /// level belongs to, in play order.
+        static bool TwoSunsRegion(int level)
+        {
+            for (int i = 0; i < LevelLibrary.Regions.Length; i++)
+            {
+                LevelLibrary.Region region = LevelLibrary.Regions[i];
+                if (level >= region.First && level < region.First + region.Count)
+                    return region.Name == "The Two Suns";
+            }
+            return false;
         }
 
         public void ShowGameOver()
         {
             HideAll();
-            overPanel.SetActive(true);
+            AnimateShow(overPanel);
             Focus(overTryButton);
         }
 
@@ -1415,7 +1490,7 @@ namespace GemRush
                 if (completeStory != null) completeStory.gameObject.SetActive(false);
                 if (completeNext != null) completeNext.gameObject.SetActive(false);
             }
-            completePanel.SetActive(true);
+            AnimateShow(completePanel);
             Focus(hasPages ? (Button)completeNext : completeMenuButton);
         }
 
@@ -1432,9 +1507,17 @@ namespace GemRush
             }
             if (hudGems != null && (gems != hudCacheGems || total != hudCacheTotal))
             {
+                int previous = hudCacheGems;
                 hudCacheGems = gems;
                 hudCacheTotal = total;
                 hudGems.text = string.Format("Gems  {0} / {1}", gems, total);
+                // Same star math the win screen uses: a pickup that crosses
+                // the 2-star or 3-star line makes the counter pop harder.
+                // Still change-cached — this only runs when the count moved.
+                bool crossed = previous >= 0 &&
+                    ((gems >= total && previous < total) ||
+                     (gems * 2 >= total && previous * 2 < total));
+                PulseGemCounter(crossed);
             }
             int decis = (int)(time * 10f);
             if (hudTime != null && decis != hudCacheDeciseconds)
@@ -1447,6 +1530,31 @@ namespace GemRush
                 hudCacheLives = lives;
                 hudLives.text = string.Format("Lives  {0}", lives);
             }
+        }
+
+        /// The gem counter's spring pop (≈1 → 1.25/1.45 → 1) plus a brief
+        /// gold flash back to white. Unscaled time; ends on the exact rest
+        /// pose. The sequence token retires the previous pulse when a chain
+        /// of pickups lands within one tween, so they never fight.
+        void PulseGemCounter(bool crossed)
+        {
+            if (hudGems == null) return;
+            int seq = ++gemPulseSeq;
+            RectTransform rt = hudGems.rectTransform;
+            float amp = crossed ? 0.45f : 0.25f;
+            float seconds = crossed ? 0.4f : 0.25f;
+            Tweener.Value(0f, 1f, seconds, delegate(float k)
+            {
+                if (seq != gemPulseSeq) return;
+                float s = 1f + amp * Mathf.Sin(k * Mathf.PI);
+                rt.localScale = new Vector3(s, s, 1f);
+                hudGems.color = Color.Lerp(ArtLib.Gold, Color.white, k);
+            }, delegate
+            {
+                if (seq != gemPulseSeq) return;
+                rt.localScale = Vector3.one;
+                hudGems.color = Color.white;
+            });
         }
 
         static string FormatTime(float t)
@@ -1538,6 +1646,66 @@ namespace GemRush
             if (target == null || !target.gameObject.activeInHierarchy) return;
             EventSystem es = EventSystem.current;
             if (es != null) es.SetSelectedGameObject(target.gameObject);
+        }
+
+        // ---------- Panel transitions ----------
+
+        /// Menu-style panels arrive with a 0.2 s scale-and-fade in (0.92 → 1
+        /// scale, alpha 0 → 1) and leave with a quick 0.12 s fade before
+        /// SetActive(false). Unscaled time (Tweener), ease-out-quad, and both
+        /// always end on the exact rest pose (scale 1, alpha 1) so the
+        /// safe-area layout is never left rescaled. The in-play HUD is
+        /// excluded — its show/hide stays instant.
+        CanvasGroup PanelGroup(GameObject panel)
+        {
+            CanvasGroup group = panel.GetComponent<CanvasGroup>();
+            if (group == null) group = panel.AddComponent<CanvasGroup>();
+            return group;
+        }
+
+        int PanelGeneration(GameObject panel, bool advance)
+        {
+            int gen;
+            if (!panelGenerations.TryGetValue(panel, out gen)) gen = 0;
+            if (advance) panelGenerations[panel] = ++gen;
+            return gen;
+        }
+
+        void AnimateShow(GameObject panel)
+        {
+            CanvasGroup group = PanelGroup(panel);
+            RectTransform rt = (RectTransform)panel.transform;
+            int gen = PanelGeneration(panel, true);
+            panel.SetActive(true);
+            group.alpha = 0f;
+            Tweener.Value(0f, 1f, 0.2f, delegate(float k)
+            {
+                if (gen != PanelGeneration(panel, false)) return;
+                group.alpha = k;
+                float s = Mathf.Lerp(0.92f, 1f, k);
+                rt.localScale = new Vector3(s, s, 1f);
+            }, delegate
+            {
+                if (gen != PanelGeneration(panel, false)) return;
+                group.alpha = 1f;
+                rt.localScale = Vector3.one;
+            });
+        }
+
+        void AnimateHide(GameObject panel)
+        {
+            CanvasGroup group = PanelGroup(panel);
+            int gen = PanelGeneration(panel, true);
+            Tweener.Value(1f, 0f, 0.12f, delegate(float k)
+            {
+                if (gen != PanelGeneration(panel, false)) return;
+                group.alpha = k;
+            }, delegate
+            {
+                if (gen != PanelGeneration(panel, false)) return;
+                group.alpha = 1f; // reset for the next show
+                panel.SetActive(false);
+            });
         }
 
         static void HideAll()

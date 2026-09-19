@@ -31,6 +31,13 @@ namespace GemRush
         int starsEarned;
         bool newRecord;
 
+        // Death hit-stop (RESEARCH.md guard design): one small state
+        // machine owns it — see the Hit-stop region — so it can never
+        // stack with the Escape pause or outlive a state transition.
+        const float HitStopSeconds = 0.12f;
+        bool hitStopActive;
+        float hitStopResumeRealtime;
+
         UIManager ui;
 
         void Awake()
@@ -78,6 +85,7 @@ namespace GemRush
 
         void Update()
         {
+            TickHitStop();
             if (State == GameState.Playing)
             {
                 Elapsed += Time.deltaTime;
@@ -209,6 +217,7 @@ namespace GemRush
 
         public void PlayLevel(int index)
         {
+            EndHitStop();
             Time.timeScale = 1f;
             ui.CloseQuitConfirm(); // the dialog lives over the menu only
             CurrentLevel = Mathf.Clamp(index, 0, LevelLibrary.Levels.Length - 1);
@@ -230,6 +239,7 @@ namespace GemRush
 
         public void GoToMenu()
         {
+            EndHitStop();
             Time.timeScale = 1f;
             ShowMenu();
         }
@@ -237,6 +247,7 @@ namespace GemRush
         public void PauseGame()
         {
             if (State != GameState.Playing) return;
+            EndHitStop(); // pause owns timeScale from here, freeze or not
             State = GameState.Paused;
             Time.timeScale = 0f;
             Haptics.StopRumble();
@@ -247,6 +258,7 @@ namespace GemRush
         public void ResumeGame()
         {
             if (State != GameState.Paused) return;
+            EndHitStop();
             Time.timeScale = 1f;
             State = GameState.Playing;
             AudioManager.Instance.PlayResumeSound();
@@ -255,6 +267,7 @@ namespace GemRush
 
         void ShowMenu()
         {
+            EndHitStop();
             Time.timeScale = 1f;
             Haptics.StopRumble();
             ui.CloseQuitConfirm(); // defensive: never rebuild a screen under it
@@ -304,9 +317,11 @@ namespace GemRush
         public void OnPlayerDied(bool fell)
         {
             if (State != GameState.Playing) return;
+            BeginHitStop(); // hold the impact frame; the feedback plays out after
             Lives--;
             AudioManager.ResetPickupStreak();
             AudioManager.Instance.PlayDie(fell);
+            Haptics.StopRideTexture(); // free the ride before the impact burst
             Haptics.Heavy();
             Haptics.GamepadBurst(0.85f, 0.55f, 0.45f);
             Fx.Burst(GameBootstrap.Player.transform.position,
@@ -332,6 +347,38 @@ namespace GemRush
         public void OnPlayerDied()
         {
             OnPlayerDied(false);
+        }
+
+        // ---------- Hit-stop ----------
+
+        // ≤150 ms freeze on death, released on the UNSCALED clock so it
+        // keeps ticking while the world is frozen — and every state
+        // transition drops a pending freeze, so pause, respawn or the
+        // game-over screen can never leave the game stuck at timeScale 0.
+
+        void BeginHitStop()
+        {
+            // Only freeze live, unpaused gameplay: the pause menu owns
+            // timeScale 0 and must not inherit (or extend) the freeze.
+            if (Time.timeScale != 1f) return;
+            hitStopActive = true;
+            hitStopResumeRealtime = Time.realtimeSinceStartup + HitStopSeconds;
+            Time.timeScale = 0f;
+        }
+
+        void TickHitStop()
+        {
+            if (!hitStopActive) return;
+            if (Time.realtimeSinceStartup < hitStopResumeRealtime) return;
+            hitStopActive = false;
+            Time.timeScale = 1f;
+        }
+
+        // Transitions call this WITHOUT writing timeScale — they each set
+        // it themselves, and restoring here could un-pause a paused game.
+        void EndHitStop()
+        {
+            hitStopActive = false;
         }
 
         public void OnReachGoal()
