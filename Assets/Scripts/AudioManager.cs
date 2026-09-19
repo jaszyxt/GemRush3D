@@ -184,8 +184,8 @@ namespace GemRush
                     moodBed = BuildAmbience(amb);
                     ambienceLoops[(int)amb] = moodBed;
                 }
-                moodWindBase = amb == MusicSynth.AmbienceKind.Rumble ? 0.5f
-                    : amb == MusicSynth.AmbienceKind.WindHigh ? 0.3f : 0.42f;
+                moodWindBase = amb == MusicSynth.AmbienceKind.Rumble ? 0.42f
+                    : amb == MusicSynth.AmbienceKind.WindHigh ? 0.45f : 0.55f;
             }
             if (windSource.clip != moodBed)
             {
@@ -201,9 +201,9 @@ namespace GemRush
             switch (kind)
             {
                 case MusicSynth.AmbienceKind.Wind:
-                    return MusicSynth.WindLoop("amb_wind", 0.16f, 500f, 0.25f, 77);
+                    return MusicSynth.WindLoop("amb_wind", 0.3f, 500f, 0.25f, 77);
                 case MusicSynth.AmbienceKind.WindHigh:
-                    return MusicSynth.WindLoop("amb_wind_high", 0.09f, 950f, 0.5f, 78);
+                    return MusicSynth.WindLoop("amb_wind_high", 0.22f, 950f, 0.5f, 78);
                 case MusicSynth.AmbienceKind.Rumble:
                     return MusicSynth.RumbleLoop("amb_rumble", 0.2f);
                 default:
@@ -372,7 +372,9 @@ namespace GemRush
         // before it is seen.
         // ------------------------------------------------------------------
 
-        const float HumMaxVolume = 0.16f;
+        // Calibrated: at full proximity the hum sat ABOVE the music bed;
+        // ambience belongs under it.
+        const float HumMaxVolume = 0.08f;
         const float HumFadeSpeed = 1.4f;
         float humTarget;
 

@@ -656,7 +656,7 @@ namespace GemRush
         {
             float dur = 0.05f;
             float[] data = new float[(int)(dur * SampleRate) + 1];
-            Voice(data, 1250f, 0f, 0.04f, 0.2f,
+            Voice(data, 1250f, 0f, 0.04f, 0.3f,
                 new float[] { 1f }, new float[] { 1f }, new float[] { 1f }, 0.001f, 2.4f);
             NoiseVoice(data, 0f, 0.012f, 0.08f, 4200f, 4200f, 0.001f, 0.01f, 131);
             return MakeClip(name, data);

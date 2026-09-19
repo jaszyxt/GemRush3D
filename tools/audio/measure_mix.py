@@ -171,6 +171,13 @@ def build_clips():
     C["music_menu"] = ("music", np.array(_pad("menu")) * 0.26)
     # Music ducked for voice (0.3 duck fraction)
     C["music_day_ducked"] = ("music", np.array(_pad("day")) * 0.26 * 0.3)
+
+    # Ambience at device level (windSource / humSource channels)
+    C["amb_wind"] = ("ambience", _wind_loop(0.3, 500.0, 0.25, 77) * 0.55)
+    C["amb_wind_high"] = ("ambience", _wind_loop(0.22, 950.0, 0.5, 78) * 0.45)
+    C["amb_rumble"] = ("ambience", _rumble_loop(0.2) * 0.42)
+    C["amb_hum_near"] = ("ambience", _hum_loop(1.0) * 0.08)
+    C["amb_wind_pulsed"] = ("ambience", _wind_loop(0.3, 500.0, 0.25, 77) * 1.0)
     return C
 
 
@@ -399,7 +406,7 @@ def _mirror():
 
 def _ui_click():
     d = [0.0] * (int(0.05 * SR) + 1)
-    voice(d, 1250.0, 0, 0.04, 0.2, [1], [1], [1], 0.001, 2.4)
+    voice(d, 1250.0, 0, 0.04, 0.3, [1], [1], [1], 0.001, 2.4)
     noise_voice(d, 0, 0.012, 0.08, 4200, 4200, 0.001, 0.01, 131)
     return finalize(d)
 
@@ -510,6 +517,61 @@ def _pad(mood):
 def _smooth(t):
     t = clamp01(t)
     return t * t * (3 - 2 * t)
+
+
+def _wind_loop(volume, cutoff, undulate_hz, seed):
+    length = int(4.0 * SR)
+    fade = int(0.4 * SR)
+    rng = np.random.default_rng(seed + 1000)  # statistics match C# Random
+    alpha = 1.0 - math.exp(-TAU * cutoff / SR)
+    raw = np.zeros(length + fade)
+    y = 0.0
+    noise = rng.uniform(-1.0, 1.0, length + fade)
+    for i in range(length + fade):
+        y += alpha * (noise[i] - y)
+        raw[i] = y
+    data = np.zeros(length)
+    for i in range(length):
+        s = raw[i]
+        if i < fade:
+            w = i / fade
+            s = raw[length + i] * (1.0 - w) + raw[i] * w
+        und = 0.78 + 0.22 * math.sin(TAU * undulate_hz * i / SR)
+        data[i] = s * und * volume
+    return finalize(data)
+
+
+def _rumble_loop(volume):
+    length = int(4.0 * SR)
+    fade = int(0.4 * SR)
+    rng = np.random.default_rng(4404)
+    alpha = 1.0 - math.exp(-TAU * 110.0 / SR)
+    raw = np.zeros(length + fade)
+    y = 0.0
+    noise = rng.uniform(-1.0, 1.0, length + fade)
+    for i in range(length + fade):
+        y += alpha * (noise[i] - y)
+        raw[i] = y
+    data = np.zeros(length)
+    for i in range(length):
+        s = raw[i]
+        if i < fade:
+            w = i / fade
+            s = raw[length + i] * (1.0 - w) + raw[i] * w
+        sub = math.sin(TAU * 55.0 * i / SR)
+        data[i] = (s * 2.2 + 0.5 * sub) * volume
+    return finalize(data)
+
+
+def _hum_loop(volume):
+    length = int(4.0 * SR)
+    data = np.zeros(length)
+    voices = [(130.75, 0.5, 1.0), (196.0, 0.25, 0.5), (261.5, 0.5, 0.35)]
+    t = np.arange(length) / SR
+    for f, beat, w in voices:
+        data += w * 0.5 * (np.sin(TAU * (f + beat * 0.5) * t) +
+                           np.sin(TAU * (f - beat * 0.5) * t))
+    return finalize(data * volume)
 
 
 # ----------------------------------------------------------------------
