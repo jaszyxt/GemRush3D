@@ -735,15 +735,36 @@ namespace GemRush
 
         AudioClip gustSwell;
 
+        // Gust swell anti-stack: gust lanes sharing a period phase-lock to
+        // the same music clock, so two zones onset in the same frame —
+        // without this guard every onset doubled into +6 dB of wind.
+        const float GustSwellStackWindow = 0.4f;
+        float lastGustSwellAt = -99f;
+
         /// Gust onsets: a filtered-noise swell resting on the chord root,
         /// so the wind audibly "plays the chord". One clip, synthesized
-        /// once and cached like the bells.
-        public void PlayGustSwell()
+        /// once and cached like the bells. Fades with distance from Pip —
+        /// only the lane you're near speaks; far lanes stay silent — and
+        /// same-frame onsets from sibling lanes collapse into one swell.
+        public void PlayGustSwell(Vector3 origin)
         {
+            float volume = Falloff(origin, 28f);
+            if (volume < 0.03f) return;
+            if (Time.unscaledTime - lastGustSwellAt < GustSwellStackWindow) return;
+            lastGustSwellAt = Time.unscaledTime;
             if (!SaveSystem.SoundOn) return;
             if (gustSwell == null)
-                gustSwell = SfxSynth.NoiseSwell("sfx_gust", 2.2f, 0.25f);
-            source.PlayOneShot(gustSwell);
+                gustSwell = SfxSynth.NoiseSwell("sfx_gust", 2.2f, 0.16f);
+            source.PlayOneShot(gustSwell, volume);
+        }
+
+        /// Legacy entry (full volume, no falloff) — kept for callers that
+        /// have no world position.
+        public void PlayGustSwell()
+        {
+            PlayGustSwell(GameBootstrap.Player != null
+                ? GameBootstrap.Player.transform.position
+                : Vector3.zero);
         }
 
         /// Nim's giggle just before a gust blows — the invitation to step

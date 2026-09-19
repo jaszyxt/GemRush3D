@@ -97,6 +97,7 @@ namespace UnityEngine
         public Quaternion localRotation { get; set; }
         public Quaternion rotation { get; set; }
         public Vector3 forward { get { return new Vector3(); } }
+        public Vector3 TransformPoint(Vector3 position) { return position; }
         public Vector3 right { get { return new Vector3(); } }
         public Vector3 up { get { return new Vector3(); } }
         public Transform GetChild(int index) { return null; }
@@ -465,6 +466,11 @@ namespace UnityEngine
     }
 
     public class MeshRenderer : Renderer { }
+    public class SpriteRenderer : Renderer
+    {
+        public Sprite sprite { get; set; }
+        public Color color { get; set; }
+    }
 
     public class ParticleSystemRenderer : Renderer
     {

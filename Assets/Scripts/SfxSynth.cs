@@ -725,7 +725,9 @@ namespace GemRush
         /// A wind swell: white noise through a one-pole low-pass whose
         /// cutoff arcs up then back down (breath in, breath out), over a
         /// quiet sine resting on the chord root — gusts audibly "play the
-        /// chord" they are phase-locked to.
+        /// chord" they are phase-locked to. The noise gain stays low:
+        /// broadband noise reads hotter than the tonal family at equal
+        /// numbers, and this must sit under the giggle/land voices.
         public static AudioClip NoiseSwell(string name, float duration, float volume)
         {
             int samples = Mathf.Max(1, (int)(duration * SampleRate));
@@ -743,7 +745,7 @@ namespace GemRush
                 float alpha = Mathf.Min(1f, 2f * Mathf.PI * cutoff / SampleRate);
                 lowpassed += alpha * ((Random.value * 2f - 1f) - lowpassed);
                 rootPhase += 2f * Mathf.PI * rootFrequency / SampleRate;
-                data[i] = (lowpassed * 2.5f
+                data[i] = (lowpassed * 2f
                     + 0.3f * Mathf.Sin(rootPhase)
                     + 0.12f * Mathf.Sin(2f * rootPhase)) * arc * volume;
             }

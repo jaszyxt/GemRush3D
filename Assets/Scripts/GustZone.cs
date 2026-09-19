@@ -122,9 +122,11 @@ namespace GemRush
             bool active = phase < activeTime;
 
             // Each onset adds a wind swell on the chord root — the gust
-            // audibly plays the chord it is locked to.
+            // audibly plays the chord it is locked to. Quieter with
+            // distance, and sibling lanes sharing the phase collapse into
+            // one swell instead of doubling.
             if (active && !wasActive && AudioManager.Instance != null)
-                AudioManager.Instance.PlayGustSwell();
+                AudioManager.Instance.PlayGustSwell(transform.position);
             wasActive = active;
 
             // Nim's giggle just before the blow: the invitation the levels
