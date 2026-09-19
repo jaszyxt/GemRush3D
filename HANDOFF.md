@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.15.0 session, 2026-09-19)
+# HANDOFF — current state (update: v1.17.0 session, 2026-09-19)
 
 **Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
@@ -73,17 +73,33 @@ except D11**) → this file.
   drift 0.4 u) and menu-aurora spawn after the unlock flag.
 - **Version 1.15.0 / versionCode 24** in EnsureShaders.Build().
 
+## Player directives (2026-09-19, latest — these govern)
+1. **The laptop install IS the verification target.** The emulator is
+   retired from the loop (user: "so lagging"); the user plays the
+   installed app (`%LOCALAPPDATA%\Programs\GemRush3D\`, Desktop
+   shortcut). Verify there, not on the emulator.
+2. **Content pauses at 40 levels.** Pack 13 closed the era at exactly
+   40; from now on sessions focus on IMPROVING the game (feel, systems,
+   polish), not new levels — unless the player reopens the door.
+3. A parallel session landed the "Delight Pass" (hit-stop, combo crown,
+   streak visuals, win confetti, FOV kicks, skid dust, gust haptics,
+   panel transitions — see `docs/Fun-Creativity-Directives.md`). It
+   touches `Time.timeScale` near pause logic — worth a focused review
+   in the improvement era.
+
 ## Open items (prioritized)
-1. **Install v1.15.0 on tablet + phone** (next USB; emulator + laptop
-   already current).
+1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
+   superseded — laptop is primary).
 2. **Gamepad hardware pass** (Xbox + DualSense via Windows exe).
 3. **D11 string table** — last open directives item.
 4. **Audio ADAPT queue** (RESEARCH.md): checkpoint cadence, parameterized
    MusicSynth intensity, gust haptic texture. (Milestone chime: DONE.)
-5. **Post-12 content**: DESIGN.md's expansion queue is finished through
-   the festival — next packs are open-field (rotations, see-saws,
-   rainbows, "whatever the story asks for"). Compounding systems still
-   untouched: Pip's shelf, the atlas screen, photo mode, ghost runs.
+5. **CONTENT PAUSED AT 40** (player directive). Improvement backlog for
+   future sessions, in no fixed order: parameterized MusicSynth
+   intensity + checkpoint cadence (audio ADAPT queue), D11 string table,
+   photo mode, ghost runs, Pip's shelf visuals, a focused review of the
+   Delight Pass hit-stop vs pause interplay, and the atlas screen's
+   per-region polish (medal stamps art, region flavor lines).
 
 ## Environment wisdom (hard-won, cumulative)
 - **Unity editor launch race**: if old Unity processes are zombie-ing,
