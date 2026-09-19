@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.17.0 session, 2026-09-19)
+# HANDOFF — current state (update: v1.18.0 session, 2026-09-19)
 
 **Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
@@ -20,9 +20,8 @@ except D11**) → this file.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Code: v1.15.0 (versionCode 24), committed on main** — **37 levels,
-  12 packs**: Pack 12 "The Aurora Festival" (aurora ribbons + concert
-  finale + permanent menu aurora) shipped this session. Release-signed
+- **Code: v1.18.0 (versionCode 27), committed on main** — 40 levels,
+  13 packs + B-Sides. Release-signed
   `Builds/GemRush3D.apk` (V2 cert `CN=Gem Rush 3D, O=PipStudio`) +
   `Builds/GemRush3D.exe` (check `GemRush3D_Data/Managed/GemRush.dll`
   mtime for freshness, not the stub exe).
@@ -111,6 +110,24 @@ except D11**) → this file.
   §Pack 13 and is fully compatible with the delight systems.
 - Suite 27/27 on the combined tree (Delight Pass + Secret Life +
   Homecoming + D11 string-table work in flight); play-smoke clean.
+
+## Shipped in v1.18.0 — Improvement pass (this session)
+- **Hit-stop vs pause review**: the Delight Pass hit-stop state machine
+  is CORRECTLY implemented — verified every interleave (Escape during
+  freeze, focus-loss auto-pause, natural expiry on GameOver). No fix
+  needed; guard design held.
+- **Checkpoint cadence** (audio ADAPT queue): `AudioManager.
+  RestartMusicAtDominant()` steps the pad to the loop's last chord on
+  every checkpoint — it resolves home to the tonic under the chime.
+- **D11 string table DONE — the UI/UX directives doc is now 100%
+  closed**: `Assets/Scripts/Strings.cs` holds every user-facing string
+  (constants + composed methods); UIManager, TouchControls (JUMP) and
+  the lantern toast reference it. DoD grep clean. Note: medal names
+  stay in `LevelDefinition.MedalFor` (exempt); region names are data in
+  `LevelLibrary.Regions`.
+- Improvement backlog for future sessions: parameterized MusicSynth
+  intensity (menu/explore/near-death layering — the last big audio
+  item), photo mode, ghost runs, Pip's shelf visuals, atlas polish.
 
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator

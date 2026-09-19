@@ -68,7 +68,7 @@ namespace GemRush
                 ArtLib.Gold * 1.5f, 24);
             if (UIManager.Instance != null)
                 UIManager.Instance.ShowStoryToast(
-                    "The sunstone wakes. Its warm little light hops up to travel with Pip.");
+                    Strings.LanternWake);
         }
 
         void Update()

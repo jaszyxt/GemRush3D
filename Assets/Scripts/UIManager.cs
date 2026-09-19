@@ -316,7 +316,7 @@ namespace GemRush
         {
             menuPanel = MakePanel(canvas, "MenuPanel", new Color(0f, 0f, 0.05f, 0.55f));
 
-            Text title = MakeText(menuPanel.transform, "Title", "GEM RUSH 3D", 92,
+            Text title = MakeText(menuPanel.transform, "Title", Strings.MenuTitle, 92,
                 starGold, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.62f), new Vector2(1f, 0.82f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
@@ -327,7 +327,7 @@ namespace GemRush
             titleRect.anchoredPosition = Vector2.zero;
 
             MakeText(menuPanel.transform, "Tagline",
-                "Pip vs. Gloomfang — a very small hero, a very large storm",
+                Strings.MenuTagline,
                 28, new Color(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.54f), new Vector2(1f, 0.62f), 0f, 0f, 0f, 0f);
 
@@ -338,7 +338,7 @@ namespace GemRush
             // for touch too.
             bool touch = Input.touchSupported;
             float playY = 0.46f;
-            playButton = MakeButton(menuPanel.transform, "PLAY",
+            playButton = MakeButton(menuPanel.transform, Strings.Play,
                 new Vector2(0.5f, playY), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.PlayContinue(); });
 
@@ -411,7 +411,7 @@ namespace GemRush
                     x = 0.5f - ((inRow - 1) / 2f - col) * 0.185f;
                     y = gridTop - row * rowStep;
                 }
-                Button b = MakeButton(menuPanel.transform, "LEVEL " + (i + 1),
+                Button b = MakeButton(menuPanel.transform, Strings.LevelLabel(i + 1),
                     new Vector2(x, y), new Vector2(0f, 0f), levelSize,
                     delegate { GameManager.Instance.PlayLevel(index); },
                     levelLabelSize);
@@ -439,14 +439,14 @@ namespace GemRush
             // The floor-enlarged touch SETTINGS (220x100) would poke past
             // the top and right edges at the keyboard/mouse anchor, so
             // touch tucks it slightly inward.
-            menuSettingsButton = MakeButton(menuPanel.transform, "SETTINGS",
+            menuSettingsButton = MakeButton(menuPanel.transform, Strings.Settings,
                 new Vector2(touch ? 0.905f : 0.925f, touch ? 0.93f : 0.965f),
                 new Vector2(0f, 0f),
                 touch ? new Vector2(220f, 100f) : new Vector2(190f, 54f),
                 delegate { ShowSettings(); });
 
             // The Atlas: the collection view, one region at a time.
-            MakeButton(menuPanel.transform, "ATLAS",
+            MakeButton(menuPanel.transform, Strings.Atlas,
                 new Vector2(touch ? 0.75f : 0.775f, touch ? 0.93f : 0.965f),
                 new Vector2(0f, 0f),
                 touch ? new Vector2(190f, 100f) : new Vector2(160f, 54f),
@@ -512,22 +512,14 @@ namespace GemRush
 
         string InstructionsForCurrentDevice()
         {
-            const string goal =
-                "Collect gems for stars, dodge the red spinners, reach the portal!";
             switch (CurrentInstructionMode())
             {
                 case 2:
-                    return "Move: Left Stick / D-Pad    Jump: (A) / Cross    " +
-                        "Pause: Start\n" + goal +
-                        "\nMenus: D-Pad choose · (A) confirm · (B) back · " +
-                        "shoulders flip pages.";
+                    return Strings.InstructionsGamepad();
                 case 1:
-                    return "On touch: drag the left side to move, tap JUMP.\n" +
-                        goal + "\nKeyboard: WASD / Arrows + Space.";
+                    return Strings.InstructionsTouch();
                 default:
-                    return "Move: WASD / Arrows    Jump: Space    (ENTER works too)\n" +
-                        goal + "\nGamepad: Left Stick + (A) — plug one in and " +
-                        "this line follows it.";
+                    return Strings.InstructionsKeyboard();
             }
         }
 
@@ -573,13 +565,12 @@ namespace GemRush
                 {
                     if (unlocked)
                     {
-                        levelButtonTexts[i].text = "LEVEL " + (i + 1) +
-                            "\nStars " + SaveSystem.Stars(i) + "/3" +
-                            (isDaily ? "  · DAILY" : "");
+                        levelButtonTexts[i].text = Strings.LevelUnlockedRow(
+                            i + 1, SaveSystem.Stars(i), 3, isDaily);
                     }
                     else
                     {
-                        levelButtonTexts[i].text = "LEVEL " + (i + 1) + "\nLOCKED";
+                        levelButtonTexts[i].text = Strings.LevelLockedRow(i + 1);
                     }
                 }
                 // The repaint above overwrites the base tint; keep any
@@ -626,7 +617,7 @@ namespace GemRush
                 new Color(0.9f, 0.9f, 0.95f), TextAnchor.MiddleLeft,
                 new Vector2(0f, 0.93f), new Vector2(0.22f, 1f), 24f, 4f, 4f, 2f);
 
-            hudGems = MakeText(dyn, "Gems", "Gems  0 / 0", 28,
+            hudGems = MakeText(dyn, "Gems", Strings.HudGems(0, 0), 28,
                 Color.white, TextAnchor.MiddleLeft,
                 new Vector2(0.22f, 0.93f), new Vector2(0.48f, 1f), 12f, 4f, 4f, 2f);
 
@@ -643,7 +634,7 @@ namespace GemRush
                 new Vector2(58f, 58f),
                 delegate { GameManager.Instance.PauseGame(); }, 26);
 
-            hudLives = MakeText(dyn, "Lives", "Lives  3", 28,
+            hudLives = MakeText(dyn, "Lives", Strings.HudLives(3), 28,
                 starGold, TextAnchor.MiddleRight,
                 new Vector2(0.68f, 0.93f), new Vector2(1f, 1f), 8f, 4f, 24f, 2f);
 
@@ -655,7 +646,7 @@ namespace GemRush
         {
             winPanel = MakePanel(canvas, "WinPanel", new Color(0f, 0.1f, 0.05f, 0.65f));
 
-            Text title = MakeText(winPanel.transform, "Title", "LEVEL COMPLETE!", 76,
+            Text title = MakeText(winPanel.transform, "Title", Strings.WinTitle, 76,
                 new Color(0.45f, 1f, 0.55f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.60f), new Vector2(1f, 0.76f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
@@ -693,15 +684,15 @@ namespace GemRush
             winMilestone.fontStyle = FontStyle.Bold;
             winMilestone.gameObject.SetActive(false);
 
-            winNextButton = MakeButton(winPanel.transform, "NEXT  LEVEL",
+            winNextButton = MakeButton(winPanel.transform, Strings.NextLevel,
                 new Vector2(0.5f, 0.26f), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.StartNextLevel(); });
 
-            winReplayButton = MakeButton(winPanel.transform, "REPLAY",
+            winReplayButton = MakeButton(winPanel.transform, Strings.Replay,
                 new Vector2(0.5f - 0.14f, 0.145f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
-            winMenuButton = MakeButton(winPanel.transform, "MENU",
+            winMenuButton = MakeButton(winPanel.transform, Strings.Menu,
                 new Vector2(0.5f + 0.14f, 0.145f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
 
@@ -715,22 +706,22 @@ namespace GemRush
         {
             overPanel = MakePanel(canvas, "GameOverPanel", new Color(0.15f, 0f, 0f, 0.7f));
 
-            Text title = MakeText(overPanel.transform, "Title", "GAME OVER", 84,
+            Text title = MakeText(overPanel.transform, "Title", Strings.OverTitle, 84,
                 new Color(1f, 0.4f, 0.35f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.76f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
             MakeText(overPanel.transform, "Sub",
-                "Every legend takes a nap sometimes. One more try, Pip —\nGloomfang isn't getting less gloomy on his own.", 28,
+                Strings.OverSub, 28,
                 new Color(0.9f, 0.85f, 0.85f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.40f), new Vector2(1f, 0.54f), 0f, 0f, 0f, 0f);
 
-            overTryButton = MakeButton(overPanel.transform, "TRY  AGAIN",
+            overTryButton = MakeButton(overPanel.transform, Strings.TryAgain,
                 new Vector2(0.5f, 0.28f), new Vector2(0f, 0f),
                 new Vector2(360f, 84f),
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
-            overMenuButton = MakeButton(overPanel.transform, "MENU",
+            overMenuButton = MakeButton(overPanel.transform, Strings.Menu,
                 new Vector2(0.5f, 0.155f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
 
@@ -744,7 +735,7 @@ namespace GemRush
                 new Color(0.02f, 0.08f, 0.14f, 0.72f));
 
             Text title = MakeText(completePanel.transform, "Title",
-                "EVERY PORTAL LIT!", 72,
+                Strings.CompleteTitle, 72,
                 starGold, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.58f), new Vector2(1f, 0.76f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
@@ -754,8 +745,7 @@ namespace GemRush
                 new Vector2(0f, 0.40f), new Vector2(1f, 0.54f), 0f, 0f, 0f, 0f);
 
             MakeText(completePanel.transform, "Sub",
-                "The storm has a job now. The map has room left.\n" +
-                "Pip's shelf keeps one spot open — for whatever comes next.", 24,
+                Strings.CompleteSub, 24,
                 new Color(0.85f, 0.9f, 0.95f), TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.26f), new Vector2(1f, 0.40f), 0f, 0f, 0f, 0f);
             completeSub = completePanel.transform.Find("Sub")
@@ -765,11 +755,11 @@ namespace GemRush
             completeStory = MakeText(completePanel.transform, "Epilogue", "", 26,
                 Color.white, TextAnchor.MiddleCenter,
                 new Vector2(0.08f, 0.24f), new Vector2(0.92f, 0.56f), 0f, 0f, 0f, 0f);
-            completeNext = MakeButton(completePanel.transform, "NEXT",
+            completeNext = MakeButton(completePanel.transform, Strings.Next,
                 new Vector2(0.79f, 0.18f), new Vector2(0f, 0f),
                 new Vector2(240f, 78f), delegate { AdvanceEpilogue(); });
 
-            completeMenuButton = MakeButton(completePanel.transform, "MENU",
+            completeMenuButton = MakeButton(completePanel.transform, Strings.Menu,
                 new Vector2(0.5f, 0.18f), new Vector2(0f, 0f),
                 new Vector2(300f, 78f), delegate { GameManager.Instance.GoToMenu(); });
 
@@ -803,7 +793,7 @@ namespace GemRush
             settingsPanel = MakePanel(canvas, "SettingsPanel",
                 new Color(0f, 0f, 0.05f, 0.8f));
 
-            Text title = MakeText(settingsPanel.transform, "Title", "SETTINGS", 64,
+            Text title = MakeText(settingsPanel.transform, "Title", Strings.SettingsTitle, 64,
                 Color.white, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.66f), new Vector2(1f, 0.78f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
@@ -815,10 +805,13 @@ namespace GemRush
             // reflow into a 2-column grid (reading order; an odd last row
             // centers itself).
             string[] names = IsDesktopPlatform()
-                ? new string[] { "Sound", "Screen Shake", "Haptics", "Shadows",
-                    "Left-handed Controls", "Text Size", "Fullscreen" }
-                : new string[] { "Sound", "Screen Shake", "Haptics", "Shadows",
-                    "Left-handed Controls", "Text Size" };
+                ? new string[] { Strings.SettingSound, Strings.SettingShake,
+                    Strings.SettingHaptics, Strings.SettingShadows,
+                    Strings.SettingLefty, Strings.SettingTextSize,
+                    Strings.SettingFullscreen }
+                : new string[] { Strings.SettingSound, Strings.SettingShake,
+                    Strings.SettingHaptics, Strings.SettingShadows,
+                    Strings.SettingLefty, Strings.SettingTextSize };
             settingsLabels = new Text[names.Length];
             settingsButtons = new Button[names.Length];
             bool touch = Input.touchSupported;
@@ -841,7 +834,7 @@ namespace GemRush
                 settingsButtons[i] = b;
             }
 
-            settingsBackButton = MakeButton(settingsPanel.transform, "BACK",
+            settingsBackButton = MakeButton(settingsPanel.transform, Strings.Back,
                 new Vector2(0.5f, touch ? 0.17f : 0.11f), new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseSettings(); });
 
@@ -884,7 +877,7 @@ namespace GemRush
             atlasPanel = MakePanel(canvas, "AtlasPanel",
                 new Color(0f, 0f, 0.05f, 0.82f));
 
-            Text title = MakeText(atlasPanel.transform, "Title", "THE ATLAS",
+            Text title = MakeText(atlasPanel.transform, "Title", Strings.AtlasTitle,
                 64, starGold, TextAnchor.MiddleCenter,
                 new Vector2(0.3f, 0.86f), new Vector2(0.7f, 0.96f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
@@ -925,7 +918,7 @@ namespace GemRush
                 20, new Color(0.85f, 0.87f, 0.92f), TextAnchor.MiddleCenter,
                 new Vector2(0.44f, 0.545f), new Vector2(0.56f, 0.59f), 0f, 0f, 0f, 0f);
 
-            atlasBack = MakeButton(atlasPanel.transform, "BACK",
+            atlasBack = MakeButton(atlasPanel.transform, Strings.Back,
                 new Vector2(0.5f, 0.09f), new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseAtlas(); });
 
@@ -1008,20 +1001,18 @@ namespace GemRush
             int regionStars = 0;
             for (int i = 0; i < region.Count; i++)
                 regionStars += SaveSystem.Stars(region.First + i);
-            atlasHeader.text = "REGION " + region.Roman + " — " +
-                region.Name.ToUpper();
-            atlasStarsTotal.text = "STARS " + SaveSystem.TotalStars(
-                LevelLibrary.Levels.Length) + " / " +
-                LevelLibrary.Levels.Length * 3 +
-                "        REGION " + regionStars + " / " + region.Count * 3;
+            atlasHeader.text = Strings.AtlasHeader(region.Roman, region.Name);
+            atlasStarsTotal.text = Strings.AtlasStars(
+                SaveSystem.TotalStars(LevelLibrary.Levels.Length),
+                LevelLibrary.Levels.Length * 3, regionStars, region.Count * 3);
 
             string milestone = LevelLibrary.Levels[
                 region.First + region.Count - 1].Milestone;
             atlasMilestone.text = string.IsNullOrEmpty(milestone)
-                ? "Charted skies, drawn in Pip's small, determined handwriting."
+                ? Strings.AtlasUncharted
                 : milestone;
-            atlasPageLabel.text = (atlasRegion + 1) + " / " +
-                LevelLibrary.Regions.Length;
+            atlasPageLabel.text = Strings.AtlasPage(atlasRegion + 1,
+                LevelLibrary.Regions.Length);
 
             for (int i = 0; i < atlasRows.Length; i++)
             {
@@ -1038,18 +1029,17 @@ namespace GemRush
                 int stars = SaveSystem.Stars(index);
                 float best = SaveSystem.BestTime(index);
                 string detail;
-                if (!unlocked) detail = "LOCKED";
-                else if (best < 0f) detail = "Cleared awaits — no time yet";
+                if (!unlocked) detail = Strings.Locked;
+                else if (best < 0f) detail = Strings.NoTimeYet;
                 else
                 {
                     string medal = def.MedalFor(best);
-                    detail = "Stars " + stars + "/3" +
-                        (medal != "" ? "  ·  " + medal : "") +
-                        "  ·  Best " + FormatTime(best);
+                    detail = Strings.AtlasRowDetail(stars, medal,
+                        FormatTime(best));
                 }
                 Text label = atlasRows[i].GetComponentInChildren<Text>();
                 if (label != null)
-                    label.text = "LEVEL " + (index + 1) + "  ·  " + def.Name +
+                    label.text = Strings.AtlasRowTitle(index + 1, def.Name) +
                         "\n" + detail;
 
                 Image img = atlasRows[i].targetGraphic as Image;
@@ -1126,8 +1116,8 @@ namespace GemRush
             {
                 // A mode, not an on/off: the label names the value, and the
                 // row tint follows it like every other toggle.
-                settingsLabels[5].text = "Text Size:  " +
-                    (SaveSystem.TextLargeOn ? "LARGE" : "NORMAL");
+                settingsLabels[5].text = Strings.TextSizeLabel(
+                    SaveSystem.TextLargeOn);
                 Image img = settingsLabels[5].transform.parent.GetComponent<Image>();
                 if (img != null) img.color = SaveSystem.TextLargeOn ? onColor : offColor;
             }
@@ -1144,7 +1134,7 @@ namespace GemRush
         void ApplyLabel(Text label, string name, bool on)
         {
             if (label == null) return;
-            label.text = name + ":  " + (on ? "ON" : "OFF");
+            label.text = Strings.ToggleLabel(name, on);
             Image img = label.transform.parent.GetComponent<Image>();
             if (img != null) img.color = on ? onColor : offColor;
         }
@@ -1211,16 +1201,16 @@ namespace GemRush
         {
             pausePanel = MakePanel(canvas, "PausePanel", new Color(0f, 0f, 0f, 0.6f));
 
-            Text title = MakeText(pausePanel.transform, "Title", "PAUSED", 72,
+            Text title = MakeText(pausePanel.transform, "Title", Strings.Paused, 72,
                 Color.white, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.72f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
-            pauseResumeButton = MakeButton(pausePanel.transform, "RESUME",
+            pauseResumeButton = MakeButton(pausePanel.transform, Strings.Resume,
                 new Vector2(0.5f, 0.40f), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.ResumeGame(); });
 
-            pauseRestartButton = MakeButton(pausePanel.transform, "RESTART LEVEL",
+            pauseRestartButton = MakeButton(pausePanel.transform, Strings.RestartLevel,
                 new Vector2(0.5f, 0.285f), new Vector2(0f, 0f),
                 new Vector2(360f, 68f),
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
@@ -1229,11 +1219,11 @@ namespace GemRush
             // are adjustable mid-run, without abandoning the level. MENU and
             // SETTINGS share the bottom row; the touch floor widens both,
             // which still clears side by side.
-            pauseMenuButton = MakeButton(pausePanel.transform, "MENU",
+            pauseMenuButton = MakeButton(pausePanel.transform, Strings.Menu,
                 new Vector2(0.5f - 0.13f, 0.165f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
 
-            pauseSettingsButton = MakeButton(pausePanel.transform, "SETTINGS",
+            pauseSettingsButton = MakeButton(pausePanel.transform, Strings.Settings,
                 new Vector2(0.5f + 0.13f, 0.165f), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { ShowSettings(); });
 
@@ -1274,7 +1264,7 @@ namespace GemRush
             LevelDefinition def = LevelLibrary.Levels[
                 Mathf.Clamp(levelIndex, 0, LevelLibrary.Levels.Length - 1)];
             if (introTitle != null)
-                introTitle.text = "LEVEL " + (levelIndex + 1) + "  —  " + def.Name.ToUpper();
+                introTitle.text = Strings.IntroTitle(levelIndex, def.Name);
             if (introMission != null)
                 introMission.text = def.Mission;
             introTimer = 3.5f;
@@ -1341,14 +1331,10 @@ namespace GemRush
             int medals = SaveSystem.TotalMedals(count) - SaveSystem.VisitStartMedals;
             int gifts = SaveSystem.Gifts;
             if (stars > 0 || medals > 0)
-                visitRecap.text = string.Format(
-                    "Since you arrived: +{0} stars, +{1} medal{2}.\nThe garden noticed.",
-                    stars, medals, medals == 1 ? "" : "s");
+                visitRecap.text = Strings.VisitRecapProgress(stars, medals);
             else if (gifts > 0)
-                visitRecap.text = "Gloomfang's Gifts: " + gifts +
-                    (DailyGem.GiftAlreadyCollectedToday()
-                        ? "  ·  today's gift is yours"
-                        : "  ·  today's gift is still out there");
+                visitRecap.text = Strings.VisitRecapGifts(gifts,
+                    DailyGem.GiftAlreadyCollectedToday());
             else
                 visitRecap.text = "";
         }
@@ -1403,13 +1389,14 @@ namespace GemRush
             if (winStats != null)
             {
                 string bestText;
-                if (best < 0f) bestText = "First clear!";
-                else bestText = "Best " + FormatTime(best) + (newRecord ? "  (NEW!)" : "");
+                if (best < 0f) bestText = Strings.FirstClear;
+                else bestText = Strings.BestPrefix + FormatTime(best) +
+                        (newRecord ? Strings.NewRecordSuffix : "");
                 string medal = LevelLibrary.Levels[
                     Mathf.Clamp(level, 0, LevelLibrary.Levels.Length - 1)].MedalFor(time);
-                if (medal != "") medal = "   " + medal + "!";
-                winStats.text = string.Format("Level {0}      Time  {1}{2}      Gems  {3}/{4}\n{5}",
-                    level + 1, FormatTime(time), medal, gems, total, bestText);
+                if (medal != "") medal = Strings.MedalBurst(medal);
+                winStats.text = Strings.WinStats(level + 1, FormatTime(time),
+                    medal, gems, total, bestText);
             }
             if (winStory != null)
                 winStory.text = LevelLibrary.Levels[
@@ -1464,9 +1451,7 @@ namespace GemRush
         {
             HideAll();
             if (completeStats != null)
-                completeStats.text = string.Format(
-                    "All levels cleared!\nTotal stars  {0} / {1}",
-                    totalStars, maxStars);
+                completeStats.text = Strings.CompleteStats(totalStars, maxStars);
 
             // Story first: page through the epilogue, then the stats appear.
             epiloguePages = Story.Epilogue;
@@ -1503,14 +1488,14 @@ namespace GemRush
             if (hudLevel != null && level != hudCacheLevel)
             {
                 hudCacheLevel = level;
-                hudLevel.text = "LV " + (level + 1);
+                hudLevel.text = Strings.HudLevel(level + 1);
             }
             if (hudGems != null && (gems != hudCacheGems || total != hudCacheTotal))
             {
                 int previous = hudCacheGems;
                 hudCacheGems = gems;
                 hudCacheTotal = total;
-                hudGems.text = string.Format("Gems  {0} / {1}", gems, total);
+                hudGems.text = Strings.HudGems(gems, total);
                 // Same star math the win screen uses: a pickup that crosses
                 // the 2-star or 3-star line makes the counter pop harder.
                 // Still change-cached — this only runs when the count moved.
@@ -1528,7 +1513,7 @@ namespace GemRush
             if (hudLives != null && lives != hudCacheLives)
             {
                 hudCacheLives = lives;
-                hudLives.text = string.Format("Lives  {0}", lives);
+                hudLives.text = Strings.HudLives(lives);
             }
         }
 
@@ -1608,15 +1593,15 @@ namespace GemRush
                 "QuitConfirmPanel", new Color(0f, 0f, 0.05f, 0.8f));
 
             Text title = MakeText(quitConfirmPanel.transform, "Title",
-                "QUIT THE GAME?", 64, Color.white, TextAnchor.MiddleCenter,
+                Strings.QuitTitle, 64, Color.white, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.70f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
-            quitButton = MakeButton(quitConfirmPanel.transform, "QUIT",
+            quitButton = MakeButton(quitConfirmPanel.transform, Strings.Quit,
                 new Vector2(0.5f - 0.13f, 0.38f), new Vector2(0f, 0f),
                 new Vector2(260f, 84f), delegate { ConfirmQuit(); });
 
-            cancelButton = MakeButton(quitConfirmPanel.transform, "CANCEL",
+            cancelButton = MakeButton(quitConfirmPanel.transform, Strings.Cancel,
                 new Vector2(0.5f + 0.13f, 0.38f), new Vector2(0f, 0f),
                 new Vector2(260f, 84f), delegate { CloseQuitConfirm(); });
 

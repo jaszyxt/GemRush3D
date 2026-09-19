@@ -478,7 +478,7 @@ too — stretching every screen off-screen. Anchors are now clamped to
 | D8 | **Done** | `resizableWindow: 1` set in the build script (runs for every build); `DesktopWindow.cs` remembers the windowed rect via PlayerPrefs (size via `Screen.SetResolution`, position via user32 on Windows only; skipped in fullscreen/editor/mobile) |
 | D9 | **Done** | SETTINGS button on the pause menu; Settings hides pause while open and restores it on close (pause draws above Settings in sibling order, so the hide is required) |
 | D10 | **Done** | Text floors raised (instructions/quote/recap → 22, desktop level sublabels ≥ 20); "Text Size: NORMAL/LARGE" row re-derives every registered label from its base at 1.15× (never compounding); Enter is guarded while overlays hold the screen |
-| D11 | Not started | String table |
+| D11 | **Done** | `Assets/Scripts/Strings.cs` holds every user-facing UI string (constants + composed methods); `UIManager`, `TouchControls` (JUMP) and the lantern toast reference it. DoD grep is clean: no English UI literals outside `Strings`/`Story`/`LevelDefinition`. Region names are data in `LevelLibrary.Regions` (sanctioned); medal names stay in `LevelDefinition.MedalFor` (exempt). Suite 27/27 after the sweep |
 | D12 | **Done** (by art agent) | See Appendix A |
 
 **Verification state:** in-editor compile clean (Unity 6000.6, live

@@ -72,7 +72,7 @@ namespace GemRush
             labelGo.transform.SetParent(jumpGo.transform, false);
             Text label = labelGo.AddComponent<Text>();
             if (font != null) label.font = font;
-            label.text = "JUMP";
+            label.text = Strings.Jump;
             label.fontSize = 38;
             label.fontStyle = FontStyle.Bold;
             label.color = Color.white;
