@@ -87,6 +87,31 @@ except D11**) → this file.
    touches `Time.timeScale` near pause logic — worth a focused review
    in the improvement era.
 
+## Fun & creativity session (2026-09-19, after the Delight Pass)
+- **Hit-stop vs pause review: PASSED, item closed.** `TickHitStop()` is
+  the first call in `GameManager.Update()` (before any state gate), so
+  the 120 ms freeze always releases on the realtime clock; every
+  transition calls `EndHitStop()` (flag-clear only — each transition
+  sets its own timeScale), and `BeginHitStop()` refuses to engage
+  unless `timeScale == 1`. Pause can neither inherit nor strand the
+  freeze; budget is under the 150 ms cap.
+- **"Secret Life" wave landed** (commit 2c54c25): idle Pip ladder
+  (glance → wave → sit → sleep; Gloomfang drifts over as a shade),
+  pokeable pentatonic flowers (`FlowerPoke`, 40/level cap, position-
+  hashed notes — a given flower always sings the same note), Gloomfang
+  giggle-raindrop that blooms a flower (10 s cooldown), checkpoint
+  twirl. All comfort-gated, phone-budgeted, and inside the delight law
+  in `docs/Fun-Creativity-Directives.md` (its "future queue" is the
+  creativity backlog: photo mode, ghost runs, Pip's shelf, golden-gem
+  remix gate).
+- **The Movement-Two rainbow pack (prism gates) is consciously
+  SHELVED, not forgotten** — the content pause at 40 chose The
+  Homecoming as the era's close. If the player ever reopens the door,
+  the prism-gate design brief lives in `docs/Movement-Two-Story.md`
+  §Pack 13 and is fully compatible with the delight systems.
+- Suite 27/27 on the combined tree (Delight Pass + Secret Life +
+  Homecoming + D11 string-table work in flight); play-smoke clean.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).
@@ -96,10 +121,11 @@ except D11**) → this file.
    MusicSynth intensity, gust haptic texture. (Milestone chime: DONE.)
 5. **CONTENT PAUSED AT 40** (player directive). Improvement backlog for
    future sessions, in no fixed order: parameterized MusicSynth
-   intensity + checkpoint cadence (audio ADAPT queue), D11 string table,
-   photo mode, ghost runs, Pip's shelf visuals, a focused review of the
-   Delight Pass hit-stop vs pause interplay, and the atlas screen's
-   per-region polish (medal stamps art, region flavor lines).
+   intensity (checkpoint cadence + gust haptic texture: DONE), D11
+   string table, photo mode, ghost runs, Pip's shelf visuals, and the
+   atlas screen's per-region polish (medal stamps art, region flavor
+   lines). Creativity backlog: `docs/Fun-Creativity-Directives.md`
+   future queue.
 
 ## Environment wisdom (hard-won, cumulative)
 - **Unity editor launch race**: if old Unity processes are zombie-ing,
