@@ -97,6 +97,30 @@ namespace GemRush.Tests
                                        Mathf.Max(b.Size.z * 0.5f, 1.5f))
                 });
             }
+            // Aurora ribbons are standable along their whole flowing path:
+            // sample start, mid and end, with the sway amplitude folded
+            // into the extents (the sway tapers to nothing at the ends,
+            // so this is generous in the middle — deliberately).
+            for (int i = 0; i < l.AuroraRibbons.Count; i++)
+            {
+                AuroraRibbonSpec r = l.AuroraRibbons[i];
+                Vector2 half = new Vector2(
+                    Mathf.Max(r.Size.x * 0.5f, 1.5f) + r.Sway,
+                    Mathf.Max(r.Size.z * 0.5f, 1.5f) + r.Sway);
+                float topY = r.Center.y + r.Size.y * 0.5f;
+                for (int s = 0; s <= 2; s++)
+                {
+                    float t = s / 2f; // 0, 0.5, 1 along the travel
+                    tops.Add(new Top
+                    {
+                        Center = new Vector3(
+                            r.Center.x + r.Travel.x * t,
+                            topY,
+                            r.Center.z + r.Travel.z * t),
+                        Half = half
+                    });
+                }
+            }
             return tops;
         }
 
@@ -337,6 +361,18 @@ namespace GemRush.Tests
                             if (moverGap <= MaxEdgeGap) hasNeighbor = true;
                         }
                     }
+                    // Aurora ribbons board from their path's two ends.
+                    if (!hasNeighbor)
+                    {
+                        for (int r = 0; r < l.AuroraRibbons.Count && !hasNeighbor; r++)
+                        {
+                            AuroraRibbonSpec r2 = l.AuroraRibbons[r];
+                            float ribbonGap = Mathf.Min(
+                                EdgeGapXz(pa, BoxAt(r2.Center, r2.Size)),
+                                EdgeGapXz(pa, BoxAt(r2.Center + r2.Travel, r2.Size)));
+                            if (ribbonGap <= MaxEdgeGap) hasNeighbor = true;
+                        }
+                    }
                     if (!hasNeighbor)
                     {
                         for (int w = 0; w < l.WindZones.Count && !hasNeighbor; w++)
@@ -519,6 +555,41 @@ namespace GemRush.Tests
                     Label(i, l) + " winter sky is not the pale family.");
                 i++;
             }
+        }
+
+        [Test]
+        public void FestivalLevels_CarryTheRide()
+        {
+            // An Aurora Festival level promises the ride and the dusk: it
+            // resolves to the Festival mood, has at least one ribbon, and
+            // its dusk palette was actually set (red channel well below
+            // the daylight sky's).
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (!l.AuroraFestival) { i++; continue; }
+                Assert.AreEqual(SoundMood.Festival, l.ResolveMood(),
+                    Label(i, l) + " is a festival level but resolves to " +
+                    l.ResolveMood() + ".");
+                Assert.GreaterOrEqual(l.AuroraRibbons.Count, 1,
+                    Label(i, l) + " is a festival level with no ribbons.");
+                Assert.Less(l.SkyColor.r, 0.55f,
+                    Label(i, l) + " festival sky is not the dusk family.");
+                i++;
+            }
+        }
+
+        [Test]
+        public void OnlyTheFestivalFinale_UnlocksTheMenuAurora()
+        {
+            // The permanent menu aurora is the festival's one-time reward:
+            // exactly one level in the atlas carries the unlock.
+            int unlockers = 0;
+            foreach (LevelDefinition l in AllLevels)
+                if (l.AuroraUnlock) unlockers++;
+            Assert.AreEqual(1, unlockers,
+                "Exactly one level (the festival finale) may carry " +
+                "AuroraUnlock; found " + unlockers + ".");
         }
 
         // ------------------------------------------------------------------

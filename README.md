@@ -8,7 +8,7 @@ from code. Even the app icon is painted procedurally at build time.
 
 ## Release build (already configured)
 
-`Builds/GemRush3D.apk` is a **release-signed** build (v1.14.0, IL2CPP,
+`Builds/GemRush3D.apk` is a **release-signed** build (v1.15.0, IL2CPP,
 arm64). Signing uses `tools/gemrush.keystore`; its password lives in
 `tools/signing.txt`. Both are git-ignored — back them up somewhere safe:
 all updates to a published game must be signed with the same key.
@@ -53,7 +53,7 @@ setting).
 
 The storm scattered the sky realm's **Sunstones**. You are **Pip**, the
 Sky-Keeper's little helper: hop the islands, reclaim the gems, light each
-portal — and chase the storm. Thirty-four levels in eleven packs and B-Sides, rated 1–3 stars
+portal — and chase the storm. Thirty-seven levels in twelve packs and B-Sides, rated 1–3 stars
 each:
 
 **Pack One — The Storm**
@@ -155,6 +155,18 @@ each:
 34. **The Crystal Summit** — one last climb past a napping guardian to
     the winter's rooftop, where every melted path refreezes into a
     crystal map of the whole walk. 14 gems + heart.
+
+**Pack Twelve — The Aurora Festival** (the realm's thanks — feeling: joy)
+35. **Festival Lights** — the aurora lays itself across the gaps as
+    **ribbons of light**: walk on when the glow reaches your shore and
+    ride the sway. 12 gems.
+36. **Ribbon Dance** — the ribbons learn to swing, and one climbs while
+    it crosses. A guardian naps through the whole concert. 13 gems +
+    heart.
+37. **The Festival Finale** — the concert: one lap through every mechanic
+    in the atlas, played as instruments. Clearing it lights a **permanent
+    aurora over the menu**. 16 gems + 2 hearts.
+
 
 Stars: **3** = all gems, **2** = half, **1** = finished. Best times and stars
 are saved on the device; clearing a level unlocks the next. Touching a red

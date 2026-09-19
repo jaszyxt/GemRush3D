@@ -256,6 +256,13 @@ namespace GemRush
             State = GameState.Menu;
             AudioManager.Instance.SetMood(SoundMood.Menu);
             ui.ShowMenu();
+
+            // The festival's thank-you: once the finale is cleared, the
+            // aurora hangs over the menu forever. The world behind the
+            // menu panel is the current level's, so the bands parent to it
+            // (AuroraBand.Create is idempotent per world).
+            if (SaveSystem.AuroraUnlocked && GameBootstrap.World != null)
+                AuroraBand.Create(GameBootstrap.World.transform, 160f);
         }
 
         // ---------- Level events ----------
@@ -355,6 +362,13 @@ namespace GemRush
                     IceGate.TriggerCrystalMap(GameBootstrap.World.transform,
                         CurrentLevelDefinition.Portal);
                 }
+
+                // The Aurora Festival: the realm's concert. Clearing the
+                // finale lights the permanent aurora over the menu.
+                if (CurrentLevelDefinition.AuroraFestival)
+                    AudioManager.Instance.PlayConcert();
+                if (CurrentLevelDefinition.AuroraUnlock)
+                    SaveSystem.AuroraUnlocked = true;
             }
 
             bool lastLevel = CurrentLevel >= LevelLibrary.Levels.Length - 1;

@@ -228,6 +228,15 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "textlarge", value ? 1 : 0); Save(); }
         }
 
+        /// Cleared the Aurora Festival finale: a permanent aurora hangs
+        /// over the menu screen forever. Pure celebration — nothing is
+        /// gated behind it.
+        public static bool AuroraUnlocked
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "aurora", 0) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "aurora", value ? 1 : 0); Save(); }
+        }
+
         static void Save()
         {
             PlayerPrefs.Save();

@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.14.0 session, 2026-09-19)
+# HANDOFF — current state (update: v1.15.0 session, 2026-09-19)
 
 **Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
@@ -20,80 +20,70 @@ except D11**) → this file.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Code: v1.14.0 (versionCode 23), committed on main** — **34 levels,
-  11 packs**: Pack 11 "The Long Winter" (sunstone lantern + ice gates)
-  shipped this session. Release-signed `Builds/GemRush3D.apk` (V2 cert
-  `CN=Gem Rush 3D, O=PipStudio`, apksigner-verified) + `Builds/
-  GemRush3D.exe` (check `GemRush3D_Data/Managed/GemRush.dll` mtime for
-  freshness, not the stub exe).
-- **Emulator (Pixel_7:5554)**: v1.14.0 installed + launch-verified (clean
-  logcat). The emulator dies between sessions — just reboot the AVD and
-  `adb install -r`.
+- **Code: v1.15.0 (versionCode 24), committed on main** — **37 levels,
+  12 packs**: Pack 12 "The Aurora Festival" (aurora ribbons + concert
+  finale + permanent menu aurora) shipped this session. Release-signed
+  `Builds/GemRush3D.apk` (V2 cert `CN=Gem Rush 3D, O=PipStudio`) +
+  `Builds/GemRush3D.exe` (check `GemRush3D_Data/Managed/GemRush.dll`
+  mtime for freshness, not the stub exe).
+- **Laptop auto-install worked unattended this build**: the deploy step
+  copied v1.15.0 to `%LOCALAPPDATA%\Programs\GemRush3D\` by itself and
+  retargeted the Desktop shortcut. Byte-compare verified. This is the
+  expected post-build state for every future update.
+- **Emulator (Pixel_7:5554)**: v1.15.0 installed. The emulator dies
+  between sessions — reboot the AVD, wait for `sys.boot_completed=1`,
+  then `adb install -r`.
 - **Tablet (SM-X810 / R52W70BRE9E) + phone (SM-A366B / RRCY5008R7M) are
   still waiting for an update** (tablet last had v1.10.0, phone v1.10.1).
-  `adb install -r Builds/GemRush3D.apk` on next USB; same key since v1.1.0,
-  saves kept. Install to **every** `adb devices` entry.
+  `adb install -r Builds/GemRush3D.apk` on next USB; same key since
+  v1.1.0, saves kept. Install to **every** `adb devices` entry.
 - Tablet/phone were also due the **gamepad hardware pass** (Xbox +
   DualSense through the Windows exe) — still owed; virtual-pad rigs
-  (`Assets/Editor/PadProbe.cs`, `PadProbe2.cs`, `WinterProbe.cs`) cover
-  everything else.
-- **Auto-install to the laptop (user request, 2026-09-19):** every build
-  now ends with `DeployWindowsInstall()` in the build script — the fresh
-  Windows player is copied to `%LOCALAPPDATA%\Programs\GemRush3D\` and
-  the Desktop shortcut `Gem Rush 3D.lnk` is (re)written to launch it, so
-  each update is playable the moment the build finishes. Runs
-  automatically at the end of `BuildAndroid.Build()`; standalone via
-  `GemRush/Install Windows Build (Local)`. Locked-file conflicts (game
-  running) warn instead of failing the build. The old manual copy at
-  `Desktop\GemRush3D\` is STALE (v1.13.0) — safe to delete; the shortcut
-  now points at the auto-installed copy.
+  (`Assets/Editor/PadProbe.cs`, `PadProbe2.cs`, `WinterProbe.cs`,
+  `AuroraProbe.cs`) cover everything else.
 
-## Shipped in v1.14.0 — Pack 11 "The Long Winter" (this session)
-- **New mechanic (one spec + one piece + one builder loop, per the bible):**
-  - `LanternSpec`/`IceGateSpec` in LevelDefinition + `LongWinter` flag
-    (snow tops, snowfall, pale sky, cool grading, `SoundMood.Winter`).
-  - `Lantern.cs` — shrine; wake by walking into it → `Lantern.Lit` (static)
-    and a sunstone orb hovers at Pip's shoulder. Lit survives death (no
-    rebuild). Shrines sit at (2.5, 0.5, 3) — NOT on the spawn point: the
-    probe caught v1 of the level self-lighting Pip at spawn.
-  - `IceGate.cs` — translucent ice wall (solid collider, never harmful).
-    Melts in 1.1 s while Pip (lit) is within 3.4 XZ / 3.5 y; stays melted
-    (level-lifetime); leaves a slush remnant. `MeltedCount()` +
-    `TriggerCrystalMap(world, portal)` — the pack signature: on victory
-    every melted spot grows a crystal shard in a wave from the portal
-    (wired in GameManager.OnReachGoal next to the garden bloom).
-  - `MusicSynth.Winter` — Am7/Fmaj7/Cmaj7/Gsus2 at 3.4 s chords (13.6 s
-    loop, gust-hosting moods keep 8.8 s — Winter hosts no gusts), sparse
-    music-box twinkles. New SFX: `PlayLantern`/`PlayMelt`/`PlayCrystal`.
-  - `Snowfall.cs` — one looping 160-particle flurry over the course
-    corridor; snow-topped platforms + frosted props in LevelBuilder.
-- **Levels 32-34** (`LevelPackEleven.cs`): First Snow (teach, 12 gems,
-  zero hazards) → Frozen Fountains (develop: melt while hovering in an
-  updraft, ferry carries Pip through a gate, 13 gems) → The Crystal
-  Summit (combine: climb + napping guardian + heart + finale, 14 gems,
-  milestone line). Winter palette per level.
-- **Audit suite grew to 23 tests, all green**: `EveryIceGate_HasTheLightFirst`
-  (shrine ahead of every gate on the route, gates on the course) and
-  `WinterLevels_CarryTheFullKit` (winter ⇒ Winter mood + lantern + gates).
-- **Play-verified**: `Assets/Editor/WinterProbe.cs` (`GemRush/Winter
-  Probe/Run` in play mode) — 9/9: level loads, 2 gates + shrine built,
-  lantern starts cold, wakes on contact, gate melts, melt persists,
-  crystal map runs clean.
-- **Version 1.14.0 / versionCode 23** in EnsureShaders.Build().
+## Shipped in v1.15.0 — Pack 12 "The Aurora Festival" (this session)
+- **New mechanic:** `AuroraRibbonSpec` + `AuroraRibbon.cs` — flowing
+  light-bridges. **Subclasses MovingPlatform** (Velocity setter made
+  protected), so PlayerController.TryRide's carry works unchanged; the
+  path adds a perpendicular sway (tapered to zero at the path ends so
+  boarding is reliable) on top of the eased travel. Visuals: translucent
+  slab + underglow with a slow hue drift through the aurora palette.
+- **`SoundMood.Festival`** — bright C-G-Am-F pad with high bell sparkles;
+  `AuroraFestival` flag → dusk sky/fog per level + `AuroraBand.cs`
+  decorative aurora strips overhead (idempotent "AuroraBands" child).
+- **The concert finale** (level 37): one lap through every mechanic in
+  the atlas (movers, sleeping guardian, updraft, gust, bell + echo
+  bridge, mirror door, lantern + gate, ribbons x2). `PlayConcert()` — a
+  baked bell-choir cadence — plays under the win fanfare; clearing it
+  sets `SaveSystem.AuroraUnlocked`, and `GameManager.ShowMenu` spawns
+  the **permanent aurora over the menu** forever.
+- **Milestone chime** (RESEARCH feel backlog): every 10th chained gem
+  plays a tiny bright triad (`PlayMilestoneChime`, cached clip 9500).
+- **Levels 35-37** (`LevelPackTwelve.cs`): Festival Lights (teach,
+  12 gems) → Ribbon Dance (develop: sway + climbing ribbon + napping
+  guardian + heart, 13 gems) → The Festival Finale (combine, 16 gems,
+  2 hearts, milestone line, AuroraUnlock).
+- **Audit suite 25/25**: `StandableTops` now samples ribbon paths
+  (start/mid/end, sway folded into extents); `NoOrphanIslands` accepts
+  ribbon ends as neighbor justification; new tests
+  `FestivalLevels_CarryTheRide` + `OnlyTheFestivalFinale_UnlocksTheMenuAurora`.
+- **Play-verified**: `Assets/Editor/AuroraProbe.cs` (`GemRush/Aurora
+  Probe/Run`) — 8/8 incl. the carry check (ribbon flowed 10.1 u, player
+  drift 0.4 u) and menu-aurora spawn after the unlock flag.
+- **Version 1.15.0 / versionCode 24** in EnsureShaders.Build().
 
 ## Open items (prioritized)
-1. **Install v1.14.0 on tablet + phone** (next USB; emulator already
-   current).
+1. **Install v1.15.0 on tablet + phone** (next USB; emulator + laptop
+   already current).
 2. **Gamepad hardware pass** (Xbox + DualSense via Windows exe).
 3. **D11 string table** — last open directives item.
 4. **Audio ADAPT queue** (RESEARCH.md): checkpoint cadence, parameterized
-   MusicSynth intensity, gust haptic texture, milestone chime.
-5. **Pack 12 — The Aurora Festival** (DESIGN.md Weather Atlas): aurora
-   ribbons as ridable light-bridges; festival concert finale. Consider
-   the research backlog's "dormant foreshadowing" (`Dormant` flag) when
-   authoring — a dead bell/a sleeping aurora answering an earlier pack.
-6. Also from DESIGN.md's compounding systems, still untouched: Daily Gem
-   is live, but Pip's shelf / atlas screen / photo mode are future work.
+   MusicSynth intensity, gust haptic texture. (Milestone chime: DONE.)
+5. **Post-12 content**: DESIGN.md's expansion queue is finished through
+   the festival — next packs are open-field (rotations, see-saws,
+   rainbows, "whatever the story asks for"). Compounding systems still
+   untouched: Pip's shelf, the atlas screen, photo mode, ghost runs.
 
 ## Environment wisdom (hard-won, cumulative)
 - **Unity editor launch race**: if old Unity processes are zombie-ing,

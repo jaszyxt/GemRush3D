@@ -106,6 +106,13 @@ namespace GemRush
             new float[] { 98.0f, 146.8f, 246.9f }
         };
 
+        static readonly float[][] FestivalChords = { // C - G - Am - F, bright and open
+            new float[] { 130.8f, 261.6f, 329.6f, 392.0f },
+            new float[] { 98.0f, 196.0f, 293.7f, 392.0f },
+            new float[] { 110.0f, 220.0f, 329.6f },
+            new float[] { 87.3f, 220.0f, 349.2f }
+        };
+
         static MoodSpec Spec(SoundMood mood)
         {
             MoodSpec s = new MoodSpec();
@@ -178,6 +185,19 @@ namespace GemRush
                     s.Shimmer = 0.10f;
                     s.MotifNotes = new float[] { E5, G5, A5, D5, C5 };
                     s.MotifTimes = new float[] { 2.1f, 5.4f, 8.2f, 10.6f, 12.4f };
+                    break;
+                case SoundMood.Festival:
+                    // The realm's celebration: bright open chords with a
+                    // sprinkle of high bell notes — the sky realm at its
+                    // most joyful.
+                    s.Chords = FestivalChords;
+                    s.Harmonic2 = 0.2f;
+                    s.Sub = 0.12f;
+                    s.Shimmer = 0.12f;
+                    s.BellMotif = true;
+                    s.MotifNotes = new float[] { 783.99f, 1046.5f, 880f,
+                                                 1318.5f, 1046.5f };
+                    s.MotifTimes = new float[] { 0.9f, 2.4f, 4.1f, 5.9f, 7.4f };
                     break;
                 default: // Day — the realm's home sound, close to the original.
                     s.Chords = DayChords;

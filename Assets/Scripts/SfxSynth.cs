@@ -466,6 +466,44 @@ namespace GemRush
             return MakeClip(name, data);
         }
 
+        /// Every 10th gem in a chained run: a tiny bright fanfare that
+        /// says "streak!" without interrupting the pickup song.
+        public static AudioClip MilestoneChime(string name)
+        {
+            float[] data = new float[(int)(1.3f * SampleRate) + 1];
+            float[] notes = { 880f, 1108.73f, 1318.5f };
+            for (int i = 0; i < notes.Length; i++)
+                Voice(data, notes[i], i * 0.07f, 0.7f, 0.24f,
+                    BoxPartials, BoxWeights, BoxDecays, 0.004f, 2.2f);
+            return MakeClip(name, data);
+        }
+
+        /// The Aurora Festival's concert: a bell-choir cadence — the whole
+        /// atlas playing together before the last note lights the aurora.
+        public static AudioClip FestivalConcert(string name)
+        {
+            float lead = 0.5f;
+            // A rising major line, then the home chord spread wide.
+            float[] melody = { 523.25f, 659.25f, 783.99f, 1046.5f,
+                               783.99f, 1046.5f, 1318.5f };
+            float dur = lead + melody.Length * 0.22f + 2.2f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            float[] partials = { 0.5f, 1f, 2.76f, 5.42f };
+            float[] weights = { 0.35f, 1f, 0.3f, 0.1f };
+            float[] decays = { 0.8f, 1f, 1.9f, 3.2f };
+            for (int i = 0; i < melody.Length; i++)
+                Voice(data, melody[i], lead + i * 0.22f, 1.4f, 0.3f,
+                    partials, weights, decays, 0.006f, 1.8f);
+            // The closing chord, wide and slow.
+            float[] chord = { 523.25f, 659.25f, 783.99f, 1046.5f };
+            for (int i = 0; i < chord.Length; i++)
+                Voice(data, chord[i], lead + melody.Length * 0.22f + 0.35f,
+                    2f, 0.22f, partials, weights, decays, 0.02f, 1.6f);
+            NoiseVoice(data, lead, dur - lead - 0.3f, 0.04f, 2800f, 3800f,
+                0.5f, 0.8f, 610);
+            return MakeClip(name, data);
+        }
+
         // ------------------------------------------------------------------
         // The world: wind, bells, bridges, guardians, mirrors
         // ------------------------------------------------------------------

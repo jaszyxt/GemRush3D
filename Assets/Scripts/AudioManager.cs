@@ -387,6 +387,11 @@ namespace GemRush
             comboStreak++;
             if (!SaveSystem.SoundOn) return;
 
+            // Every 10th chained gem sings a tiny fanfare on top — a
+            // milestone in the streak, festival-style.
+            if (comboStreak > 0 && comboStreak % 10 == 0)
+                PlayMilestoneChime();
+
             // One clip per step, cached like the notes and bells; step 0
             // reuses the clip synthesized in Awake.
             AudioClip clip;
@@ -399,6 +404,17 @@ namespace GemRush
                 float scale = Mathf.Pow(2f, step / 12f);
                 clip = SfxSynth.GemPickup("pickup_" + step, 880f * scale);
                 noteCache[100 + step] = clip;
+            }
+            source.PlayOneShot(clip);
+        }
+
+        /// Cached bright triad for the every-10th-gem milestone.
+        public void PlayMilestoneChime()
+        {
+            if (!noteCache.TryGetValue(9500, out AudioClip clip))
+            {
+                clip = SfxSynth.MilestoneChime("sfx_milestone");
+                noteCache[9500] = clip;
             }
             source.PlayOneShot(clip);
         }
@@ -540,6 +556,18 @@ namespace GemRush
             {
                 clip = SfxSynth.CrystalRun("sfx_crystal");
                 noteCache[9400] = clip;
+            }
+            source.PlayOneShot(clip);
+        }
+
+        /// The Aurora Festival: the realm's concert under the win fanfare.
+        public void PlayConcert()
+        {
+            if (!SaveSystem.SoundOn) return;
+            if (!noteCache.TryGetValue(9600, out AudioClip clip))
+            {
+                clip = SfxSynth.FestivalConcert("sfx_concert");
+                noteCache[9600] = clip;
             }
             source.PlayOneShot(clip);
         }

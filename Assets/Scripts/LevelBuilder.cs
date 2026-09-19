@@ -114,6 +114,9 @@ namespace GemRush
             for (int i = 0; i < level.IceGates.Count; i++)
                 IceGate.Create(parent, level.IceGates[i]);
 
+            for (int i = 0; i < level.AuroraRibbons.Count; i++)
+                AuroraRibbon.Create(parent, level.AuroraRibbons[i]);
+
             for (int i = 0; i < level.Gems.Count; i++)
             {
                 Gem gem = Gem.Create(parent, level.Gems[i]);
@@ -141,6 +144,9 @@ namespace GemRush
                         level.Platforms[i].Size.z * 0.5f);
                 Snowfall.Create(parent, courseEnd);
             }
+
+            if (level.AuroraFestival)
+                AuroraBand.Create(parent, level.Portal.z + 20f);
 
             ApplyAtmosphere(level);
 

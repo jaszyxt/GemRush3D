@@ -10,7 +10,9 @@ namespace GemRush
         public Vector3 moveOffset = new Vector3(5f, 0f, 0f);
         public float period = 4f;
 
-        public Vector3 Velocity { get; private set; }
+        /// Per-frame velocity for the rider carry. Protected setter so
+        /// subclasses (AuroraRibbon) drive it from their own motion.
+        public Vector3 Velocity { get; protected set; }
 
         Rigidbody rb;
         Vector3 startPosition;

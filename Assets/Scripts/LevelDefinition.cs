@@ -18,7 +18,8 @@ namespace GemRush
         Bells,
         Flight,
         Mirror,
-        Winter
+        Winter,
+        Festival
     }
 
     /// Pure data describing one level. No behaviour lives here — LevelBuilder
@@ -49,6 +50,7 @@ namespace GemRush
             if (SkyGarden) return SoundMood.Garden;
             if (MirrorSkies) return SoundMood.Mirror;
             if (LongWinter) return SoundMood.Winter;
+            if (AuroraFestival) return SoundMood.Festival;
             return SoundMood.Day;
         }
 
@@ -108,6 +110,18 @@ namespace GemRush
         /// The Long Winter levels: snow-soft platforms, falling snow, a
         /// pale cool sky and the quietest music in the game.
         public bool LongWinter = false;
+
+        /// Aurora ribbons: flowing light-bridges that carry Pip across a
+        /// gap with a gentle sideways sway. The festival's ride.
+        public List<AuroraRibbonSpec> AuroraRibbons = new List<AuroraRibbonSpec>();
+
+        /// Aurora Festival levels: dusk sky, aurora bands overhead, and the
+        /// realm's brightest, bell-sparkled music.
+        public bool AuroraFestival = false;
+
+        /// Set on the festival finale: clearing it lights the permanent
+        /// aurora over the menu screen forever.
+        public bool AuroraUnlock = false;
 
         /// Bonus flight level: Pip stays home and Gloomfang is playable —
         /// no gravity, gentle drift, no fall deaths.
@@ -303,6 +317,30 @@ namespace GemRush
         {
             Center = new Vector3(x, y, z);
             Size = new Vector3(w, h, d);
+        }
+    }
+
+    public class AuroraRibbonSpec
+    {
+        /// Start position of the ribbon's path (Center of the slab).
+        public Vector3 Center;
+        public Vector3 Size = new Vector3(3.4f, 0.5f, 5f);
+        /// Travel vector: the far end of the flow, like a mover's offset.
+        public Vector3 Travel = new Vector3(0f, 0f, 10f);
+        public float Period = 6f;
+        /// Sideways sway amplitude (units) — the ribbon's flowing S-curve.
+        public float Sway = 1.5f;
+        /// How many sway half-waves along one period.
+        public float Waves = 1f;
+
+        public AuroraRibbonSpec(float x, float y, float z, Vector3 travel,
+            float period, float sway, Vector3 size)
+        {
+            Center = new Vector3(x, y, z);
+            Travel = travel;
+            Period = period;
+            Sway = sway;
+            Size = size;
         }
     }
 }
