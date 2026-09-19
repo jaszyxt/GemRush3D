@@ -210,6 +210,8 @@ namespace GemRush
 
         public const string AtlasUncharted =
             "Charted skies, drawn in Pip's small, determined handwriting.";
+        public const string StampCharted = "REGION CHARTED";
+        public const string StampPerfect = "PERFECT CHART";
 
         // ---------- Photo mode ----------
 

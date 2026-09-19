@@ -134,6 +134,9 @@ namespace GemRush
         Button atlasNext;
         Button atlasBack;
         int atlasRegion;
+        GameObject atlasStamp;
+        Text atlasStampText;
+        Image[] atlasStampStars;
 
         void Awake()
         {
@@ -223,6 +226,12 @@ namespace GemRush
             {
                 titleRect.anchoredPosition =
                     new Vector2(0f, Mathf.Sin(Time.unscaledTime * 1.7f) * 9f);
+                // Mouse activity hands the hint back from the pad.
+                // Deliberately NOT Input.anyKeyDown: with the Both input
+                // backend, pad buttons surface in the legacy API and would
+                // mislabel themselves as keyboard.
+                if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
+                    GamepadInput.MarkOther();
                 // The hint line follows the last-used device; rewrite only
                 // on an actual flip (the mode read is throttled internally).
                 int mode = CurrentInstructionMode();
@@ -969,6 +978,47 @@ namespace GemRush
                 new Vector2(0.5f, 0.09f), new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseAtlas(); });
 
+            // The completion stamp: a gold seal in the free band left of
+            // BACK — CHARTED when every level of the region is cleared,
+            // PERFECT CHART (with stars) when all hold three stars.
+            atlasStamp = new GameObject("RegionStamp", typeof(RectTransform));
+            atlasStamp.transform.SetParent(atlasPanel.transform, false);
+            RectTransform stamp = atlasStamp.GetComponent<RectTransform>();
+            stamp.anchorMin = new Vector2(0.06f, 0.5f);
+            stamp.anchorMax = new Vector2(0.06f, 0.5f);
+            stamp.pivot = new Vector2(0.5f, 0.5f);
+            stamp.anchoredPosition = new Vector2(0f, 0f);
+            stamp.sizeDelta = new Vector2(300f, 74f);
+            Image stampBack = atlasStamp.AddComponent<Image>();
+            stampBack.color = new Color(0f, 0f, 0.05f, 0.6f);
+            Outline stampFrame = atlasStamp.AddComponent<Outline>();
+            stampFrame.effectColor = starGold;
+            stampFrame.effectDistance = new Vector2(2.5f, 2.5f);
+
+            atlasStampText = MakeText(atlasStamp.transform, "StampText", "",
+                22, starGold, TextAnchor.MiddleCenter,
+                new Vector2(0.06f, 0.0f), new Vector2(0.94f, 1f),
+                0f, 0f, 0f, 0f);
+            atlasStampText.fontStyle = FontStyle.Bold;
+
+            atlasStampStars = new Image[3];
+            for (int i = 0; i < 3; i++)
+            {
+                GameObject star = new GameObject("StampStar" + i);
+                star.transform.SetParent(atlasStamp.transform, false);
+                Image img = star.AddComponent<Image>();
+                img.sprite = Fx.StarSprite();
+                img.raycastTarget = false;
+                img.color = starGold;
+                RectTransform srt = img.rectTransform;
+                srt.anchorMin = new Vector2(0.5f + (i - 1) * 0.16f - 0.05f, 0.08f);
+                srt.anchorMax = srt.anchorMin;
+                srt.sizeDelta = new Vector2(30f, 30f);
+                atlasStampStars[i] = img;
+            }
+
+            atlasStamp.SetActive(false);
+
             WireAtlasNav();
             atlasPanel.SetActive(false);
         }
@@ -1060,6 +1110,18 @@ namespace GemRush
                 : milestone;
             atlasPageLabel.text = Strings.AtlasPage(atlasRegion + 1,
                 LevelLibrary.Regions.Length);
+
+            // The completion stamp: earned per region, shown left of BACK.
+            bool charted = Shelf.RegionCleared(region.Name);
+            bool perfect = Shelf.RegionPerfect(region.Name);
+            atlasStamp.SetActive(charted);
+            if (charted)
+            {
+                atlasStampText.text = perfect ? Strings.StampPerfect
+                    : Strings.StampCharted;
+                for (int i = 0; i < atlasStampStars.Length; i++)
+                    atlasStampStars[i].gameObject.SetActive(perfect);
+            }
 
             for (int i = 0; i < atlasRows.Length; i++)
             {
@@ -2102,7 +2164,9 @@ namespace GemRush
             button.onClick.AddListener(delegate { AudioManager.Instance.PlayUIClick(); });
             button.onClick.AddListener(onClick);
 
-            // Press feedback: quick dip and spring back.
+            // Press feedback: quick dip and spring back, relative to the
+            // scale the button already has — a focused button dips from and
+            // returns to its 1.08 focus grow instead of collapsing to 1.
             RectTransform rt = go.GetComponent<RectTransform>();
             rt.anchorMin = anchor;
             rt.anchorMax = anchor;
@@ -2110,10 +2174,11 @@ namespace GemRush
             rt.sizeDelta = TouchTarget(size);
             button.onClick.AddListener(delegate
             {
+                Vector3 rest = rt.localScale;
                 Tweener.Value(0f, 1f, 0.16f, delegate(float k)
                 {
                     float s = Mathf.Lerp(0.9f, 1f, k);
-                    rt.localScale = new Vector3(s, s, 1f);
+                    rt.localScale = rest * s;
                 });
             });
 
