@@ -53,7 +53,7 @@ setting).
 
 The storm scattered the sky realm's **Sunstones**. You are **Pip**, the
 Sky-Keeper's little helper: hop the islands, reclaim the gems, light each
-portal — and chase the storm. Thirty-seven levels in twelve packs and B-Sides, rated 1–3 stars
+portal — and chase the storm. Forty levels in thirteen packs and B-Sides, rated 1–3 stars
 each:
 
 **Pack One — The Storm**
@@ -168,7 +168,18 @@ each:
     aurora over the menu**. 16 gems + 2 hearts.
 
 
-Stars: **3** = all gems, **2** = half, **1** = finished. Best times and stars
+**Pack Thirteen — The Homecoming** (the last chart: the long way back)
+38. **The Long Way Home** — **see-saw planks** tip under Pip's weight;
+    stand on an end and the treat shelves below tip up to meet you.
+    12 gems.
+39. **Tipping Points** — longer planks, one that tips sideways out of
+    pure spite, and a guardian complaining about the creaking in its
+    sleep. 13 gems + heart.
+40. **Coming Home** — the last stretch, walked at sunset, ending at a
+    small island with a shelf. Gloomfang's badge stops saying
+    "probationary". 14 gems + 2 hearts.
+
+Stars:Stars: **3** = all gems, **2** = half, **1** = finished. Best times and stars
 are saved on the device; clearing a level unlocks the next. Touching a red
 spinner arm (or falling) costs a life; you carry 3 per attempt — **heart
 pickups** in the tougher levels grant one back (up to 5). **Bounce pads**

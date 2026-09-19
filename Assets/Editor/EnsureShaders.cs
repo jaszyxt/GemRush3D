@@ -87,8 +87,8 @@ namespace GemRush.EditorTools
         public static void Build()
         {
             PlayerSettings.productName = "Gem Rush 3D";
-            PlayerSettings.bundleVersion = "1.16.0";
-            PlayerSettings.Android.bundleVersionCode = 25;
+            PlayerSettings.bundleVersion = "1.17.0";
+            PlayerSettings.Android.bundleVersionCode = 26;
 
             // Desktop window UX (D8): a resizable borderless-fullscreen
             // window at the UI's native reference size that keeps running
@@ -184,32 +184,15 @@ namespace GemRush.EditorTools
             }
             System.IO.Directory.CreateDirectory(dst);
 
-            // Top-level files: the player launcher plus every loose dll.
+            // The game data first (it IS the update), then the scripting
+            // runtime and render plugins, then the loose files — so a
+            // locked loose DLL (the game still running) can't hold back
+            // the parts that matter. Every file copies with overwrite;
+            // locked files skip individually. Nothing is ever DELETED:
+            // a half-updated install would be worse than a stale one,
+            // and the next deploy (game closed) overwrites the rest.
             int copied = 0;
-            foreach (string file in System.IO.Directory.GetFiles(src))
-            {
-                if (System.IO.Path.GetFileName(file) ==
-                    "GemRush3D_BackUpThisFolder_ButDontShipItWithYourGame")
-                    continue;
-                try
-                {
-                    string target = System.IO.Path.Combine(dst,
-                        System.IO.Path.GetFileName(file));
-                    if (System.IO.File.Exists(target))
-                        System.IO.File.Delete(target);
-                    System.IO.File.Copy(file, target, true);
-                    copied++;
-                }
-                catch (System.IO.IOException e)
-                {
-                    Debug.LogWarning("[GemRush] Could not overwrite " +
-                        file + " — is the game still running? Close it and " +
-                        "run GemRush/Install Windows Build (Local). (" +
-                        e.Message + ")");
-                }
-            }
-
-            // Whole directories: data, scripting runtime, render plugins.
+            int skipped = 0;
             foreach (string dirName in new string[]
                      {
                          "GemRush3D_Data", "MonoBleedingEdge", "D3D12"
@@ -218,39 +201,30 @@ namespace GemRush.EditorTools
                 string dirSrc = System.IO.Path.Combine(src, dirName);
                 if (!System.IO.Directory.Exists(dirSrc)) continue;
                 string dirDst = System.IO.Path.Combine(dst, dirName);
-                try
-                {
-                    if (System.IO.Directory.Exists(dirDst))
-                        System.IO.Directory.Delete(dirDst, true);
-                    CopyDirectory(dirSrc, dirDst);
-                    copied++;
-                }
-                catch (System.IO.IOException e)
-                {
-                    Debug.LogWarning("[GemRush] Could not refresh " + dirName +
-                        " — is the game still running? Close it and run " +
-                        "GemRush/Install Windows Build (Local). (" +
-                        e.Message + ")");
-                }
+                CopyDirectory(dirSrc, dirDst, ref copied, ref skipped);
+            }
+
+            // Top-level files: the player launcher plus every loose dll.
+            foreach (string file in System.IO.Directory.GetFiles(src))
+            {
+                if (System.IO.Path.GetFileName(file) ==
+                    "GemRush3D_BackUpThisFolder_ButDontShipItWithYourGame")
+                    continue;
+                CopyFileResilient(file, System.IO.Path.Combine(dst,
+                    System.IO.Path.GetFileName(file)), ref copied, ref skipped);
             }
 
             WriteDesktopShortcut(dst);
-            Debug.Log("[GemRush] Windows install updated at " + dst +
-                " (" + copied + " items). Desktop shortcut: " +
-                ShortcutName + ".");
-        }
-
-        static void CopyDirectory(string src, string dst)
-        {
-            System.IO.Directory.CreateDirectory(dst);
-            foreach (string file in System.IO.Directory.GetFiles(src))
-                System.IO.File.Copy(file,
-                    System.IO.Path.Combine(dst,
-                        System.IO.Path.GetFileName(file)), true);
-            foreach (string dir in System.IO.Directory.GetDirectories(src))
-                CopyDirectory(dir,
-                    System.IO.Path.Combine(dst,
-                        System.IO.Path.GetFileName(dir)));
+            if (skipped == 0)
+                Debug.Log("[GemRush] Windows install updated at " + dst +
+                    " (" + copied + " files). Desktop shortcut: " +
+                    ShortcutName + ".");
+            else
+                Debug.LogWarning("[GemRush] Windows install PARTIALLY " +
+                    "updated at " + dst + " (" + copied + " copied, " +
+                    skipped + " locked — the game is still running). Close " +
+                    "the game and re-run GemRush/Install Windows Build " +
+                    "(Local) — or rebuild; the next deploy self-heals.");
         }
 
         /// (Re)writes the Desktop shortcut so it always launches the
@@ -272,7 +246,7 @@ namespace GemRush.EditorTools
                 System.Diagnostics.Process.Start(
                     "powershell.exe",
                     "-NoProfile -ExecutionPolicy Bypass -Command \"" +
-                    ps.Replace("\"", "\\\"") + "\"").WaitForExit(15000);
+                    ps.Replace("\\", "\\\\") + "\\").WaitForExit(15000);
             }
             catch (System.Exception e)
             {
@@ -282,8 +256,56 @@ namespace GemRush.EditorTools
             }
         }
 
-        /// The icon is painted in code (flat Pip-on-an-island scene) so the
-        /// project keeps shipping zero imported assets.
+        /// Clear the read-only attribute on a file (a copied-in player can
+        /// carry it, and File.Delete refuses to remove read-only files).
+        static void UnlockFile(string path)
+        {
+            if (!System.IO.File.Exists(path)) return;
+            System.IO.FileAttributes attrs = System.IO.File.GetAttributes(path);
+            if ((attrs & System.IO.FileAttributes.ReadOnly) != 0)
+                System.IO.File.SetAttributes(path,
+                    attrs & ~System.IO.FileAttributes.ReadOnly);
+        }
+
+        /// Copies every file under src into dst (structure preserved),
+        /// overwriting. Locked or unreadable files are skipped and
+        /// counted — never fatal, never partial-deleting.
+        static void CopyDirectory(string src, string dst,
+            ref int copied, ref int skipped)
+        {
+            foreach (string file in System.IO.Directory.GetFiles(src))
+                CopyFileResilient(file,
+                    System.IO.Path.Combine(dst,
+                        System.IO.Path.GetFileName(file)),
+                    ref copied, ref skipped);
+            foreach (string dir in System.IO.Directory.GetDirectories(src))
+                CopyDirectory(dir,
+                    System.IO.Path.Combine(dst,
+                        System.IO.Path.GetFileName(dir)),
+                    ref copied, ref skipped);
+        }
+
+        static void CopyFileResilient(string srcFile, string dstFile,
+            ref int copied, ref int skipped)
+        {
+            try
+            {
+                UnlockFile(dstFile);
+                System.IO.Directory.CreateDirectory(
+                    System.IO.Path.GetDirectoryName(dstFile));
+                System.IO.File.Copy(srcFile, dstFile, true);
+                copied++;
+            }
+            catch (System.Exception e)
+            {
+                skipped++;
+                if (skipped <= 3) // don't spam the console; the count tells all
+                    Debug.LogWarning("[GemRush] Skipped locked file " +
+                        System.IO.Path.GetFileName(dstFile) +
+                        " (the game is still running). " + e.Message);
+            }
+        }
+
         static void ApplyIcon()
         {
             const string iconPath = "Assets/Textures/AppIcon.png";
@@ -338,6 +360,7 @@ namespace GemRush.EditorTools
             PlayerSettings.Android.keyaliasPass = password;
             Debug.Log("[GemRush] Signing with release keystore 'gemrush'.");
         }
+
 
         // ---------- Icon painter ----------
 

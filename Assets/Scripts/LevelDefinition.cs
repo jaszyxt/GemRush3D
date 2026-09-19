@@ -115,6 +115,11 @@ namespace GemRush
         /// gap with a gentle sideways sway. The festival's ride.
         public List<AuroraRibbonSpec> AuroraRibbons = new List<AuroraRibbonSpec>();
 
+        /// See-saw planks: wooden planks on a pivot that tip gently under
+        /// Pip's weight — tip an end down to reach treats on shelves
+        /// below, or cross them as living ramps.
+        public List<SeeSawSpec> SeeSaws = new List<SeeSawSpec>();
+
         /// Aurora Festival levels: dusk sky, aurora bands overhead, and the
         /// realm's brightest, bell-sparkled music.
         public bool AuroraFestival = false;
@@ -341,6 +346,30 @@ namespace GemRush
             Period = period;
             Sway = sway;
             Size = size;
+        }
+    }
+
+    public class SeeSawSpec
+    {
+        /// Position of the plank's pivot: the platform top the hinge
+        /// stands on.
+        public Vector3 PlatformTop;
+        /// Plank length along its tipping axis, width across it.
+        public float Length = 7f;
+        public float Width = 2.6f;
+        /// Tipping axis: "x" tips along X (plank spans X), "z" along Z.
+        public string Axis = "z";
+        /// Maximum tilt either way, in degrees. Gentle by design.
+        public float MaxTilt = 11f;
+
+        public SeeSawSpec(float x, float y, float z, float length,
+            float width, string axis, float maxTilt)
+        {
+            PlatformTop = new Vector3(x, y, z);
+            Length = length;
+            Width = width;
+            Axis = axis;
+            MaxTilt = maxTilt;
         }
     }
 }

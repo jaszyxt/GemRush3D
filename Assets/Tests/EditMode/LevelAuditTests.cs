@@ -121,6 +121,22 @@ namespace GemRush.Tests
                     });
                 }
             }
+            // See-saw planks stand at their pivot: level within a few
+            // degrees of the hinge top, so the hinge-top position is the
+            // honest standable area.
+            for (int i = 0; i < l.SeeSaws.Count; i++)
+            {
+                SeeSawSpec s = l.SeeSaws[i];
+                bool alongX = s.Axis == "x";
+                tops.Add(new Top
+                {
+                    Center = new Vector3(s.PlatformTop.x,
+                        s.PlatformTop.y + 0.52f, s.PlatformTop.z),
+                    Half = alongX
+                        ? new Vector2(s.Length * 0.5f, s.Width * 0.5f)
+                        : new Vector2(s.Width * 0.5f, s.Length * 0.5f)
+                });
+            }
             return tops;
         }
 
@@ -361,7 +377,8 @@ namespace GemRush.Tests
                             if (moverGap <= MaxEdgeGap) hasNeighbor = true;
                         }
                     }
-                    // Aurora ribbons board from their path's two ends.
+                    // Aurora ribbons board from their path's two ends;
+                    // see-saw planks bridge from their pivot.
                     if (!hasNeighbor)
                     {
                         for (int r = 0; r < l.AuroraRibbons.Count && !hasNeighbor; r++)
@@ -371,6 +388,19 @@ namespace GemRush.Tests
                                 EdgeGapXz(pa, BoxAt(r2.Center, r2.Size)),
                                 EdgeGapXz(pa, BoxAt(r2.Center + r2.Travel, r2.Size)));
                             if (ribbonGap <= MaxEdgeGap) hasNeighbor = true;
+                        }
+                    }
+                    if (!hasNeighbor)
+                    {
+                        for (int s = 0; s < l.SeeSaws.Count && !hasNeighbor; s++)
+                        {
+                            SeeSawSpec s2 = l.SeeSaws[s];
+                            Vector3 pivot = s2.PlatformTop;
+                            Vector3 size = s2.Axis == "x"
+                                ? new Vector3(s2.Length, 1f, s2.Width)
+                                : new Vector3(s2.Width, 1f, s2.Length);
+                            if (EdgeGapXz(pa, BoxAt(pivot, size)) <= MaxEdgeGap)
+                                hasNeighbor = true;
                         }
                     }
                     if (!hasNeighbor)
@@ -590,6 +620,39 @@ namespace GemRush.Tests
             Assert.AreEqual(1, unlockers,
                 "Exactly one level (the festival finale) may carry " +
                 "AuroraUnlock; found " + unlockers + ".");
+        }
+
+        [Test]
+        public void EverySeeSaw_HingesOnAPlatformTop()
+        {
+            // A see-saw's pivot post must stand on solid ground — hinge
+            // exactly at a platform's top surface, like checkpoints do.
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                for (int s = 0; s < l.SeeSaws.Count; s++)
+                {
+                    Vector3 pivot = l.SeeSaws[s].PlatformTop;
+                    bool grounded = false;
+                    for (int p = 0; p < l.Platforms.Count && !grounded; p++)
+                    {
+                        PlatformSpec p2 = l.Platforms[p];
+                        float dx = Mathf.Abs(pivot.x - p2.Center.x) - p2.Size.x * 0.5f;
+                        float dz = Mathf.Abs(pivot.z - p2.Center.z) - p2.Size.z * 0.5f;
+                        float topY = p2.Center.y + p2.Size.y * 0.5f;
+                        grounded = dx <= 0f && dz <= 0f &&
+                            Mathf.Abs(pivot.y - topY) <= 0.05f;
+                    }
+                    Assert.IsTrue(grounded,
+                        Label(i, l) + ": see-saw " + s + " at " + pivot +
+                        " has no platform top directly under its hinge " +
+                        "(pivot positions are platform-top positions).");
+                    Assert.Greater(pivot.y, l.KillY + 0.5f,
+                        Label(i, l) + ": see-saw " + s +
+                        " sits below the death plane.");
+                }
+                i++;
+            }
         }
 
         [Test]

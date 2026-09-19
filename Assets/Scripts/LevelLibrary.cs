@@ -33,7 +33,8 @@ namespace GemRush
             new Region { Roman = "X",     Name = "Mirror Skies",         First = 25, Count = 3 },
             new Region { Roman = "XI",    Name = "The B-Sides",          First = 28, Count = 3 },
             new Region { Roman = "XII",   Name = "The Long Winter",      First = 31, Count = 3 },
-            new Region { Roman = "XIII",  Name = "The Aurora Festival",  First = 34, Count = 3 }
+            new Region { Roman = "XIII",  Name = "The Aurora Festival",  First = 34, Count = 3 },
+            new Region { Roman = "XIV",   Name = "The Homecoming",       First = 37, Count = 3 }
         };
 
         static LevelDefinition[] BuildAllLevels()
@@ -58,7 +59,8 @@ namespace GemRush
                     + LevelPackTen.Levels.Length
                     + LevelPackBSides.Levels.Length
                     + LevelPackEleven.Levels.Length
-                    + LevelPackTwelve.Levels.Length];
+                    + LevelPackTwelve.Levels.Length
+                    + LevelPackThirteen.Levels.Length];
             int n = 0;
             for (int i = 0; i < baseLevels.Length; i++) all[n++] = baseLevels[i];
             for (int i = 0; i < LevelPackTwo.Levels.Length; i++)
@@ -85,6 +87,8 @@ namespace GemRush
                 all[n++] = LevelPackEleven.Levels[i];
             for (int i = 0; i < LevelPackTwelve.Levels.Length; i++)
                 all[n++] = LevelPackTwelve.Levels[i];
+            for (int i = 0; i < LevelPackThirteen.Levels.Length; i++)
+                all[n++] = LevelPackThirteen.Levels[i];
             return all;
         }
 

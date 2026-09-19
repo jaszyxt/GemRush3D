@@ -117,6 +117,9 @@ namespace GemRush
             for (int i = 0; i < level.AuroraRibbons.Count; i++)
                 AuroraRibbon.Create(parent, level.AuroraRibbons[i]);
 
+            for (int i = 0; i < level.SeeSaws.Count; i++)
+                SeeSaw.Create(parent, level.SeeSaws[i]);
+
             for (int i = 0; i < level.Gems.Count; i++)
             {
                 Gem gem = Gem.Create(parent, level.Gems[i]);
