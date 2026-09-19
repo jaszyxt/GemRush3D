@@ -182,6 +182,14 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "sound", value ? 1 : 0); Save(); }
         }
 
+        /// Voice narration. Defaults on and rides under the master Sound
+        /// gate (no sound, no voice); the VoiceOver channel reads this.
+        public static bool VoiceOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "voice", 1) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "voice", value ? 1 : 0); Save(); }
+        }
+
         public static bool HapticsOn
         {
             get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "haptics", 1) == 1; }

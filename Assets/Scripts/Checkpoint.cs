@@ -9,9 +9,10 @@ namespace GemRush
         Material ringMaterial;
         bool activated;
         string storyLine;
+        string voId; // voice-line ID for the story beat, if it has one
 
         public static void Create(Transform parent, Vector3 platformTopCenter,
-            string storyLine = null)
+            string storyLine = null, string voId = null)
         {
             GameObject pad = new GameObject("Checkpoint");
             pad.transform.SetParent(parent, false);
@@ -45,6 +46,7 @@ namespace GemRush
             cp.ring = disc;
             cp.ringMaterial = mat;
             cp.storyLine = storyLine;
+            cp.voId = voId;
         }
 
         void OnTriggerEnter(Collider other)
@@ -77,7 +79,7 @@ namespace GemRush
             pip.Twirl();
 
             if (!string.IsNullOrEmpty(storyLine) && UIManager.Instance != null)
-                UIManager.Instance.ShowStoryToast(storyLine);
+                UIManager.Instance.ShowStoryToast(storyLine, voId);
         }
     }
 }

@@ -238,6 +238,35 @@ C-major pentatonic, which means playing the game literally plays music:
   breathe open and closed; settings toggles blip up (on) or down (off);
   epilogue pages turn quietly. UI never speaks louder than gameplay.
 
+## The voice of the realm (narrated by Kokoro)
+
+The realm's story is **read aloud**: every mission briefing, checkpoint
+story beat, win line, milestone, the four-page epilogue and the menu's
+flavor quotes (~185 lines) are narrated by a warm storyteller voice. The
+voice is not a recording — it is **generated** by the open-source
+[Kokoro-82M](https://huggingface.co/spaces/hexgrad/Kokoro-TTS) model
+(Apache-2.0) from the game's own writing, loudness-normalized to mobile
+standard, and committed alongside the pipeline that can regenerate every
+line. The project's "zero imported assets" rule survives intact: voice
+clips are build artifacts of code and text, reproducible with two
+commands (see `tools/voice/README.md`).
+
+Design rules of the narration:
+
+- **Voice never contradicts the page.** Every line is hashed; if the
+  writing changes before regeneration, that line simply plays as
+  text-only — stale audio can never ship.
+- **The score yields.** While the narrator speaks, the music ducks and
+  breathes back after; mission cards and story toasts hold on screen
+  until their line finishes.
+- **One voice at a time.** The newest line wins; pause, level change or
+  the Voice setting stops it instantly. Voice rides under the master
+  Sound toggle (`SaveSystem.VoiceOn`).
+- **Casting is data.** The narrator is Kokoro's `af_heart` at 0.95×; a
+  deeper, warmer Gloomfang voice slot is pre-tuned in `tools/voice/cast.py`
+  for his quotes, and swapping the whole engine (e.g. Qwen3-TTS) only
+  means reimplementing one Python function.
+
 ## How it's built (code-first Unity)
 
 | Script | Role |
@@ -261,6 +290,7 @@ C-major pentatonic, which means playing the game literally plays music:
 | `SafeArea` | Fits the UI root to the device safe area (notches, punch-holes, rounded corners, gesture bars) |
 | `UIManager` | Menu with paged level select on touch, mission intro cards, HUD (change-cached, split canvases), pause with settings, win/game-over/completion screens — all built in code |
 | `SfxSynth` / `MusicSynth` / `AudioManager` | The whole game's audio, synthesized at runtime: a chime/breath DSP toolbox, per-realm mood loops and ambience beds, and the channels that play them; respects the sound setting |
+| `VoiceOver` / `tools/voice/` | Narrated story: plays generated voice lines against the on-screen text (hash-verified), ducks the score; the pipeline regenerates every clip from code — see `tools/voice/README.md` |
 | `Haptics` | Short vibration pulses (jump/gem/checkpoint/death/win), settings-aware; amplitude control on Android, system buzz on iOS |
 | `Fx` / `ArtLib` | Particle bursts, shared procedural sprites, material palette |
 

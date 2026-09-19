@@ -225,11 +225,13 @@ namespace GemRush
 
         // Death/win ducking: snap the pad down to a fraction of its level,
         // then ease it back on unscaled time — the sting reads in near
-        // silence, and the pad breathes back in afterwards.
+        // silence, and the pad breathes back in afterwards. Voice lines
+        // duck deeper and longer via DuckFor (while narration plays).
         const float MusicVolume = 0.55f;
         const float DuckFraction = 0.35f;
         const float DuckRestoreSeconds = 2.5f;
         float duckTimer;
+        float duckFraction = DuckFraction;
 
         // Self-accumulated clock for GetMusicPhase while the pad is
         // silent, so world rhythms (gusts) keep their beat with sound off.
@@ -271,7 +273,7 @@ namespace GemRush
                 duckTimer = Mathf.Max(0f, duckTimer - Time.unscaledDeltaTime);
                 float restore = Mathf.SmoothStep(0f, 1f,
                     1f - duckTimer / DuckRestoreSeconds);
-                duck = Mathf.Lerp(DuckFraction, 1f, restore);
+                duck = Mathf.Lerp(duckFraction, 1f, restore);
             }
             float wanted = MelodyWanted ? 1f : 0f;
             melodyFactor = Mathf.MoveTowards(melodyFactor, wanted,
@@ -573,8 +575,18 @@ namespace GemRush
         /// in near-silence; Update eases it back over ~2.5 s.
         void DuckMusic()
         {
+            duckFraction = DuckFraction;
             duckTimer = DuckRestoreSeconds;
             musicSource.volume = MusicVolume * DuckFraction;
+        }
+
+        /// While a voice line plays, duck deeper than a sting and hold for
+        /// the line's whole length (plus its breath). Extends an existing
+        /// duck rather than restarting it; the restore ramp is unchanged.
+        public void DuckFor(float seconds, float fraction)
+        {
+            duckFraction = Mathf.Clamp01(fraction);
+            duckTimer = Mathf.Max(duckTimer, seconds);
         }
 
         public void PlayWin()

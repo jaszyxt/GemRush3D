@@ -1,0 +1,9 @@
+# Gem Rush 3D voice-over pipeline — Python side.
+# System dependency (not pip-installable): ffmpeg must be on PATH.
+# kokoro's phonemizer may also use espeak-ng if misaki's G2P is
+# unavailable for a word; on Windows install it from
+# https://github.com/espeak-ng/espeak-ng/releases (only needed at
+# generation time — nothing GPL ships in the game).
+kokoro>=0.9.4
+soundfile>=0.12.1
+numpy>=1.26

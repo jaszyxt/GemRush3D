@@ -211,6 +211,18 @@ namespace GemRush
         public const string AtlasUncharted =
             "Charted skies, drawn in Pip's small, determined handwriting.";
 
+        // ---------- Photo mode ----------
+
+        public const string Photo = "PHOTO";
+        public const string PhotoCapture = "CAPTURE";
+        public const string PhotoDone = "DONE";
+        public const string PhotoOpenFolder = "OPEN FOLDER";
+        public const string PhotoHint = "A gentle orbit — CAPTURE takes the shot.";
+        public static string PhotoSavedTo(string folder)
+        {
+            return "Saved to " + folder;
+        }
+
         // ---------- Level intro ----------
 
         public static string IntroTitle(int number, string name)

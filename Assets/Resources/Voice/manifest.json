@@ -1,0 +1,1696 @@
+{
+ "version": 1,
+ "entries": [
+  {
+   "id": "mission_first_steps",
+   "cast": "narrator",
+   "hash": "e24bbec9",
+   "file": "narrator/mission_first_steps",
+   "duration": 8.7,
+   "aliases": [],
+   "text": "GLOOMFANG \u2014 a storm with abandonment issues \u2014 swallowed the Sunstones. The first ones are just ahead. Light the portal. Try not to look down."
+  },
+  {
+   "id": "win_first_steps",
+   "cast": "narrator",
+   "hash": "54b283a7",
+   "file": "narrator/win_first_steps",
+   "duration": 3.72,
+   "aliases": [],
+   "text": "One portal lit. Gloomfang pretends not to care. He cares."
+  },
+  {
+   "id": "beat_first_steps_0",
+   "cast": "narrator",
+   "hash": "1287eafc",
+   "file": "narrator/beat_first_steps_0",
+   "duration": 5.8,
+   "aliases": [],
+   "text": "The Sunstones hum when Pip gets close. Somewhere overhead, a very large storm flinches."
+  },
+  {
+   "id": "mission_spinner_gauntlet",
+   "cast": "narrator",
+   "hash": "684f505a",
+   "file": "narrator/mission_spinner_gauntlet",
+   "duration": 7.5,
+   "aliases": [],
+   "text": "Gloomfang left guardians to spin you into next week. They're big, they're red, they're very committed. Be smarter than they are round."
+  },
+  {
+   "id": "win_spinner_gauntlet",
+   "cast": "narrator",
+   "hash": "e3964575",
+   "file": "narrator/win_spinner_gauntlet",
+   "duration": 4.8,
+   "aliases": [],
+   "text": "Two wheels outspun. The guardians have requested a rematch. Request denied."
+  },
+  {
+   "id": "beat_spinner_gauntlet_0",
+   "cast": "narrator",
+   "hash": "a7129125",
+   "file": "narrator/beat_spinner_gauntlet_0",
+   "duration": 5.7,
+   "aliases": [],
+   "text": "Guardian rule one: spin. Rule two: see rule one. Pip's rule one: be somewhere else."
+  },
+  {
+   "id": "mission_the_ascent",
+   "cast": "narrator",
+   "hash": "6efa16ef",
+   "file": "narrator/mission_the_ascent",
+   "duration": 9.3,
+   "aliases": [
+    "mission_the_ascent___nightfall"
+   ],
+   "text": "Gloomfang waits at the summit, holding the last light and a grudge the size of the weather. Every legend ends at the top. Climb, Pip. Take the sky back."
+  },
+  {
+   "id": "win_the_ascent",
+   "cast": "narrator",
+   "hash": "ed6dd344",
+   "file": "narrator/win_the_ascent",
+   "duration": 5.1,
+   "aliases": [
+    "win_the_ascent___nightfall"
+   ],
+   "text": "The summit is yours. Somewhere above, a very large storm quietly apologizes."
+  },
+  {
+   "id": "milestone_the_ascent",
+   "cast": "narrator",
+   "hash": "579e13c8",
+   "file": "narrator/milestone_the_ascent",
+   "duration": 3.57,
+   "aliases": [],
+   "text": "REGION CHARTED: THE STORM. The atlas has its first ink."
+  },
+  {
+   "id": "beat_the_ascent_0",
+   "cast": "narrator",
+   "hash": "519abc87",
+   "file": "narrator/beat_the_ascent_0",
+   "duration": 5.9,
+   "aliases": [
+    "beat_the_ascent___nightfall_0"
+   ],
+   "text": "The higher Pip climbs, the quieter the wind gets. Gloomfang is watching. Gloomfang is nervous."
+  },
+  {
+   "id": "beat_the_ascent_1",
+   "cast": "narrator",
+   "hash": "f654d0f1",
+   "file": "narrator/beat_the_ascent_1",
+   "duration": 5.9,
+   "aliases": [
+    "beat_the_ascent___nightfall_1"
+   ],
+   "text": "Halfway up the old beacon route. The stones here remember other climbers. None of them were this small."
+  },
+  {
+   "id": "beat_the_ascent_2",
+   "cast": "narrator",
+   "hash": "2b3e869f",
+   "file": "narrator/beat_the_ascent_2",
+   "duration": 5.9,
+   "aliases": [
+    "beat_the_ascent___nightfall_2"
+   ],
+   "text": "One ledge from the top. Pip can see the whole sky realm from here \u2014 and every portal still waiting."
+  },
+  {
+   "id": "mission_stormcell_steps",
+   "cast": "narrator",
+   "hash": "95b76460",
+   "file": "narrator/mission_stormcell_steps",
+   "duration": 12.4,
+   "aliases": [],
+   "text": "Gloomfang retaliates. His stormcell elite ride the front line on platforms that never slow down, and the gaps come with no handrails. Time your rides, Pip \u2014 the storm does not do second chances."
+  },
+  {
+   "id": "win_stormcell_steps",
+   "cast": "narrator",
+   "hash": "dff115f9",
+   "file": "narrator/win_stormcell_steps",
+   "duration": 2.01,
+   "aliases": [],
+   "text": "The stormcell elite have been downsized."
+  },
+  {
+   "id": "beat_stormcell_steps_0",
+   "cast": "narrator",
+   "hash": "9ce4656c",
+   "file": "narrator/beat_stormcell_steps_0",
+   "duration": 6.9,
+   "aliases": [],
+   "text": "The stormcell elite ride lightning for fun. Pip rides orange planks for survival. Everyone has a hobby."
+  },
+  {
+   "id": "beat_stormcell_steps_1",
+   "cast": "narrator",
+   "hash": "d5391b9e",
+   "file": "narrator/beat_stormcell_steps_1",
+   "duration": 7.0,
+   "aliases": [],
+   "text": "Above the second arena, the clouds part for a second \u2014 long enough to see the summit waiting. Gloomfang saw Pip looking."
+  },
+  {
+   "id": "mission_gloomfang_s_garden",
+   "cast": "narrator",
+   "hash": "2709be8a",
+   "file": "narrator/mission_gloomfang_s_garden",
+   "duration": 13.2,
+   "aliases": [],
+   "text": "Past the gate lies Gloomfang's private garden, where the topiary spins at unsafe speeds and the stepping stones were placed by someone who hates you. Tiptoe through, Pip \u2014 and whatever you do, do not feed the guardians."
+  },
+  {
+   "id": "win_gloomfang_s_garden",
+   "cast": "narrator",
+   "hash": "138ce371",
+   "file": "narrator/win_gloomfang_s_garden",
+   "duration": 3.63,
+   "aliases": [],
+   "text": "Three guardians pruned and one garden thoroughly disrespected."
+  },
+  {
+   "id": "beat_gloomfang_s_garden_0",
+   "cast": "narrator",
+   "hash": "6bda6c84",
+   "file": "narrator/beat_gloomfang_s_garden_0",
+   "duration": 5.1,
+   "aliases": [],
+   "text": "This garden was Gloomfang's happy place, back when he had one. The topiary misses him."
+  },
+  {
+   "id": "beat_gloomfang_s_garden_1",
+   "cast": "narrator",
+   "hash": "61be43e9",
+   "file": "narrator/beat_gloomfang_s_garden_1",
+   "duration": 5.2,
+   "aliases": [],
+   "text": "The last guardian pretends not to see Pip. Even topiary knows when a fight is over."
+  },
+  {
+   "id": "mission_skyfall_summit",
+   "cast": "narrator",
+   "hash": "c7c7518f",
+   "file": "narrator/mission_skyfall_summit",
+   "duration": 11.5,
+   "aliases": [],
+   "text": "Skyfall Summit: the last Sunstones, the thinning air, and Gloomfang holding the high ground he insists he won fairly. One final climb, Pip \u2014 end the storm where the sky begins."
+  },
+  {
+   "id": "win_skyfall_summit",
+   "cast": "narrator",
+   "hash": "bf8410bf",
+   "file": "narrator/win_skyfall_summit",
+   "duration": 5.1,
+   "aliases": [],
+   "text": "Rematch settled \u2014 tomorrow's forecast calls for sunshine and zero chance of Gloomfang."
+  },
+  {
+   "id": "milestone_skyfall_summit",
+   "cast": "narrator",
+   "hash": "5389fcba",
+   "file": "narrator/milestone_skyfall_summit",
+   "duration": 4.0,
+   "aliases": [],
+   "text": "REGION CHARTED: THE REMATCH. The atlas orders a second page."
+  },
+  {
+   "id": "beat_skyfall_summit_0",
+   "cast": "narrator",
+   "hash": "7d123418",
+   "file": "narrator/beat_skyfall_summit_0",
+   "duration": 4.1,
+   "aliases": [],
+   "text": "The rematch. Gloomfang brought his best clouds. Pip brought snacks."
+  },
+  {
+   "id": "beat_skyfall_summit_1",
+   "cast": "narrator",
+   "hash": "26a4cb54",
+   "file": "narrator/beat_skyfall_summit_1",
+   "duration": 3.47,
+   "aliases": [],
+   "text": "Wind's thinner up here. Or that's Gloomfang, sulking loudly."
+  },
+  {
+   "id": "beat_skyfall_summit_2",
+   "cast": "narrator",
+   "hash": "bc6ab858",
+   "file": "narrator/beat_skyfall_summit_2",
+   "duration": 4.9,
+   "aliases": [],
+   "text": "The clouds below look soft enough to land on. They are not. Pip checked. Twice."
+  },
+  {
+   "id": "beat_skyfall_summit_3",
+   "cast": "narrator",
+   "hash": "22237b85",
+   "file": "narrator/beat_skyfall_summit_3",
+   "duration": 7.2,
+   "aliases": [],
+   "text": "Last rest stop before the summit. Gloomfang's grudge is the size of the weather \u2014 his hugs, reportedly, are bigger."
+  },
+  {
+   "id": "mission_the_long_fall",
+   "cast": "narrator",
+   "hash": "d965642c",
+   "file": "narrator/mission_the_long_fall",
+   "duration": 12.3,
+   "aliases": [],
+   "text": "Gloomfang took the rematch badly \u2014 he dove straight through the cloud floor with the Master Sunstone, heading down where no Sky-Keeper has ever gone. Down is the only way left, Pip. Try to fall with style."
+  },
+  {
+   "id": "win_the_long_fall",
+   "cast": "narrator",
+   "hash": "e61709b2",
+   "file": "narrator/win_the_long_fall",
+   "duration": 4.3,
+   "aliases": [],
+   "text": "The bottom of the sky has a floor after all. It looks... nervous to see you."
+  },
+  {
+   "id": "beat_the_long_fall_0",
+   "cast": "narrator",
+   "hash": "cd4fb247",
+   "file": "narrator/beat_the_long_fall_0",
+   "duration": 4.9,
+   "aliases": [],
+   "text": "Down here the wind changes \u2014 it doesn't howl anymore. It almost sounds like breathing."
+  },
+  {
+   "id": "beat_the_long_fall_1",
+   "cast": "narrator",
+   "hash": "b7794799",
+   "file": "narrator/beat_the_long_fall_1",
+   "duration": 4.9,
+   "aliases": [],
+   "text": "You are now below every map the Sky-Keeper ever drew. Even the clouds look nervous."
+  },
+  {
+   "id": "beat_the_long_fall_2",
+   "cast": "narrator",
+   "hash": "e375cbb4",
+   "file": "narrator/beat_the_long_fall_2",
+   "duration": 5.7,
+   "aliases": [],
+   "text": "Something enormous is glowing far below. It is NOT the Master Sunstone. It's much bigger."
+  },
+  {
+   "id": "mission_the_undercloud",
+   "cast": "narrator",
+   "hash": "3657041c",
+   "file": "narrator/mission_the_undercloud",
+   "duration": 12.4,
+   "aliases": [],
+   "text": "Welcome to the Undercloud \u2014 the dark Gloomfang never talks about. The glowing stones in the walls? He carried every one of them down himself. Hoarding the light, the guardians say. But hoarding it from WHAT?"
+  },
+  {
+   "id": "win_the_undercloud",
+   "cast": "narrator",
+   "hash": "95669b73",
+   "file": "narrator/win_the_undercloud",
+   "duration": 4.8,
+   "aliases": [],
+   "text": "The guardians step aside at last. They only ever wanted the dark kept out too."
+  },
+  {
+   "id": "beat_the_undercloud_0",
+   "cast": "narrator",
+   "hash": "e65d7698",
+   "file": "narrator/beat_the_undercloud_0",
+   "duration": 7.4,
+   "aliases": [],
+   "text": "The stones in the walls glow faintly. Somebody carried light down here \u2014 one armful at a time \u2014 for a very long time."
+  },
+  {
+   "id": "beat_the_undercloud_1",
+   "cast": "narrator",
+   "hash": "36c95c0b",
+   "file": "narrator/beat_the_undercloud_1",
+   "duration": 5.5,
+   "aliases": [],
+   "text": "The guardians aren't attacking. They're herding you away from something deeper in. Something that hums."
+  },
+  {
+   "id": "mission_heart_of_the_storm",
+   "cast": "narrator",
+   "hash": "745b8c0e",
+   "file": "narrator/mission_heart_of_the_storm",
+   "duration": 14.6,
+   "aliases": [],
+   "text": "At the bottom of everything beats the Heart of the Storm \u2014 and in front of it stands Gloomfang, out of storm and nearly out of excuses. 'Go back,' he thunders. It comes out as a whisper. One last climb, Pip. Not to win. To listen."
+  },
+  {
+   "id": "win_heart_of_the_storm",
+   "cast": "narrator",
+   "hash": "a16c19b3",
+   "file": "narrator/win_heart_of_the_storm",
+   "duration": 5.2,
+   "aliases": [],
+   "text": "Pip takes his hand. The sky realm lights from below for the first time in a thousand years."
+  },
+  {
+   "id": "milestone_heart_of_the_storm",
+   "cast": "narrator",
+   "hash": "b55ddf06",
+   "file": "narrator/milestone_heart_of_the_storm",
+   "duration": 3.6,
+   "aliases": [],
+   "text": "REGION CHARTED: THE UNDERCLOUD. The atlas grows a bottom."
+  },
+  {
+   "id": "beat_heart_of_the_storm_0",
+   "cast": "narrator",
+   "hash": "839ae561",
+   "file": "narrator/beat_heart_of_the_storm_0",
+   "duration": 5.5,
+   "aliases": [],
+   "text": "Gloomfang: 'I took the light so the dark couldn't have it. That was the plan. It was a bad plan.'"
+  },
+  {
+   "id": "beat_heart_of_the_storm_1",
+   "cast": "narrator",
+   "hash": "2803258c",
+   "file": "narrator/beat_heart_of_the_storm_1",
+   "duration": 6.8,
+   "aliases": [],
+   "text": "The humming is louder here. It's the Heart \u2014 and it's beating out of rhythm. It's been alone even longer than he has."
+  },
+  {
+   "id": "beat_heart_of_the_storm_2",
+   "cast": "narrator",
+   "hash": "9d0e54b3",
+   "file": "narrator/beat_heart_of_the_storm_2",
+   "duration": 5.8,
+   "aliases": [],
+   "text": "Gloomfang holds out the Master Sunstone with both enormous hands. 'You came all this way... FOR me?'"
+  },
+  {
+   "id": "mission_twinlight_terrace",
+   "cast": "narrator",
+   "hash": "bcc97149",
+   "file": "narrator/mission_twinlight_terrace",
+   "duration": 14.5,
+   "aliases": [],
+   "text": "With the Undercloud lit from below, the sky realm has two suns now \u2014 the old one, and the one Pip made. The terraces glow gold all day. No storm. No pressure. Just the best views in the realm and a guardian who half-heartedly spins."
+  },
+  {
+   "id": "win_twinlight_terrace",
+   "cast": "narrator",
+   "hash": "18d6a8a4",
+   "file": "narrator/win_twinlight_terrace",
+   "duration": 6.7,
+   "aliases": [],
+   "text": "Golden hour, golden gems. Gloomfang watched the whole run and clapped \u2014 very quietly, from very far away."
+  },
+  {
+   "id": "beat_twinlight_terrace_0",
+   "cast": "narrator",
+   "hash": "29e4d7ec",
+   "file": "narrator/beat_twinlight_terrace_0",
+   "duration": 5.6,
+   "aliases": [],
+   "text": "Two suns mean two shadows. Pip has decided the second one is Gloomfang, walking along."
+  },
+  {
+   "id": "beat_twinlight_terrace_1",
+   "cast": "narrator",
+   "hash": "84093906",
+   "file": "narrator/beat_twinlight_terrace_1",
+   "duration": 4.6,
+   "aliases": [],
+   "text": "The tame guardian spins at exactly the speed of a comfortable afternoon."
+  },
+  {
+   "id": "mission_raindance_revels",
+   "cast": "narrator",
+   "hash": "9e6e2f36",
+   "file": "narrator/mission_raindance_revels",
+   "duration": 13.6,
+   "aliases": [],
+   "text": "It's Tuesday \u2014 Gloomfang's first official rain delivery. The islands are slick with celebration, the guardians are dancing, and the elevators run on schedule. Splashing is encouraged. Falling is traditional."
+  },
+  {
+   "id": "win_raindance_revels",
+   "cast": "narrator",
+   "hash": "0d3e3c9b",
+   "file": "narrator/win_raindance_revels",
+   "duration": 8.1,
+   "aliases": [],
+   "text": "Pip danced through the first rain the realm has ever liked. Gloomfang took a bow and made it rain confetti. Briefly. Accidentally."
+  },
+  {
+   "id": "beat_raindance_revels_0",
+   "cast": "narrator",
+   "hash": "5961c4f2",
+   "file": "narrator/beat_raindance_revels_0",
+   "duration": 6.6,
+   "aliases": [],
+   "text": "The guardians learned to dance from watching Pip fall with style. They think that's dancing. Nobody corrected them."
+  },
+  {
+   "id": "beat_raindance_revels_1",
+   "cast": "narrator",
+   "hash": "dc31d346",
+   "file": "narrator/beat_raindance_revels_1",
+   "duration": 4.2,
+   "aliases": [],
+   "text": "Rain, it turns out, sounds like applause when it lands on Sunstones."
+  },
+  {
+   "id": "mission_pip_s_homecoming",
+   "cast": "narrator",
+   "hash": "ab928d7b",
+   "file": "narrator/mission_pip_s_homecoming",
+   "duration": 14.2,
+   "aliases": [],
+   "text": "One more walk, and it's the oldest one there is: the way home. The first course looks smaller now \u2014 same islands, same gentle guardian, same movers that once felt impossible. The shelf by the window still has room for one more gem."
+  },
+  {
+   "id": "win_pip_s_homecoming",
+   "cast": "narrator",
+   "hash": "c81e8e7d",
+   "file": "narrator/win_pip_s_homecoming",
+   "duration": 6.0,
+   "aliases": [],
+   "text": "Home. The shelf gets the last gem \u2014 and the window keeps the best view in the realm. Thanks for playing."
+  },
+  {
+   "id": "milestone_pip_s_homecoming",
+   "cast": "narrator",
+   "hash": "174267aa",
+   "file": "narrator/milestone_pip_s_homecoming",
+   "duration": 3.3,
+   "aliases": [],
+   "text": "REGION CHARTED: THE TWO SUNS. The ink dries gold."
+  },
+  {
+   "id": "beat_pip_s_homecoming_0",
+   "cast": "narrator",
+   "hash": "17ec5984",
+   "file": "narrator/beat_pip_s_homecoming_0",
+   "duration": 4.6,
+   "aliases": [],
+   "text": "Everything looks smaller than Pip remembers \u2014 except the sky, which got bigger."
+  },
+  {
+   "id": "beat_pip_s_homecoming_1",
+   "cast": "narrator",
+   "hash": "8f97652c",
+   "file": "narrator/beat_pip_s_homecoming_1",
+   "duration": 4.6,
+   "aliases": [],
+   "text": "The old spinner still guards this arena. These days it mostly guards the view."
+  },
+  {
+   "id": "mission_tailwind_point",
+   "cast": "narrator",
+   "hash": "e4b42eff",
+   "file": "narrator/mission_tailwind_point",
+   "duration": 15.3,
+   "aliases": [],
+   "text": "The Sky-Keeper unrolls a brand-new map \u2014 mostly blank \u2014 and taps the empty corner: the Far Isles. First stop, Tailwind Point, where the wind stands still and the islands float on it. Gloomfang insists on coming as 'weather support.' He IS the weather."
+  },
+  {
+   "id": "win_tailwind_point",
+   "cast": "narrator",
+   "hash": "7a2900e9",
+   "file": "narrator/win_tailwind_point",
+   "duration": 7.0,
+   "aliases": [],
+   "text": "Tailwind Point, charted! The wind says hello. Loudly. Gloomfang translated: it's been waiting for company."
+  },
+  {
+   "id": "beat_tailwind_point_0",
+   "cast": "narrator",
+   "hash": "7484c982",
+   "file": "narrator/beat_tailwind_point_0",
+   "duration": 6.0,
+   "aliases": [],
+   "text": "The wind here doesn't push. It holds. Gloomfang says the Far Isles are 'the sky holding its breath.'"
+  },
+  {
+   "id": "beat_tailwind_point_1",
+   "cast": "narrator",
+   "hash": "606ba968",
+   "file": "narrator/beat_tailwind_point_1",
+   "duration": 3.69,
+   "aliases": [],
+   "text": "Pip floats. Pip actually FLOATS. This is the best job ever."
+  },
+  {
+   "id": "mission_monsoon_mosaic",
+   "cast": "narrator",
+   "hash": "40295276",
+   "file": "narrator/mission_monsoon_mosaic",
+   "duration": 14.0,
+   "aliases": [],
+   "text": "Weather support, first posting: Gloomfang practices his Tuesday rain over the Mosaic Isles, and everything blooms mid-jump. The guardians have learned to dance in it. The updrafts smell like wet stone and are twice as strong."
+  },
+  {
+   "id": "win_monsoon_mosaic",
+   "cast": "narrator",
+   "hash": "26705c63",
+   "file": "narrator/win_monsoon_mosaic",
+   "duration": 6.8,
+   "aliases": [],
+   "text": "Monsoon Mosaic, charted! Gloomfang's rain passed inspection. He has been insufferably proud ever since."
+  },
+  {
+   "id": "beat_monsoon_mosaic_0",
+   "cast": "narrator",
+   "hash": "b2969e1a",
+   "file": "narrator/beat_monsoon_mosaic_0",
+   "duration": 5.9,
+   "aliases": [],
+   "text": "Rain + updraft = one very confused, very beautiful waterfall going the wrong way."
+  },
+  {
+   "id": "beat_monsoon_mosaic_1",
+   "cast": "narrator",
+   "hash": "d9bf5f67",
+   "file": "narrator/beat_monsoon_mosaic_1",
+   "duration": 6.2,
+   "aliases": [],
+   "text": "The dancing guardians have started charging admission. One gem per show. They accept compliments too."
+  },
+  {
+   "id": "mission_the_last_blank_space",
+   "cast": "narrator",
+   "hash": "c96cc959",
+   "file": "narrator/mission_the_last_blank_space",
+   "duration": 14.0,
+   "aliases": [],
+   "text": "One blank corner remains on the Sky-Keeper's map, and the wind blows hardest exactly there. Three standing winds, two guardians who wandered out this far to be alone, and the spot where the atlas ends. Draw the last line, Pip."
+  },
+  {
+   "id": "win_the_last_blank_space",
+   "cast": "narrator",
+   "hash": "29e43546",
+   "file": "narrator/win_the_last_blank_space",
+   "duration": 6.2,
+   "aliases": [],
+   "text": "The map is full. The Sky-Keeper looks at it for a long time, then writes one word in the corner: 'more.'"
+  },
+  {
+   "id": "milestone_the_last_blank_space",
+   "cast": "narrator",
+   "hash": "ec22c14e",
+   "file": "narrator/milestone_the_last_blank_space",
+   "duration": 4.0,
+   "aliases": [],
+   "text": "REGION CHARTED: THE FAR ISLES. The wind has a return address."
+  },
+  {
+   "id": "beat_the_last_blank_space_0",
+   "cast": "narrator",
+   "hash": "48e390bc",
+   "file": "narrator/beat_the_last_blank_space_0",
+   "duration": 4.2,
+   "aliases": [],
+   "text": "The guardians out here didn't flee the storm. They came to listen to it think."
+  },
+  {
+   "id": "beat_the_last_blank_space_1",
+   "cast": "narrator",
+   "hash": "31c819db",
+   "file": "narrator/beat_the_last_blank_space_1",
+   "duration": 5.7,
+   "aliases": [],
+   "text": "At the very edge of the map, the wind spells something. Pip is 90% sure it says 'welcome.'"
+  },
+  {
+   "id": "mission_gloomfang_s_day_off",
+   "cast": "narrator",
+   "hash": "593ebeaa",
+   "file": "narrator/mission_gloomfang_s_day_off",
+   "duration": 18.7,
+   "aliases": [],
+   "text": "TUESDAY. The Sky-Keeper is away, the badge is ON, and for the first time ever, Gloomfang does his run alone. Deliver the last Sunstones to the summit porch, weave the dancing guardians, and absolutely do not cry at the sunset. (He will cry at the sunset.) Hold jump to rise. Let go to just... be."
+  },
+  {
+   "id": "win_gloomfang_s_day_off",
+   "cast": "narrator",
+   "hash": "dcf4270f",
+   "file": "narrator/win_gloomfang_s_day_off",
+   "duration": 6.8,
+   "aliases": [],
+   "text": "Delivery complete. He hummed the whole way home \u2014 and if anyone asks, the rain was confetti. It was confetti."
+  },
+  {
+   "id": "milestone_gloomfang_s_day_off",
+   "cast": "narrator",
+   "hash": "06d26064",
+   "file": "narrator/milestone_gloomfang_s_day_off",
+   "duration": 4.6,
+   "aliases": [],
+   "text": "BONUS LOGGED: GLOOMFANG'S DAY OFF. The atlas lists its first employee."
+  },
+  {
+   "id": "beat_gloomfang_s_day_off_0",
+   "cast": "narrator",
+   "hash": "6babb050",
+   "file": "narrator/beat_gloomfang_s_day_off_0",
+   "duration": 3.9,
+   "aliases": [],
+   "text": "Being the weather, it turns out, is mostly being the sky's mood ring."
+  },
+  {
+   "id": "beat_gloomfang_s_day_off_1",
+   "cast": "narrator",
+   "hash": "cfd71c17",
+   "file": "narrator/beat_gloomfang_s_day_off_1",
+   "duration": 5.7,
+   "aliases": [],
+   "text": "The guardians wave. He waves back. The wave is a small localized drizzle. Progress."
+  },
+  {
+   "id": "mission_first_blooms",
+   "cast": "narrator",
+   "hash": "cbaa0156",
+   "file": "narrator/mission_first_blooms",
+   "duration": 13.7,
+   "aliases": [],
+   "text": "Gloomfang's rain woke a garden in the sky, and the garden came with guardians \u2014 big, red, and fast asleep. They wake when you get close and dawdle. So don't dawdle. And listen: the Sunstones here hum, and they hum in tune."
+  },
+  {
+   "id": "win_first_blooms",
+   "cast": "narrator",
+   "hash": "a2b41672",
+   "file": "narrator/win_first_blooms",
+   "duration": 5.3,
+   "aliases": [],
+   "text": "First blooms! The guardians went back to sleep the moment you left. One of them is snoring."
+  },
+  {
+   "id": "beat_first_blooms_0",
+   "cast": "narrator",
+   "hash": "ecde3fe0",
+   "file": "narrator/beat_first_blooms_0",
+   "duration": 5.2,
+   "aliases": [],
+   "text": "Guardian lullaby, translated from the hum: 'spin when they're near, dream when they're gone.'"
+  },
+  {
+   "id": "beat_first_blooms_1",
+   "cast": "narrator",
+   "hash": "83686712",
+   "file": "narrator/beat_first_blooms_1",
+   "duration": 6.0,
+   "aliases": [],
+   "text": "The garden grew overnight. Nobody planted it. Gloomfang is whistling like he had nothing to do with it."
+  },
+  {
+   "id": "mission_petal_drift",
+   "cast": "narrator",
+   "hash": "134901d4",
+   "file": "narrator/mission_petal_drift",
+   "duration": 12.4,
+   "aliases": [],
+   "text": "The higher beds bloom louder. Petals ride the updrafts all the way to the top of the garden, and the guardians up here dream a little livelier. Same rule, though: keep moving, and the garden keeps napping."
+  },
+  {
+   "id": "win_petal_drift",
+   "cast": "narrator",
+   "hash": "dc94707b",
+   "file": "narrator/win_petal_drift",
+   "duration": 5.7,
+   "aliases": [],
+   "text": "Petal Drift, charted! A petal landed on Pip's head on the way out. The garden says thank you."
+  },
+  {
+   "id": "beat_petal_drift_0",
+   "cast": "narrator",
+   "hash": "03abcf53",
+   "file": "narrator/beat_petal_drift_0",
+   "duration": 5.0,
+   "aliases": [],
+   "text": "Petals ride the wind because they trust it. So far the wind has a perfect record."
+  },
+  {
+   "id": "beat_petal_drift_1",
+   "cast": "narrator",
+   "hash": "1d2cf690",
+   "file": "narrator/beat_petal_drift_1",
+   "duration": 5.4,
+   "aliases": [],
+   "text": "The second bed's guardian dreams out loud. It mumbles in its sleep. It's humming YOUR theme."
+  },
+  {
+   "id": "mission_the_blooming_gate",
+   "cast": "narrator",
+   "hash": "ff4a61dd",
+   "file": "narrator/mission_the_blooming_gate",
+   "duration": 15.9,
+   "aliases": [],
+   "text": "Every garden has a front gate, and this one has kept the sky realm's oldest promise: whoever tends it may pass. Three guardians. One of them is a light sleeper \u2014 the garden apologizes in advance. Ring the course with your steps and the gate will open in flowers."
+  },
+  {
+   "id": "win_the_blooming_gate",
+   "cast": "narrator",
+   "hash": "8c427554",
+   "file": "narrator/win_the_blooming_gate",
+   "duration": 7.6,
+   "aliases": [],
+   "text": "The Blooming Gate opened in a wave of color you chose, gem by gem. The guardians clapped. Slowly. They're still waking up."
+  },
+  {
+   "id": "milestone_the_blooming_gate",
+   "cast": "narrator",
+   "hash": "3e1922f4",
+   "file": "narrator/milestone_the_blooming_gate",
+   "duration": 4.1,
+   "aliases": [],
+   "text": "REGION CHARTED: THE SKY GARDEN. The page bloomed while it was drawn."
+  },
+  {
+   "id": "beat_the_blooming_gate_0",
+   "cast": "narrator",
+   "hash": "fad760dd",
+   "file": "narrator/beat_the_blooming_gate_0",
+   "duration": 4.7,
+   "aliases": [],
+   "text": "The light sleeper's name is Red Nine. He dreams of being a carousel. Be kind."
+  },
+  {
+   "id": "beat_the_blooming_gate_1",
+   "cast": "narrator",
+   "hash": "544a0a92",
+   "file": "narrator/beat_the_blooming_gate_1",
+   "duration": 5.8,
+   "aliases": [],
+   "text": "Past the last bed, the petals go quiet \u2014 they only get this quiet right before something wonderful."
+  },
+  {
+   "id": "mission_gust_alley",
+   "cast": "narrator",
+   "hash": "58968ab0",
+   "file": "narrator/mission_gust_alley",
+   "duration": 13.8,
+   "aliases": [
+    "mission_gust_alley___nightfall"
+   ],
+   "text": "Something small is laughing in the wind, and every laugh blows a gust down this alley. The gaps ahead are far too wide to jump \u2014 but Nim's giggles carry further than you'd think. Stand in the lane. Wait for the giggle. Ride it."
+  },
+  {
+   "id": "win_gust_alley",
+   "cast": "narrator",
+   "hash": "9fe0bf70",
+   "file": "narrator/win_gust_alley",
+   "duration": 8.8,
+   "aliases": [
+    "win_gust_alley___nightfall"
+   ],
+   "text": "Gust Alley, charted! Nim followed you the whole way, giggling. Gloomfang pretended not to be jealous. Of the baby. Or the wind. Unclear."
+  },
+  {
+   "id": "beat_gust_alley_0",
+   "cast": "narrator",
+   "hash": "643caa09",
+   "file": "narrator/beat_gust_alley_0",
+   "duration": 7.1,
+   "aliases": [
+    "beat_gust_alley___nightfall_0"
+   ],
+   "text": "Nim is a cloud the size of a pillow with the volume of a parade. Gloomfang has started calling him 'the apprentice.'"
+  },
+  {
+   "id": "beat_gust_alley_1",
+   "cast": "narrator",
+   "hash": "9ebf1500",
+   "file": "narrator/beat_gust_alley_1",
+   "duration": 6.1,
+   "aliases": [
+    "beat_gust_alley___nightfall_1"
+   ],
+   "text": "The gusts come when Nim laughs. Pip has started telling jokes while waiting. Morale is extremely high."
+  },
+  {
+   "id": "mission_where_nim_laughs",
+   "cast": "narrator",
+   "hash": "4a2d10b3",
+   "file": "narrator/mission_where_nim_laughs",
+   "duration": 13.9,
+   "aliases": [],
+   "text": "Nim led you to his favorite spot: a garden where the guardians sleep through weather, giggles, and everything. Gust lanes cross the beds here \u2014 so the game is timing laughs around naps. Nim, for the record, has no timing at all."
+  },
+  {
+   "id": "win_where_nim_laughs",
+   "cast": "narrator",
+   "hash": "4e11e110",
+   "file": "narrator/win_where_nim_laughs",
+   "duration": 5.4,
+   "aliases": [],
+   "text": "Where Nim Laughs, charted! The guardians slept through an entire baby storm. Professional."
+  },
+  {
+   "id": "beat_where_nim_laughs_0",
+   "cast": "narrator",
+   "hash": "78134cc3",
+   "file": "narrator/beat_where_nim_laughs_0",
+   "duration": 5.8,
+   "aliases": [],
+   "text": "Nim laughed so hard once that he blew himself backwards. The guardians slept through it. Legendary."
+  },
+  {
+   "id": "beat_where_nim_laughs_1",
+   "cast": "narrator",
+   "hash": "6f7a1e83",
+   "file": "narrator/beat_where_nim_laughs_1",
+   "duration": 6.7,
+   "aliases": [],
+   "text": "Gloomfang is teaching Nim the lullaby hum. It is the most dangerous duet in the sky realm, and the sweetest."
+  },
+  {
+   "id": "mission_the_baby_s_home",
+   "cast": "narrator",
+   "hash": "3f5883e0",
+   "file": "narrator/mission_the_baby_s_home",
+   "duration": 17.7,
+   "aliases": [],
+   "text": "The giggles end somewhere above the garden \u2014 and the wind up here blows longer and softer than anywhere else. Two guardians patrol the route. At the top: a nest of clouds, a very small snore, and a very large storm who has decided this is everyone's problem now. Ours, specifically."
+  },
+  {
+   "id": "win_the_baby_s_home",
+   "cast": "narrator",
+   "hash": "9caf7253",
+   "file": "narrator/win_the_baby_s_home",
+   "duration": 10.3,
+   "aliases": [],
+   "text": "Nim is home, asleep, one cloud-big and one Pip-small. Gloomfang built the crib out of mist and refuses to discuss it. The atlas grows one word: 'family.'"
+  },
+  {
+   "id": "milestone_the_baby_s_home",
+   "cast": "narrator",
+   "hash": "0bb411f7",
+   "file": "narrator/milestone_the_baby_s_home",
+   "duration": 4.4,
+   "aliases": [],
+   "text": "REGION CHARTED: STORM CHASERS. The atlas adds its first lullaby."
+  },
+  {
+   "id": "beat_the_baby_s_home_0",
+   "cast": "narrator",
+   "hash": "c37aafeb",
+   "file": "narrator/beat_the_baby_s_home_0",
+   "duration": 6.8,
+   "aliases": [],
+   "text": "The long lanes blow soft and steady. Nim made them himself. You can tell because they wobble like a lullaby."
+  },
+  {
+   "id": "beat_the_baby_s_home_1",
+   "cast": "narrator",
+   "hash": "ef5dff47",
+   "file": "narrator/beat_the_baby_s_home_1",
+   "duration": 7.0,
+   "aliases": [],
+   "text": "The snore from the nest echoes off the clouds. Gloomfang says it's 'rehearsing.' He is also, quietly, rehearsing."
+  },
+  {
+   "id": "mission_the_first_bell",
+   "cast": "narrator",
+   "hash": "0d0b6da6",
+   "file": "narrator/mission_the_first_bell",
+   "duration": 14.4,
+   "aliases": [
+    "mission_the_garden_that_dreams"
+   ],
+   "text": "Above the clouds stand towers that once sang the storms home. Their bells still work \u2014 touch one and its echo turns the hidden bridges solid for as long as the tone sings. The towers have waited a thousand years; they can wait for you to practice."
+  },
+  {
+   "id": "win_the_first_bell",
+   "cast": "narrator",
+   "hash": "7a076aad",
+   "file": "narrator/win_the_first_bell",
+   "duration": 5.1,
+   "aliases": [
+    "win_the_garden_that_dreams"
+   ],
+   "text": "The first bell rung in a thousand years. Somewhere, a tower remembered what it was for."
+  },
+  {
+   "id": "beat_the_first_bell_0",
+   "cast": "narrator",
+   "hash": "0425906e",
+   "file": "narrator/beat_the_first_bell_0",
+   "duration": 4.0,
+   "aliases": [
+    "beat_the_garden_that_dreams_0"
+   ],
+   "text": "The bridge is made of the same stuff as the echo. Listen with your feet."
+  },
+  {
+   "id": "beat_the_first_bell_1",
+   "cast": "narrator",
+   "hash": "e2adf7de",
+   "file": "narrator/beat_the_first_bell_1",
+   "duration": 3.38,
+   "aliases": [
+    "beat_the_garden_that_dreams_1"
+   ],
+   "text": "Two bells, two notes. The towers are tuning themselves to you."
+  },
+  {
+   "id": "mission_chorus_in_the_clouds",
+   "cast": "narrator",
+   "hash": "71e5cff4",
+   "file": "narrator/mission_chorus_in_the_clouds",
+   "duration": 13.6,
+   "aliases": [],
+   "text": "Three towers, three bells, and a chorus that needs a conductor with very small hands. Ring the first, cross on the echo, and mind the guardians \u2014 they wake if you linger, and they do not appreciate bell music. Philistines."
+  },
+  {
+   "id": "win_chorus_in_the_clouds",
+   "cast": "narrator",
+   "hash": "3ad3358b",
+   "file": "narrator/win_chorus_in_the_clouds",
+   "duration": 5.5,
+   "aliases": [],
+   "text": "A three-bell chorus, performed flawlessly. The guardians slept through the finale. Critics."
+  },
+  {
+   "id": "beat_chorus_in_the_clouds_0",
+   "cast": "narrator",
+   "hash": "e9c78694",
+   "file": "narrator/beat_chorus_in_the_clouds_0",
+   "duration": 6.7,
+   "aliases": [],
+   "text": "The first tower's bell is tuned to Gloomfang's old lullaby. He asked us not to ring that one. We ring that one."
+  },
+  {
+   "id": "beat_chorus_in_the_clouds_1",
+   "cast": "narrator",
+   "hash": "ed98bcf4",
+   "file": "narrator/beat_chorus_in_the_clouds_1",
+   "duration": 5.9,
+   "aliases": [],
+   "text": "Bridges of sound hold you the way songs hold memories: briefly, and only if you keep moving."
+  },
+  {
+   "id": "mission_the_silent_spire",
+   "cast": "narrator",
+   "hash": "2efc9422",
+   "file": "narrator/mission_the_silent_spire",
+   "duration": 14.6,
+   "aliases": [],
+   "text": "The Silent Spire: the tallest tower, the quietest bell, and the one note no one has ever heard. Two guardians patrol the climb, a gust crosses the mid-air gap, and at the very top waits the note the whole sky has been missing. Ring it, Pip."
+  },
+  {
+   "id": "win_the_silent_spire",
+   "cast": "narrator",
+   "hash": "23e2c04b",
+   "file": "narrator/win_the_silent_spire",
+   "duration": 8.0,
+   "aliases": [],
+   "text": "The Silent Spire sang its first note in a thousand years, and every bell in every tower answered. The sky realm has a choir now."
+  },
+  {
+   "id": "milestone_the_silent_spire",
+   "cast": "narrator",
+   "hash": "1296a8b7",
+   "file": "narrator/milestone_the_silent_spire",
+   "duration": 3.03,
+   "aliases": [],
+   "text": "REGION CHARTED: THE BELL TOWERS. The page hums."
+  },
+  {
+   "id": "beat_the_silent_spire_0",
+   "cast": "narrator",
+   "hash": "3685be61",
+   "file": "narrator/beat_the_silent_spire_0",
+   "duration": 6.3,
+   "aliases": [],
+   "text": "A spire with no name and a bell with no scratch on it. It has never been rung. Not once. Not ever."
+  },
+  {
+   "id": "beat_the_silent_spire_1",
+   "cast": "narrator",
+   "hash": "88ca4f63",
+   "file": "narrator/beat_the_silent_spire_1",
+   "duration": 3.47,
+   "aliases": [],
+   "text": "Up here the wind stands aside. Even it wants to hear this."
+  },
+  {
+   "id": "mission_mirror_lake",
+   "cast": "narrator",
+   "hash": "e6973cc2",
+   "file": "narrator/mission_mirror_lake",
+   "duration": 13.9,
+   "aliases": [],
+   "text": "The lake past the wind lanes has gone perfectly still, and in its reflection there are DOORS. Walk into one and you walk out of its twin \u2014 somewhere that used to be much too far away. The first Pip through reported it felt 'important.'"
+  },
+  {
+   "id": "win_mirror_lake",
+   "cast": "narrator",
+   "hash": "a16c008b",
+   "file": "narrator/win_mirror_lake",
+   "duration": 7.3,
+   "aliases": [],
+   "text": "Mirror Lake, charted! Pip waved at his reflection. His reflection waved back half a second late. Nobody mentions it."
+  },
+  {
+   "id": "beat_mirror_lake_0",
+   "cast": "narrator",
+   "hash": "a68bd3c9",
+   "file": "narrator/beat_mirror_lake_0",
+   "duration": 5.4,
+   "aliases": [],
+   "text": "The doors show a sky that's the same but backwards. Pip has decided not to worry about it."
+  },
+  {
+   "id": "beat_mirror_lake_1",
+   "cast": "narrator",
+   "hash": "90de5862",
+   "file": "narrator/beat_mirror_lake_1",
+   "duration": 5.6,
+   "aliases": [],
+   "text": "Rule of the mirror: the way in is never the way out. The way out is wherever you were going anyway."
+  },
+  {
+   "id": "mission_twin_towers",
+   "cast": "narrator",
+   "hash": "f98bd08c",
+   "file": "narrator/mission_twin_towers",
+   "duration": 13.7,
+   "aliases": [],
+   "text": "Two towers, perfectly alike, each holding half of a door. The guardian between them has been guarding the same nine square meters for a century \u2014 the doors have been open the whole time. Being a guardian is not a thinking job."
+  },
+  {
+   "id": "win_twin_towers",
+   "cast": "narrator",
+   "hash": "2da9d4d2",
+   "file": "narrator/win_twin_towers",
+   "duration": 6.7,
+   "aliases": [],
+   "text": "Twin Towers, charted! The guardian is still guarding. Out of respect, Pip left one gem where it can watch it."
+  },
+  {
+   "id": "beat_twin_towers_0",
+   "cast": "narrator",
+   "hash": "efdca9d4",
+   "file": "narrator/beat_twin_towers_0",
+   "duration": 6.6,
+   "aliases": [],
+   "text": "The door exits five floors up. Mirror physics: what goes in at walking height comes out where it was always going."
+  },
+  {
+   "id": "beat_twin_towers_1",
+   "cast": "narrator",
+   "hash": "fb0cd6a5",
+   "file": "narrator/beat_twin_towers_1",
+   "duration": 7.5,
+   "aliases": [],
+   "text": "Gloomfang's reflection floats on the wrong side of the sky, copying your moves perfectly. Slightly better than you, if you're honest."
+  },
+  {
+   "id": "mission_the_mirror_meadow",
+   "cast": "narrator",
+   "hash": "e566d181",
+   "file": "narrator/mission_the_mirror_meadow",
+   "duration": 17.9,
+   "aliases": [],
+   "text": "The last chart is the strangest: a meadow where the sky lies down on the ground and the doors stand in pairs like strung pearls. One guardian sleeps in the clover. Somewhere on the wrong side of the glass, a storm floats along with you, learning to be a reflection. Both of you are almost ready."
+  },
+  {
+   "id": "win_the_mirror_meadow",
+   "cast": "narrator",
+   "hash": "e94eea49",
+   "file": "narrator/win_the_mirror_meadow",
+   "duration": 9.8,
+   "aliases": [],
+   "text": "The Mirror Meadow, charted! On the mirrored side, a reflection-Gloomfang saluted. Pip saluted back. The chart now reads: 'population: one more, sort of.'"
+  },
+  {
+   "id": "milestone_the_mirror_meadow",
+   "cast": "narrator",
+   "hash": "04cddd88",
+   "file": "narrator/milestone_the_mirror_meadow",
+   "duration": 4.0,
+   "aliases": [],
+   "text": "REGION CHARTED: MIRROR SKIES. The atlas has a reflection now."
+  },
+  {
+   "id": "beat_the_mirror_meadow_0",
+   "cast": "narrator",
+   "hash": "eb2d878f",
+   "file": "narrator/beat_the_mirror_meadow_0",
+   "duration": 6.5,
+   "aliases": [],
+   "text": "In the mirror, the meadow is the sky and the sky is the meadow. The flowers don't mind. Flowers are flexible."
+  },
+  {
+   "id": "beat_the_mirror_meadow_1",
+   "cast": "narrator",
+   "hash": "ac329ce6",
+   "file": "narrator/beat_the_mirror_meadow_1",
+   "duration": 7.1,
+   "aliases": [],
+   "text": "Your reflection-Gloomfang hums the lullaby before you do. The mirror is half a second ahead now. Neither of you mentions it."
+  },
+  {
+   "id": "beat_gust_alley___nightfall_2",
+   "cast": "narrator",
+   "hash": "cd344681",
+   "file": "narrator/beat_gust_alley___nightfall_2",
+   "duration": 6.7,
+   "aliases": [],
+   "text": "Night wind is just day wind wearing a darker coat. Nim sleeps in this lane \u2014 his giggles became snores."
+  },
+  {
+   "id": "beat_the_garden_that_dreams_2",
+   "cast": "narrator",
+   "hash": "728720a7",
+   "file": "narrator/beat_the_garden_that_dreams_2",
+   "duration": 6.1,
+   "aliases": [],
+   "text": "The wind learned the garden's melody. Now the beds sway in time, and the guardians dream on the beat."
+  },
+  {
+   "id": "beat_the_ascent___nightfall_3",
+   "cast": "narrator",
+   "hash": "192109a9",
+   "file": "narrator/beat_the_ascent___nightfall_3",
+   "duration": 5.8,
+   "aliases": [],
+   "text": "Climb the beacon route in the dark, the way the first keepers did, before anyone thought to make it easy."
+  },
+  {
+   "id": "beat_the_ascent___nightfall_4",
+   "cast": "narrator",
+   "hash": "717f050a",
+   "file": "narrator/beat_the_ascent___nightfall_4",
+   "duration": 5.2,
+   "aliases": [],
+   "text": "From the summit at night you can see every portal you ever lit. All of them. Still burning."
+  },
+  {
+   "id": "mission_first_snow",
+   "cast": "narrator",
+   "hash": "52278e4b",
+   "file": "narrator/mission_first_snow",
+   "duration": 19.2,
+   "aliases": [],
+   "text": "Past the mirror meadows the wind simply stopped: the Far Isles' quiet corner has fallen asleep under snow that never melts \u2014 Gloomfang's oldest winter, the charts call it. An old sunstone lantern waits on the shore, still warm underneath. Wake it, walk with its light, and let the ice remember it is water."
+  },
+  {
+   "id": "win_first_snow",
+   "cast": "narrator",
+   "hash": "2703a320",
+   "file": "narrator/win_first_snow",
+   "duration": 7.7,
+   "aliases": [],
+   "text": "First Snow, charted! The lantern hums a lullaby it learned from a glacier. Gloomfang, professional rain carrier, takes notes."
+  },
+  {
+   "id": "beat_first_snow_0",
+   "cast": "narrator",
+   "hash": "80fe1eea",
+   "file": "narrator/beat_first_snow_0",
+   "duration": 6.6,
+   "aliases": [],
+   "text": "The lantern doesn't light the way so much as warm it. The ice steps aside politely. Ice is very patient."
+  },
+  {
+   "id": "mission_frozen_fountains",
+   "cast": "narrator",
+   "hash": "9c029203",
+   "file": "narrator/mission_frozen_fountains",
+   "duration": 18.1,
+   "aliases": [],
+   "text": "The old fountains of the winter isles still try to sing \u2014 you can hear them humming under the ice. Ride the columns, walk with the lantern, and melt whatever stands in the way. One frozen door sits right in the ferry's path: stand on the moving ice as it carries you through, and let the light do the rest."
+  },
+  {
+   "id": "win_frozen_fountains",
+   "cast": "narrator",
+   "hash": "a570b9ea",
+   "file": "narrator/win_frozen_fountains",
+   "duration": 10.8,
+   "aliases": [],
+   "text": "Frozen Fountains, charted! The columns sing again, a little off-key. The lantern hums along. It is possibly the worst choir in the sky realm, and Pip applauds anyway."
+  },
+  {
+   "id": "beat_frozen_fountains_0",
+   "cast": "narrator",
+   "hash": "31b5142c",
+   "file": "narrator/beat_frozen_fountains_0",
+   "duration": 7.2,
+   "aliases": [],
+   "text": "Press up against a frozen door and hold still. The lantern does the rest. Patience, again \u2014 winter's favorite word."
+  },
+  {
+   "id": "beat_frozen_fountains_1",
+   "cast": "narrator",
+   "hash": "4a7b5c92",
+   "file": "narrator/beat_frozen_fountains_1",
+   "duration": 7.6,
+   "aliases": [],
+   "text": "The ferry has been stuck mid-crossing since the freeze. Pip melts the door; the ferry finally finishes a run. It seems pleased."
+  },
+  {
+   "id": "mission_the_crystal_summit",
+   "cast": "narrator",
+   "hash": "f04c2be7",
+   "file": "narrator/mission_the_crystal_summit",
+   "duration": 17.3,
+   "aliases": [],
+   "text": "One last climb, to the winter's rooftop. The charts say something odd happens up there: every path the lantern's light opened is supposed to refreeze at once \u2014 into a map of everywhere you walked. A guardian naps in the meadow on the way up. Step lightly. Or don't; he sleeps like weather."
+  },
+  {
+   "id": "win_the_crystal_summit",
+   "cast": "narrator",
+   "hash": "1bef7b91",
+   "file": "narrator/win_the_crystal_summit",
+   "duration": 14.8,
+   "aliases": [],
+   "text": "The Crystal Summit, charted! The refreeze settles into one enormous crystal map, and there in the middle, tiny and unmistakable: a small orange shape, walking. Pip frames it in his hands and refuses to move until everyone has looked."
+  },
+  {
+   "id": "milestone_the_crystal_summit",
+   "cast": "narrator",
+   "hash": "9f593335",
+   "file": "narrator/milestone_the_crystal_summit",
+   "duration": 4.3,
+   "aliases": [],
+   "text": "REGION CHARTED: THE LONG WINTER. The atlas shines a little warmer now."
+  },
+  {
+   "id": "beat_the_crystal_summit_0",
+   "cast": "narrator",
+   "hash": "4f938ba8",
+   "file": "narrator/beat_the_crystal_summit_0",
+   "duration": 8.4,
+   "aliases": [],
+   "text": "A guardian footprint, frozen mid-step, preserved like a fossil. Guardians nap where they guard. It is the whole job description."
+  },
+  {
+   "id": "beat_the_crystal_summit_1",
+   "cast": "narrator",
+   "hash": "bc6d0d22",
+   "file": "narrator/beat_the_crystal_summit_1",
+   "duration": 7.0,
+   "aliases": [],
+   "text": "The lantern flickers in time with the columns' humming. Somehow it knows this place. Lanterns are older than maps."
+  },
+  {
+   "id": "beat_the_crystal_summit_2",
+   "cast": "narrator",
+   "hash": "c58000bb",
+   "file": "narrator/beat_the_crystal_summit_2",
+   "duration": 8.4,
+   "aliases": [],
+   "text": "The meadow below is already glowing. The refreeze has started \u2014 the winter is drawing the map early, the way children pack before the goodbyes."
+  },
+  {
+   "id": "mission_festival_lights",
+   "cast": "narrator",
+   "hash": "b40c32e4",
+   "file": "narrator/mission_festival_lights",
+   "duration": 18.6,
+   "aliases": [],
+   "text": "With the last region charted, the Sky-Keeper has declared a festival \u2014 and the aurora itself has come down to join it. The lights lay themselves across the gaps like ribbons off a parcel. Step on when the glow reaches your shore. The realm has been carrying you all game; tonight, it carries you again, for fun."
+  },
+  {
+   "id": "win_festival_lights",
+   "cast": "narrator",
+   "hash": "d191f9fe",
+   "file": "narrator/win_festival_lights",
+   "duration": 8.0,
+   "aliases": [],
+   "text": "Festival Lights, charted! The ribbons sway in time with the bells. Nobody taught them. Auroras, it turns out, have excellent taste."
+  },
+  {
+   "id": "beat_festival_lights_0",
+   "cast": "narrator",
+   "hash": "196ba0e2",
+   "file": "narrator/beat_festival_lights_0",
+   "duration": 7.7,
+   "aliases": [],
+   "text": "Rule of ribbons: they come to your shore, they wait a breath, and then they flow. Auroras have been waiting all season to show someone this."
+  },
+  {
+   "id": "mission_ribbon_dance",
+   "cast": "narrator",
+   "hash": "faa243af",
+   "file": "narrator/mission_ribbon_dance",
+   "duration": 18.2,
+   "aliases": [],
+   "text": "The aurora practiced. Tonight's ribbons swing as they flow \u2014 an honest-to-goodness dance across the sky \u2014 and one of them climbs while it crosses, which the charts describe as 'showing off.' A guardian has fallen asleep in the meadow below with one arm over the music. Step softly, ride high."
+  },
+  {
+   "id": "win_ribbon_dance",
+   "cast": "narrator",
+   "hash": "ab1fd8e7",
+   "file": "narrator/win_ribbon_dance",
+   "duration": 7.5,
+   "aliases": [],
+   "text": "Ribbon Dance, charted! The guardian slept through the whole finale. In the morning it will insist it heard everything. Let it."
+  },
+  {
+   "id": "beat_ribbon_dance_0",
+   "cast": "narrator",
+   "hash": "4d817ac2",
+   "file": "narrator/beat_ribbon_dance_0",
+   "duration": 7.5,
+   "aliases": [],
+   "text": "The sway is the dance: the ribbon swings widest mid-flow and settles just as it reaches you. Time the glow, not the gap."
+  },
+  {
+   "id": "beat_ribbon_dance_1",
+   "cast": "narrator",
+   "hash": "f36255fd",
+   "file": "narrator/beat_ribbon_dance_1",
+   "duration": 5.9,
+   "aliases": [],
+   "text": "The climbing ribbon is the same aurora that carried the winter's lantern-light, still a little proud of itself."
+  },
+  {
+   "id": "mission_the_festival_finale",
+   "cast": "narrator",
+   "hash": "37b82c59",
+   "file": "narrator/mission_the_festival_finale",
+   "duration": 23.7,
+   "aliases": [],
+   "text": "The last night of the festival, and the realm has built the concert out of everything you ever charted: movers keeping the beat, a guardian on percussion (asleep, but on tempo), wind from the storm chasers, a bell from the towers, a door from the mirror \u2014 even the winter sent its lantern-light along. The ribbons are the melody. Walk the whole atlas in one night, Pip. The last note is yours."
+  },
+  {
+   "id": "win_the_festival_finale",
+   "cast": "narrator",
+   "hash": "1556fa74",
+   "file": "narrator/win_the_festival_finale",
+   "duration": 10.9,
+   "aliases": [],
+   "text": "The Festival Finale, played! The last note rang out across every charted region at once \u2014 and high above the Sky-Keeper's hall, the sky glowed, and decided to stay that way."
+  },
+  {
+   "id": "milestone_the_festival_finale",
+   "cast": "narrator",
+   "hash": "971ad63c",
+   "file": "narrator/milestone_the_festival_finale",
+   "duration": 5.8,
+   "aliases": [],
+   "text": "REGION CHARTED: THE AURORA FESTIVAL. The last note is still ringing \u2014 and the sky learned to glow."
+  },
+  {
+   "id": "beat_the_festival_finale_0",
+   "cast": "narrator",
+   "hash": "8e9a009e",
+   "file": "narrator/beat_the_festival_finale_0",
+   "duration": 7.1,
+   "aliases": [],
+   "text": "The movers kept the beat, the guardian kept the tempo, and the wind kept its promise. Every region is playing tonight."
+  },
+  {
+   "id": "beat_the_festival_finale_1",
+   "cast": "narrator",
+   "hash": "82007b82",
+   "file": "narrator/beat_the_festival_finale_1",
+   "duration": 5.2,
+   "aliases": [],
+   "text": "The bell is the melody now. Ring it and the bridge hums along \u2014 the towers taught it that."
+  },
+  {
+   "id": "beat_the_festival_finale_2",
+   "cast": "narrator",
+   "hash": "99ef1c8e",
+   "file": "narrator/beat_the_festival_finale_2",
+   "duration": 7.1,
+   "aliases": [],
+   "text": "Out of the mirror, over the winter's last gate, and onto the ribbons: the melody is waiting for someone small to walk it home."
+  },
+  {
+   "id": "mission_the_long_way_home",
+   "cast": "narrator",
+   "hash": "7633eeee",
+   "file": "narrator/mission_the_long_way_home",
+   "duration": 17.6,
+   "aliases": [],
+   "text": "The atlas is full \u2014 every region charted, every portal lit \u2014 and the Sky-Keeper has one last errand: walk home the long way, the scenic way, past the see-saw meadows the old keepers built for exactly this kind of stroll. Tip a plank and see what tips back. Home isn't going anywhere."
+  },
+  {
+   "id": "win_the_long_way_home",
+   "cast": "narrator",
+   "hash": "ba120e7f",
+   "file": "narrator/win_the_long_way_home",
+   "duration": 8.7,
+   "aliases": [],
+   "text": "The Long Way Home, walked! The see-saws kept tipping long after Pip left, greeting nobody. The old keepers would have called that the whole point."
+  },
+  {
+   "id": "beat_the_long_way_home_0",
+   "cast": "narrator",
+   "hash": "62a17b5e",
+   "file": "narrator/beat_the_long_way_home_0",
+   "duration": 6.1,
+   "aliases": [],
+   "text": "A see-saw remembers who stands on it. Pip tips it this way, and dinner \u2014 gems, in this case \u2014 tips back."
+  },
+  {
+   "id": "mission_tipping_points",
+   "cast": "narrator",
+   "hash": "826d982d",
+   "file": "narrator/mission_tipping_points",
+   "duration": 18.4,
+   "aliases": [],
+   "text": "The long way home runs through the old testing grounds, where the keepers built see-saws in every size and temperament: one long enough to sunbathe on, one that tips sideways just to be contrarian. A guardian lies in the meadow between them, complaining about the creaking in its sleep. Mind the tipping points."
+  },
+  {
+   "id": "win_tipping_points",
+   "cast": "narrator",
+   "hash": "4b36a97e",
+   "file": "narrator/win_tipping_points",
+   "duration": 9.1,
+   "aliases": [],
+   "text": "Tipping Points, charted! The contrarian see-saw tipped sideways out of pure spite and dropped a gem in Pip's hands. Nobody can prove it meant to."
+  },
+  {
+   "id": "beat_tipping_points_0",
+   "cast": "narrator",
+   "hash": "f2000272",
+   "file": "narrator/beat_tipping_points_0",
+   "duration": 6.6,
+   "aliases": [],
+   "text": "Stand on an end and the world leans with you. The keepers called it engineering; the gems call it room service."
+  },
+  {
+   "id": "beat_tipping_points_1",
+   "cast": "narrator",
+   "hash": "b13b3f30",
+   "file": "narrator/beat_tipping_points_1",
+   "duration": 7.2,
+   "aliases": [],
+   "text": "The sideways plank is the youngest see-saw in the realm. It has not learned which way is down yet. Pip finds this relatable."
+  },
+  {
+   "id": "mission_coming_home",
+   "cast": "narrator",
+   "hash": "d992be8a",
+   "file": "narrator/mission_coming_home",
+   "duration": 21.5,
+   "aliases": [],
+   "text": "The last stretch of the long way home, walked at sunset. Movers and wind and one very sleepy guardian \u2014 old friends, all of them \u2014 and the see-saws creaking their welcome. At the end of this road there is a small island, a shelf with one open spot, and a storm who has been practicing saying 'welcome home' without crying. Mostly without crying."
+  },
+  {
+   "id": "win_coming_home",
+   "cast": "narrator",
+   "hash": "dfb31229",
+   "file": "narrator/win_coming_home",
+   "duration": 12.8,
+   "aliases": [],
+   "text": "Home. Gloomfang said it without crying, right up until Pip put the last gem on the shelf, and then he cried a little, and that was fine. The Sky-Keeper, watching from the hall, took out a pen and crossed out one word on a badge."
+  },
+  {
+   "id": "milestone_coming_home",
+   "cast": "narrator",
+   "hash": "64f73e7f",
+   "file": "narrator/milestone_coming_home",
+   "duration": 6.0,
+   "aliases": [],
+   "text": "REGION CHARTED: THE HOMECOMING. Gloomfang's badge is official \u2014 the word 'probationary' is gone."
+  },
+  {
+   "id": "beat_coming_home_0",
+   "cast": "narrator",
+   "hash": "84a34eba",
+   "file": "narrator/beat_coming_home_0",
+   "duration": 7.8,
+   "aliases": [],
+   "text": "Every creak of the see-saws is a hello from a keeper who finished their walk long ago and left the planks oiled for whoever came after."
+  },
+  {
+   "id": "beat_coming_home_1",
+   "cast": "narrator",
+   "hash": "64ab89e2",
+   "file": "narrator/beat_coming_home_1",
+   "duration": 5.9,
+   "aliases": [],
+   "text": "The wind on the last climb is warm. Gloomfang warmed it on purpose. He would deny this under oath."
+  },
+  {
+   "id": "beat_coming_home_2",
+   "cast": "narrator",
+   "hash": "a0f1fd9b",
+   "file": "narrator/beat_coming_home_2",
+   "duration": 8.2,
+   "aliases": [],
+   "text": "There it is: the little island where a very small hero once picked up a very large errand. The shelf is waiting. So is everyone else."
+  },
+  {
+   "id": "epilogue_0",
+   "cast": "narrator",
+   "hash": "81373319",
+   "file": "narrator/epilogue_0",
+   "duration": 11.2,
+   "aliases": [],
+   "text": "The Master Sunstone rose out of the Undercloud like a second dawn. One by one, every portal in the sky realm lit at once \u2014 and the storm that had swallowed them all simply... stopped."
+  },
+  {
+   "id": "epilogue_1",
+   "cast": "narrator",
+   "hash": "5ef72c22",
+   "file": "narrator/epilogue_1",
+   "duration": 15.6,
+   "aliases": [],
+   "text": "The Sky-Keeper examined Gloomfang for a long moment. A storm who stole light because he feared the dark was still, technically, a weather management problem. She gave him a badge and a rounder, kinder job: carrying rain to the dry islands on Tuesdays."
+  },
+  {
+   "id": "epilogue_2",
+   "cast": "narrator",
+   "hash": "171f2b13",
+   "file": "narrator/epilogue_2",
+   "duration": 15.6,
+   "aliases": [],
+   "text": "And Pip? Pip went back to the little island where all of this started, put the last gem on the shelf, and watched two suns set. Somewhere far below, a very large storm was learning to hum \u2014 and somewhere above the garden, a very small one was perfecting the snore."
+  },
+  {
+   "id": "epilogue_3",
+   "cast": "narrator",
+   "hash": "3b6d8558",
+   "file": "narrator/epilogue_3",
+   "duration": 21.1,
+   "aliases": [],
+   "text": "The Far Isles chart now hangs in the Sky-Keeper's hall \u2014 every island named in Pip's small, determined handwriting, and one line in the legend: 'weather support (probationary): Gloomfang.' He has requested the word 'probationary' be removed. Request pending.\n\nTHE END \u2014 every ending here is just a portal to the next adventure."
+  },
+  {
+   "id": "quote_0",
+   "cast": "narrator",
+   "hash": "df1dfae5",
+   "file": "narrator/quote_0",
+   "duration": 3.57,
+   "aliases": [],
+   "text": "Gloomfang was never the villain. He was just weather with feelings."
+  },
+  {
+   "id": "quote_1",
+   "cast": "narrator",
+   "hash": "9c06fe55",
+   "file": "narrator/quote_1",
+   "duration": 4.4,
+   "aliases": [],
+   "text": "Gloomfang's diary, page 1: 'Today I stole the sun again. Still lonely.'"
+  },
+  {
+   "id": "quote_2",
+   "cast": "narrator",
+   "hash": "81a452a7",
+   "file": "narrator/quote_2",
+   "duration": 4.9,
+   "aliases": [],
+   "text": "The Sky-Keeper's review of Pip: 'small, determined, excellent at falling upward.'"
+  },
+  {
+   "id": "quote_3",
+   "cast": "narrator",
+   "hash": "2d4a6921",
+   "file": "narrator/quote_3",
+   "duration": 3.54,
+   "aliases": [],
+   "text": "A storm's heart is a lantern nobody lit. Pip fixes that."
+  },
+  {
+   "id": "quote_4",
+   "cast": "narrator",
+   "hash": "65884fec",
+   "file": "narrator/quote_4",
+   "duration": 4.5,
+   "aliases": [],
+   "text": "Three lives. One very apologetic storm. And the realm keeps growing."
+  },
+  {
+   "id": "quote_5",
+   "cast": "narrator",
+   "hash": "067956f9",
+   "file": "narrator/quote_5",
+   "duration": 4.5,
+   "aliases": [],
+   "text": "The guardians spin because nobody ever asked them to stop. Ask nicely."
+  },
+  {
+   "id": "quote_6",
+   "cast": "narrator",
+   "hash": "995d338d",
+   "file": "narrator/quote_6",
+   "duration": 3.63,
+   "aliases": [],
+   "text": "The Two Suns playground: no storm, no pressure, all bounce."
+  },
+  {
+   "id": "quote_7",
+   "cast": "narrator",
+   "hash": "1832c916",
+   "file": "narrator/quote_7",
+   "duration": 2.58,
+   "aliases": [],
+   "text": "The Far Isles: where the wind does the climbing."
+  },
+  {
+   "id": "quote_8",
+   "cast": "narrator",
+   "hash": "929184fc",
+   "file": "narrator/quote_8",
+   "duration": 4.0,
+   "aliases": [],
+   "text": "Gloomfang's job title, officially: weather support (probationary)."
+  },
+  {
+   "id": "quote_9",
+   "cast": "narrator",
+   "hash": "34269294",
+   "file": "narrator/quote_9",
+   "duration": 5.3,
+   "aliases": [],
+   "text": "Nim's first word was a gust. There was weather everywhere. Gloomfang has never been prouder."
+  },
+  {
+   "id": "quote_10",
+   "cast": "narrator",
+   "hash": "b3714463",
+   "file": "narrator/quote_10",
+   "duration": 4.0,
+   "aliases": [],
+   "text": "The bell towers once sang storms home. Now they ring one in to work."
+  },
+  {
+   "id": "quote_11",
+   "cast": "narrator",
+   "hash": "c448c75b",
+   "file": "narrator/quote_11",
+   "duration": 4.5,
+   "aliases": [],
+   "text": "Red Nine still dreams of being a carousel. On weekends, he practices."
+  },
+  {
+   "id": "quote_12",
+   "cast": "narrator",
+   "hash": "8a4c97a3",
+   "file": "narrator/quote_12",
+   "duration": 4.4,
+   "aliases": [],
+   "text": "The Sky-Keeper's map has one word in the corner: 'more.' It's a to-do list."
+  }
+ ]
+}

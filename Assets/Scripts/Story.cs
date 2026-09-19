@@ -50,9 +50,14 @@ namespace GemRush
             "The Sky-Keeper's map has one word in the corner: 'more.' It's a to-do list."
         };
 
+        /// Index of the quote MenuQuote last returned, so voice lines can
+        /// reference exactly the quote on screen.
+        public static int LastQuoteIndex { get; private set; }
+
         public static string MenuQuote()
         {
-            return MenuQuotes[Random.Range(0, MenuQuotes.Length)];
+            LastQuoteIndex = Random.Range(0, MenuQuotes.Length);
+            return MenuQuotes[LastQuoteIndex];
         }
     }
 }

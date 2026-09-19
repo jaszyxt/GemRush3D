@@ -21,6 +21,13 @@ namespace UnityEngine
         public static T FindFirstObjectByType<T>() where T : Object { return default(T); }
     }
 
+    public static class ScreenCapture
+    {
+        public static void CaptureScreenshot(string filename) { }
+        public static void CaptureScreenshot(string filename, int superSize) { }
+        public static Texture2D CaptureScreenshotAsTexture() { return new Texture2D(4, 4); }
+    }
+
     public static class Debug
     {
         public static void Log(object message) { }
@@ -37,12 +44,20 @@ namespace UnityEngine
         public T GetComponentInChildren<T>() { return default(T); }
     }
 
+    public class AsyncOperation { }
+
     public class Behaviour : Component
     {
         public bool enabled;
     }
 
-    public class MonoBehaviour : Behaviour { }
+    public class Coroutine { }
+
+    public class MonoBehaviour : Behaviour
+    {
+        public Coroutine StartCoroutine(System.Collections.IEnumerator routine) { return null; }
+        public void StopCoroutine(Coroutine routine) { }
+    }
 
     // Whole-panel fades/scales (UIManager panel transitions).
     public class CanvasGroup : Behaviour
@@ -63,6 +78,7 @@ namespace UnityEngine
         public Transform transform { get { return null; } }
         public string tag { get; set; }
         public bool activeSelf { get { return false; } }
+        public bool activeInHierarchy { get { return false; } }
         public void SetActive(bool value) { }
         public T AddComponent<T>() where T : Component { return default(T); }
         public T GetComponent<T>() { return default(T); }
@@ -173,6 +189,9 @@ namespace UnityEngine
         public static float Distance(Vector3 a, Vector3 b) { return 0f; }
         public static float Dot(Vector3 a, Vector3 b) { return 0f; }
         public void Normalize() { }
+        public static Vector3 Normalize(Vector3 value) { return value; }
+        public static Vector3 Cross(Vector3 a, Vector3 b) { return new Vector3(); }
+        public static Vector3 operator -(Vector3 a) { return a; }
         public static bool operator ==(Vector3 a, Vector3 b) { return true; }
         public static bool operator !=(Vector3 a, Vector3 b) { return false; }
         public override bool Equals(object other) { return true; }
@@ -243,6 +262,20 @@ namespace UnityEngine
         public static void Save() { }
     }
 
+    public class AnimationCurve
+    {
+        public AnimationCurve() { }
+        public AnimationCurve(params Keyframe[] keys) { }
+        public static AnimationCurve Linear(float timeStart, float valueStart,
+            float timeEnd, float valueEnd) { return new AnimationCurve(); }
+        public void AddKey(float time, float value) { }
+    }
+
+    public struct Keyframe
+    {
+        public Keyframe(float time, float value) { }
+    }
+
     public static class Random
     {
         public static float value { get { return 0f; } }
@@ -301,6 +334,15 @@ namespace UnityEngine
         public static Rect safeArea { get { return new Rect(); } }
         public static bool fullScreen { get; set; }
         public static FullScreenMode fullScreenMode { get; set; }
+        public static void SetResolution(int width, int height, bool fullscreen) { }
+        public static void SetResolution(int width, int height, FullScreenMode mode) { }
+    }
+
+    public class Display
+    {
+        public static Display main { get { return null; } }
+        public int systemWidth { get { return 0; } }
+        public int systemHeight { get { return 0; } }
     }
 
     public enum FullScreenMode { ExclusiveFullScreen, FullScreenWindow, MaximizedFullScreen, Windowed }
@@ -385,6 +427,7 @@ namespace UnityEngine
         public RigidbodyInterpolation interpolation { get; set; }
         public CollisionDetectionMode collisionDetectionMode { get; set; }
         public void MovePosition(Vector3 position) { }
+        public void MoveRotation(Quaternion rotation) { }
     }
 
     public enum RigidbodyConstraints { None, FreezePosition, FreezeRotation }
@@ -503,11 +546,28 @@ namespace UnityEngine
         public static bool isPlaying { get { return false; } }
         public static int targetFrameRate { get; set; }
         public static RuntimePlatform platform { get { return RuntimePlatform.WindowsEditor; } }
+        public static event System.Action quitting;
+        public static void OpenURL(string url) { }
     }
 
     public static class Resources
     {
         public static T GetBuiltinResource<T>(string path) where T : Object { return default(T); }
+        public static T Load<T>(string path) where T : Object { return default(T); }
+        public static AsyncOperation UnloadUnusedAssets() { return null; }
+    }
+
+    public class TextAsset : Object
+    {
+        public string text { get { return null; } }
+    }
+
+    public static class JsonUtility
+    {
+        public static string ToJson(object obj) { return null; }
+        public static string ToJson(object obj, bool pretty) { return null; }
+        public static T FromJson<T>(string json) { return default(T); }
+        public static void FromJsonOverwrite(string json, object objectToOverwrite) { }
     }
 
     public struct LayerMask
@@ -649,6 +709,7 @@ namespace UnityEngine
         public Texture2D(int width, int height, TextureFormat format, bool mipChain) { }
         public void SetPixel(int x, int y, Color color) { }
         public void Apply() { }
+        public byte[] EncodeToPNG() { return new byte[0]; }
     }
 
     public class Sprite : Object
@@ -677,6 +738,7 @@ namespace UnityEngine
         public float spatialBlend { get; set; }
         public float volume { get; set; }
         public bool loop { get; set; }
+        public int priority { get; set; }
         public AudioClip clip { get; set; }
         public bool isPlaying { get { return false; } }
         public float time { get; set; }
@@ -699,7 +761,9 @@ namespace UnityEngine
         {
             public MinMaxCurve(float constant) { }
             public MinMaxCurve(float min, float max) { }
+            public MinMaxCurve(float multiplier, AnimationCurve curve) { }
             public static implicit operator MinMaxCurve(float value) { return new MinMaxCurve(); }
+            public static implicit operator MinMaxCurve(AnimationCurve curve) { return new MinMaxCurve(); }
         }
 
         public struct MinMaxGradient
@@ -723,6 +787,7 @@ namespace UnityEngine
             public MinMaxGradient startColor { get; set; }
             public MinMaxCurve gravityModifier { get; set; }
             public ParticleSystemSimulationSpace simulationSpace { get; set; }
+            public int maxParticles { get; set; }
         }
 
         public struct EmissionModule
@@ -737,6 +802,8 @@ namespace UnityEngine
             public bool enabled { get; set; }
             public ParticleSystemShapeType shapeType { get; set; }
             public float radius { get; set; }
+            public Vector3 scale { get; set; }
+            public Vector3 position { get; set; }
         }
 
         public struct ColorOverLifetimeModule
@@ -748,7 +815,16 @@ namespace UnityEngine
         public MainModule main { get { return new MainModule(); } }
         public EmissionModule emission { get { return new EmissionModule(); } }
         public ShapeModule shape { get { return new ShapeModule(); } }
+        public struct VelocityOverLifetimeModule
+        {
+            public bool enabled { get; set; }
+            public MinMaxCurve x { get; set; }
+            public MinMaxCurve y { get; set; }
+            public MinMaxCurve z { get; set; }
+        }
+
         public ColorOverLifetimeModule colorOverLifetime { get { return new ColorOverLifetimeModule(); } }
+        public VelocityOverLifetimeModule velocityOverLifetime { get { return new VelocityOverLifetimeModule(); } }
         public void Play() { }
         public void Stop() { }
     }
@@ -905,8 +981,19 @@ namespace UnityEngine.UI
         public Vector2 effectDistance { get; set; }
     }
 
+    public struct Navigation
+    {
+        public enum Mode { None, Horizontal, Vertical, Automatic, Explicit }
+        public Mode mode;
+        public Button selectOnUp;
+        public Button selectOnDown;
+        public Button selectOnLeft;
+        public Button selectOnRight;
+    }
+
     public class Button : Component
     {
+        public Navigation navigation { get; set; }
         public class ButtonClickedEvent
         {
             public void AddListener(UnityEngine.Events.UnityAction call) { }
@@ -920,8 +1007,17 @@ namespace UnityEngine.UI
 
 namespace UnityEngine.EventSystems
 {
-    public class EventSystem : Component { }
+    public class EventSystem : Component
+    {
+        public static EventSystem current { get { return null; } }
+        public GameObject currentSelectedGameObject { get { return null; } }
+        public void SetSelectedGameObject(GameObject selected) { }
+    }
     public class StandaloneInputModule : Component { }
+    public interface IEventSystemHandler { }
+    public interface ISelectHandler : IEventSystemHandler { void OnSelect(BaseEventData eventData); }
+    public interface IDeselectHandler : IEventSystemHandler { void OnDeselect(BaseEventData eventData); }
+    public class BaseEventData { }
 
     public class PointerEventData { }
 
@@ -938,6 +1034,11 @@ namespace UnityEngine.EventSystems
 
 namespace UnityEngine.InputSystem
 {
+    namespace UI
+    {
+        public class InputSystemUIInputModule : Component { }
+    }
+
     // Minimal slice of the Input System package used by GamepadInput and
     // Haptics: the guarded door (try/catch + Availability probe) means only
     // these members are ever touched.
@@ -964,3 +1065,60 @@ namespace UnityEngine.InputSystem
         public void SetMotorSpeeds(float lowMotor, float highMotor) { }
     }
 }
+    // ---------- Editor (validated locally; CI checks only game scripts) ----------
+
+namespace UnityEditor
+{
+    [System.AttributeUsage(System.AttributeTargets.Method)]
+    public class MenuItemAttribute : System.Attribute
+    {
+        public MenuItemAttribute(string itemName) { }
+        public MenuItemAttribute(string itemName, bool isValidateFunction) { }
+        public MenuItemAttribute(string itemName, bool isValidateFunction, int priority) { }
+    }
+
+    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Assembly)]
+    public class InitializeOnLoadAttribute : System.Attribute
+    {
+        public InitializeOnLoadAttribute() { }
+    }
+
+    public static class AssetDatabase
+    {
+        public static bool IsValidFolder(string path) { return false; }
+        public static void CreateFolder(string parent, string name) { }
+        public static void Refresh() { }
+        public static void ImportAsset(string path) { }
+        public static Object LoadAssetAtPath(string path, System.Type type) { return null; }
+    }
+
+    public class AssetPostprocessor
+    {
+        public string assetPath;
+        public AssetImporter assetImporter;
+    }
+
+    public class AssetImporter : Object
+    {
+        public string assetPath;
+    }
+
+    public class AudioImporter : AssetImporter
+    {
+        public bool forceToMono { get; set; }
+        public AudioImporterSampleSettings defaultSampleSettings { get; set; }
+    }
+
+    public struct AudioImporterSampleSettings
+    {
+        public AudioClipLoadType loadType;
+        public AudioCompressionFormat compressionFormat;
+        public float quality;
+        public AudioSampleRateSetting sampleRateSetting;
+    }
+
+    public enum AudioClipLoadType { DecompressOnLoad, CompressedInMemory, Streaming }
+    public enum AudioCompressionFormat { PCM, Vorbis, ADPCM, MP3 }
+    public enum AudioSampleRateSetting { PreserveSampleRate, OptimizeSampleRate, OverrideSampleRate }
+}
+

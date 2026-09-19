@@ -138,7 +138,8 @@ namespace GemRush
                 // button already holds focus, the UI module's Submit has
                 // confirmed it — the shortcut below is for the pre-focus
                 // keyboard flow only, or PLAY would fire twice in one press.
-                if (ui.SettingsOpen || ui.QuitOpen || ui.AtlasOpen) return;
+                if (ui.SettingsOpen || ui.QuitOpen || ui.AtlasOpen ||
+                    ui.PhotoModeOpen) return;
                 EventSystem es = EventSystem.current;
                 if (es != null && es.currentSelectedGameObject != null) return;
 
@@ -180,6 +181,11 @@ namespace GemRush
             if (ui.AtlasOpen)
             {
                 ui.CloseAtlas();
+                return;
+            }
+            if (ui.PhotoModeOpen)
+            {
+                ui.ClosePhotoMode(); // B/Escape leaves the photo, stays paused
                 return;
             }
             switch (State)

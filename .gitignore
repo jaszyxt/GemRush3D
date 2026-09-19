@@ -50,3 +50,10 @@ tools/signing.txt
 
 # ZCode session artifacts
 .zcode/
+
+# Voice pipeline build temps (clips under Assets/Resources/Voice are committed)
+tools/voice/build/
+
+# Voice generation local venv + ffmpeg bin (git-ignored tools)
+tools/voice/.venv/
+tools/voice/bin/

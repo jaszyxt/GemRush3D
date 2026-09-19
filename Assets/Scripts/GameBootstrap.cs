@@ -90,6 +90,7 @@ namespace GemRush
         {
             GameObject managers = new GameObject("~Managers");
             managers.AddComponent<AudioManager>();
+            managers.AddComponent<VoiceOver>();
             managers.AddComponent<UIManager>();
             managers.AddComponent<GameManager>();
         }
@@ -100,6 +101,10 @@ namespace GemRush
         {
             if (World != null) Object.Destroy(World);
             World = new GameObject("~World");
+            // A new level means the old level's voice clips (loaded on
+            // demand from Resources) are done; free them for real.
+            if (VoiceOver.Instance != null) VoiceOver.Instance.Stop();
+            Resources.UnloadUnusedAssets();
 
             levelIndex = Mathf.Clamp(levelIndex, 0, LevelLibrary.Levels.Length - 1);
             LevelDefinition level = LevelLibrary.Levels[levelIndex];

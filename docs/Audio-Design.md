@@ -111,3 +111,39 @@ coroutines, pause-safe by design.
 - Clips are mono; width comes from detune, not pan.
 - One shared SFX source: overlapping PlayOneShots sum — the peak guard
   and quiet synth levels keep stacking from clipping.
+
+## 7. Voice over (chapter added by the VO pass)
+
+The realm has a **narrator**: ~185 lines (40 missions, 40 win lines, 81
+story beats, 13 milestones, 4 epilogue pages, 13 menu quotes, ~4,300
+words) are read aloud by a warm storyteller voice. Full design, setup
+and regeneration live in `tools/voice/README.md`; the essentials an
+audio owner must know:
+
+- **Pipeline**: C# text → `GemRush/Voice/Export Voice Lines` →
+  `Assets/Resources/Voice/manifest.json` (id, cast, FNV-1a text hash) →
+  `python tools/voice/generate.py` (Kokoro-82M, Apache-2.0) → committed
+  OGGs at 24 kHz mono, −16 LUFS. Voice is the project's first file-based
+  asset class, kept "code-first" by the regenerating pipeline.
+- **The hash contract** is the load-bearing rule: `VoiceOver.Play(id,
+  text)` refuses to play a line whose on-screen text does not hash to
+  the value recorded at generation time. Editing prose never ships stale
+  or contradictory audio — the line just falls back to text-only.
+- **Mixing**: the voice is its own channel (`VoiceOver`, source priority
+  0, loudness pre-normalized so no runtime volume rides). While it
+  speaks, `AudioManager.DuckFor(line + 1.2 s, 0.16)` holds the score
+  down; the existing sting duck (0.35 / 2.5 s) is untouched.
+- **Timing**: mission cards and story toasts keep their own timers but
+  refill while their line plays (`holdIntroForVoice` / `holdToastForVoice`
+  in `UIManager.Update`) — text stays until the voice finishes.
+- **One voice, one source**: newest line interrupts; pause, level change
+  (`BuildWorld` stops voice + unloads clips) and the `VoiceOn`/`SoundOn`
+  gates silence it immediately.
+- **Casting**: narrator = `af_heart` @ 0.95×. `cast.py` pre-tunes a
+  Gloomfang voice (deeper, bass-shelved) for phase 2 quotes, and the
+  generator is deliberately engine-agnostic — upgrading to
+  Qwen3-TTS/Chatterbox later is one function swap, not a redesign.
+- **Why not cloud/free-tier TTS**: ElevenLabs' free tier and Edge-TTS
+  are non-commercial / ToS-gray for a published game; Kokoro and
+  Qwen3-TTS are Apache-2.0, Chatterbox MIT. CC0 voice libraries cannot
+  voice custom prose.

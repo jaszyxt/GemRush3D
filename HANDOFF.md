@@ -148,6 +148,30 @@ except D11**) → this file.
 - Memory note: two loops per mood are synthesized lazily and cached
   (each 8.8–13.6 s mono — negligible).
 
+## Shipped in v1.20.0 — Photo mode (this session)
+- **PHOTO on the pause menu** (between RESTART and the bottom row): pauses
+  the run (timeScale 0), hides the pause panel, and orbits a slow,
+  height-breathing camera around Pip on the UNSCALED clock (`PhotoMode.cs`
+  disables `CameraFollow`, restores + SnapToTarget on exit).
+- Small bottom capture bar: CAPTURE / OPEN FOLDER / DONE. CAPTURE hides
+  the bar for one frame, grabs the composited view via
+  `ScreenCapture.CaptureScreenshotAsTexture()` (synchronous — the
+  deferred CaptureScreenshot API silently failed to write), encodes PNG,
+  and writes to `Pictures\GemRush3D\gemrush_<timestamp>.png` at 2x.
+  Status line reports the path; OPEN FOLDER opens it in Explorer.
+- B/Escape/BACK closes photo mode back into the pause menu (back-stack
+  updated); Enter shortcut suppressed while the bar is up.
+- **Play-verified**: `Assets/Editor/PhotoProbe.cs` (`GemRush/Photo
+  Probe/Run`) — 5/5: opens, camera yields, PNG lands on disk, exit
+  restores pause + follow camera. Probe deletes its test capture.
+- **Parallel-session hazard (new)**: an active parallel session
+  overwrote `Assets/Editor/PhotoProbe.cs` with a stale copy of
+  UIManager.cs (2044 lines) mid-session; also shipped broken
+  `VoiceLinesExporter.cs` + `VoiceOver.text` (compile blockers) which I
+  minimal-fixed (VoiceEntry.text field added; forceToMono lowercase).
+  If files go missing/stale again: check `git status` + re-verify
+  affected files before compiling, and commit early.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).

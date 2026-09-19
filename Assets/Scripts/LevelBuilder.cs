@@ -66,8 +66,13 @@ namespace GemRush
             }
 
             for (int i = 0; i < level.Checkpoints.Count; i++)
-                Checkpoint.Create(parent, level.Checkpoints[i],
-                    i < level.StoryBeats.Count ? level.StoryBeats[i] : null);
+            {
+                string beat = i < level.StoryBeats.Count
+                    ? level.StoryBeats[i] : null;
+                Checkpoint.Create(parent, level.Checkpoints[i], beat,
+                    string.IsNullOrEmpty(beat)
+                        ? null : VoiceIds.Beat(level.Name, i));
+            }
 
             for (int i = 0; i < level.BouncePads.Count; i++)
                 BouncePad.Create(parent, level.BouncePads[i]);
