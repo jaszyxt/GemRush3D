@@ -217,6 +217,34 @@ except D11**) → this file.
   game-time behavior are flaky — assert state-consistency (like the
   fidelity check) instead.
 
+## Shipped in v1.23.0 — "The world remembers you" (this session)
+- **Menu is home**: boot + ShowMenu show the start island (world 0)
+  behind the menu. `GameBootstrap.EnsureWorld(level)` skips redundant
+  rebuilds (menu path); `BuildWorld` always hard-rebuilds (PlayLevel
+  needs fresh gems). `BuiltLevelIndex` exposes what is standing.
+- **Pip's shelf** (`Shelf.cs`): trophies read live from save — plush
+  (UnlockedLevel>=9), star plinth (30/60/90 stars), bell (Bell Towers
+  cleared), lantern (Long Winter cleared), aurora crystal
+  (AuroraUnlocked), gift trinket (Gifts>0). One-time twinkle via
+  `shelf_seen` mask. `Shelf.RegionCleared/RegionPerfect` are shared
+  helpers (atlas uses them too). Zero new save keys.
+- **Star trail** (`StarTrail.cs`): sparkle wake at 15/30/45 total stars
+  (gold/pink/green tiers), world-space motes, parented to the player so
+  it dies with each world rebuild. `TierFor(stars)` is queryable.
+- **Atlas stamps**: gold REGION CHARTED / PERFECT CHART seal per region,
+  placed left of BACK (anchor x 0.06), stars shown only on perfect.
+- **ShelfProbe** (`GemRush/Shelf Probe/Run`): snapshot/restores every
+  PlayerPrefs key it touches (never destroys real progress — a probe
+  pattern worth copying). Save-relative assertions: shelf matches save
+  exactly, trail tier matches stars, stamp shows when complete.
+- **Parallel-session note**: this cycle a parallel session shipped audio
+  mix calibration + UI polish and owned the version bump (APK stamped
+  1.22.1, versionCode 32 monotonic — laptop dll byte-verified to contain
+  everything). Version file now reads 1.23.0 for the next build. Steam
+  deployment study landed in docs (see git log).
+- EditMode suite is now **37 tests** (parallel sessions added audio
+  audits), all green.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).
