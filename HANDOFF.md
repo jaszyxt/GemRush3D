@@ -172,6 +172,28 @@ except D11**) → this file.
   If files go missing/stale again: check `git status` + re-verify
   affected files before compiling, and commit early.
 
+## Shipped in v1.21.0 — Photo share card (this session)
+- **CAPTURE now frames the scorecard INTO the shot**: a gold-framed card
+  (level name, 3-star row, live time + medal preview + gem count, and the
+  GEM RUSH 3D footer) is raised for the capture frame — every photo
+  leaves with its story on it. Card lives top-center over the orbiting
+  world; hidden the rest of the time.
+- **Capture hardened**: deferred ScreenCapture.CaptureScreenshot
+  silently failed to write (probe-verified); replaced with synchronous
+  `ScreenCapture.CaptureScreenshotAsTexture()` -> EncodeToPNG ->
+  WriteAllBytes. Works identically in editor and player, timeScale 0 ok.
+- **git PUSH added to the milestone loop** (player directive): after
+  each commit, push to origin/main. 15 commits were backlogged before
+  the first push; now synced.
+- Parallel-session note: their VoiceLines session shipped with two
+  compile blockers (VoiceEntry.text missing, ForceToMono capitalization)
+  — minimal-fixed in place. A stale-buffer write also clobbered
+  PhotoProbe.cs with a copy of UIManager.cs (2044 lines); rewritten.
+  If a file seems reverted/corrupted, check for parallel clobbering
+  before debugging your own code.
+- **Play-verified**: PhotoProbe 5/5 incl. real PNG on disk; share card
+  visually verified (gold stars, framed card over the live world).
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).

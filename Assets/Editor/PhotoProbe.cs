@@ -103,11 +103,15 @@ namespace GemRush.EditorTools
                     string path = status.text.StartsWith(prefix)
                         ? status.text.Substring(prefix.Length) : "";
                     bool exists = path.Length > 0 && File.Exists(path);
-                    Check("capture-writes-png", exists, path);
-                    if (exists) File.Delete(path); // probe cleanup
-                    GemRush.UIManager.Instance.ClosePhotoMode();
-                    frames(10);
-                    phase = 3;
+                    if (exists || ++waitFrames > 300)
+                    {
+                        Check("capture-writes-png", exists,
+                            path + (exists ? "" : " (never appeared)"));
+                        if (exists) File.Delete(path); // probe cleanup
+                        GemRush.UIManager.Instance.ClosePhotoMode();
+                        frames(10);
+                        phase = 3;
+                    }
                     break;
                 }
                 case 3:

@@ -1291,6 +1291,10 @@ namespace GemRush
         Button photoOpenFolder;
         PhotoMode photoOrbit;
         string photoFolder;
+        GameObject scorecard;
+        Text scorecardName;
+        Text scorecardTime;
+        Image[] scorecardStars;
 
         void BuildPhotoPanel(Transform canvas)
         {
@@ -1325,7 +1329,56 @@ namespace GemRush
                 new Vector2(0.85f, 0.38f), new Vector2(0f, 0f),
                 new Vector2(180f, 60f), delegate { ClosePhotoMode(); });
 
-            photoPanel.SetActive(false);
+            // The share card: a framed scorecard raised only for the frame
+            // the shot is taken, so every photo leaves with its story on it.
+            scorecard = new GameObject("Scorecard", typeof(RectTransform));
+            scorecard.transform.SetParent(canvas, false);
+            RectTransform card = scorecard.GetComponent<RectTransform>();
+            card.anchorMin = new Vector2(0.5f, 1f);
+            card.anchorMax = new Vector2(0.5f, 1f);
+            card.pivot = new Vector2(0.5f, 1f);
+            card.anchoredPosition = new Vector2(0f, -12f);
+            card.sizeDelta = new Vector2(720f, 190f);
+
+            Image cardBack = scorecard.AddComponent<Image>();
+            cardBack.color = new Color(0f, 0f, 0.05f, 0.78f);
+            Outline cardFrame = scorecard.AddComponent<Outline>();
+            cardFrame.effectColor = starGold;
+            cardFrame.effectDistance = new Vector2(3f, 3f);
+
+            scorecardName = MakeText(scorecard.transform, "CardName", "",
+                40, starGold, TextAnchor.MiddleCenter,
+                new Vector2(0.04f, 0.52f), new Vector2(0.96f, 0.88f),
+                0f, 0f, 0f, 0f);
+            scorecardName.fontStyle = FontStyle.Bold;
+
+            scorecardTime = MakeText(scorecard.transform, "CardStats", "",
+                24, new Color(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter,
+                new Vector2(0.04f, 0.12f), new Vector2(0.96f, 0.5f),
+                0f, 0f, 0f, 0f);
+
+            scorecardStars = new Image[3];
+            for (int i = 0; i < 3; i++)
+            {
+                GameObject star = new GameObject("CardStar" + i);
+                star.transform.SetParent(scorecard.transform, false);
+                Image img = star.AddComponent<Image>();
+                img.sprite = Fx.StarSprite();
+                img.raycastTarget = false;
+                RectTransform srt = img.rectTransform;
+                srt.anchorMin = new Vector2(0.5f + (i - 1) * 0.13f - 0.035f, 0.5f);
+                srt.anchorMax = srt.anchorMin;
+                srt.sizeDelta = new Vector2(64f, 64f);
+                img.color = starDim;
+                scorecardStars[i] = img;
+            }
+
+            Text cardFooter = MakeText(scorecard.transform, "CardFooter",
+                Strings.MenuTitle, 20, new Color(0.72f, 0.78f, 0.88f),
+                TextAnchor.MiddleCenter, new Vector2(0.3f, 0.0f),
+                new Vector2(0.7f, 0.14f), 0f, 0f, 0f, 0f);
+
+            scorecard.SetActive(false);
         }
 
         public void ShowPhotoMode()
@@ -1378,20 +1431,44 @@ namespace GemRush
 
         System.Collections.IEnumerator CapturePhotoRoutine(string path)
         {
+            // The share card IS the shot: raise the framed scorecard
+            // (level, stars, time, medal) while the capture bar is hidden.
+            FillScorecard();
             photoPanel.SetActive(false);
-            // CaptureScreenshotAsTexture is synchronous: one frame with the
-            // bar hidden, grab the composited view, encode, write. This
-            // never leaves the shot deferred (deferred CaptureScreenshot
-            // silently fails in some editor/player windows).
-            yield return null;
+            if (scorecard != null) scorecard.SetActive(true);
+            yield return null; // the framed frame; capture composites now
             Texture2D shot = ScreenCapture.CaptureScreenshotAsTexture();
             byte[] png = shot.EncodeToPNG();
             Destroy(shot);
-            System.IO.File.WriteAllBytes(path, png);
+            if (scorecard != null) scorecard.SetActive(false);
             photoPanel.SetActive(true);
             photoStatus.text = Strings.PhotoSavedTo(path);
             photoOpenFolder.gameObject.SetActive(true);
             AudioManager.Instance.PlayStarDing(2);
+        }
+
+        /// Fills the share card from the level currently being played.
+        void FillScorecard()
+        {
+            int index = GameManager.Instance.CurrentLevel;
+            LevelDefinition def = LevelLibrary.Levels[
+                Mathf.Clamp(index, 0, LevelLibrary.Levels.Length - 1)];
+            int stars = SaveSystem.Stars(index);
+            float best = SaveSystem.BestTime(index);
+            string timeText = "Time " + FormatTime(
+                GameManager.Instance.Elapsed);
+            string medal = GameManager.Instance.Elapsed > 0f
+                ? def.MedalFor(GameManager.Instance.Elapsed) : "";
+
+            scorecardName.text = def.Name;
+            scorecardTime.text = timeText +
+                (medal != "" ? Strings.Dot + medal : "") +
+                Strings.Dot + Strings.HudGems(
+                    GameManager.Instance.GemsCollected,
+                    GameManager.Instance.GemsTotal);
+            for (int i = 0; i < scorecardStars.Length; i++)
+                scorecardStars[i].color =
+                    i < stars ? starGold : starDim;
         }
 
         void OpenPhotoFolder()
