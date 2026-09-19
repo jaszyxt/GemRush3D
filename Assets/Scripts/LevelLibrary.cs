@@ -8,6 +8,34 @@ namespace GemRush
     {
         public static readonly LevelDefinition[] Levels = BuildAllLevels();
 
+        /// One charted region of the atlas: a contiguous run of levels in
+        /// play order. The atlas screen groups levels by these; adding a
+        /// pack = adding its levels AND its region line here.
+        public struct Region
+        {
+            public string Roman;
+            public string Name;
+            public int First;
+            public int Count;
+        }
+
+        public static readonly Region[] Regions =
+        {
+            new Region { Roman = "I",     Name = "The Storm",            First = 0,  Count = 3 },
+            new Region { Roman = "II",    Name = "The Rematch",          First = 3,  Count = 3 },
+            new Region { Roman = "III",   Name = "The Undercloud",       First = 6,  Count = 3 },
+            new Region { Roman = "IV",    Name = "The Two Suns",         First = 9,  Count = 3 },
+            new Region { Roman = "V",     Name = "The Far Isles",        First = 12, Count = 3 },
+            new Region { Roman = "VI",    Name = "Gloomfang's Day Off",  First = 15, Count = 1 },
+            new Region { Roman = "VII",   Name = "The Sky Garden",       First = 16, Count = 3 },
+            new Region { Roman = "VIII",  Name = "Storm Chasers",        First = 19, Count = 3 },
+            new Region { Roman = "IX",    Name = "The Bell Towers",      First = 22, Count = 3 },
+            new Region { Roman = "X",     Name = "Mirror Skies",         First = 25, Count = 3 },
+            new Region { Roman = "XI",    Name = "The B-Sides",          First = 28, Count = 3 },
+            new Region { Roman = "XII",   Name = "The Long Winter",      First = 31, Count = 3 },
+            new Region { Roman = "XIII",  Name = "The Aurora Festival",  First = 34, Count = 3 }
+        };
+
         static LevelDefinition[] BuildAllLevels()
         {
             LevelDefinition[] baseLevels = new LevelDefinition[]

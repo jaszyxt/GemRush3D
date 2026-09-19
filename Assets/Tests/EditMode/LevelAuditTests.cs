@@ -592,6 +592,32 @@ namespace GemRush.Tests
                 "AuroraUnlock; found " + unlockers + ".");
         }
 
+        [Test]
+        public void RegionTable_CoversEveryLevelInOrder()
+        {
+            // The atlas screen groups levels by the region table: the
+            // regions must tile the library exactly — contiguous, in play
+            // order, no gaps, no overlaps, none empty.
+            int covered = 0;
+            for (int r = 0; r < LevelLibrary.Regions.Length; r++)
+            {
+                LevelLibrary.Region region = LevelLibrary.Regions[r];
+                Assert.Greater(region.Count, 0,
+                    "region " + r + " (" + region.Name + ") is empty.");
+                Assert.AreEqual(covered, region.First,
+                    "region " + r + " (" + region.Name + ") starts at " +
+                    region.First + " but the atlas expects " + covered +
+                    " — regions must tile the library in play order.");
+                covered += region.Count;
+            }
+            Assert.AreEqual(LevelLibrary.Levels.Length, covered,
+                "regions cover " + covered + " levels but the library has " +
+                LevelLibrary.Levels.Length + " — a pack is missing from the " +
+                "region table (the atlas would silently hide its levels).");
+            Assert.GreaterOrEqual(LevelLibrary.Regions.Length, 12,
+                "the atlas expects one region per shipped pack.");
+        }
+
         // ------------------------------------------------------------------
         // Derived data sanity
         // ------------------------------------------------------------------

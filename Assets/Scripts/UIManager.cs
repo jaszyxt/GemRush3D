@@ -107,6 +107,19 @@ namespace GemRush
         readonly System.Collections.Generic.List<int> scalableBaseSizes =
             new System.Collections.Generic.List<int>();
 
+        // The Atlas (meta-collection): one region shown at a time over a
+        // dim panel, with per-level stars, medals and best times.
+        GameObject atlasPanel;
+        Text atlasHeader;
+        Text atlasStarsTotal;
+        Text atlasMilestone;
+        Text atlasPageLabel;
+        Button[] atlasRows;
+        Button atlasPrev;
+        Button atlasNext;
+        Button atlasBack;
+        int atlasRegion;
+
         void Awake()
         {
             Instance = this;
@@ -160,6 +173,7 @@ namespace GemRush
             BuildGameOver(safeGo.transform);
             BuildComplete(safeGo.transform);
             BuildSettings(safeGo.transform);
+            BuildAtlas(safeGo.transform);
             BuildPause(safeGo.transform);
             BuildIntro(safeGo.transform);
             BuildStoryToast(safeGo.transform);
@@ -384,6 +398,13 @@ namespace GemRush
                 new Vector2(0f, 0f),
                 touch ? new Vector2(220f, 100f) : new Vector2(190f, 54f),
                 delegate { ShowSettings(); });
+
+            // The Atlas: the collection view, one region at a time.
+            MakeButton(menuPanel.transform, "ATLAS",
+                new Vector2(touch ? 0.75f : 0.775f, touch ? 0.93f : 0.965f),
+                new Vector2(0f, 0f),
+                touch ? new Vector2(190f, 100f) : new Vector2(160f, 54f),
+                delegate { ShowAtlas(); });
 
             // Input-aware hints (D6): the block follows the last-used
             // device (gamepad / touch / keyboard) and rewrites itself the
@@ -805,6 +826,218 @@ namespace GemRush
             }
 
             settingsPanel.SetActive(false);
+        }
+
+        // ------------------------------------------------------------------
+        // The Atlas: the collection view. One region at a time — header,
+        // its milestone line, one row per level (stars, medal, best time),
+        // region arrows, BACK. Rows launch unlocked levels directly.
+        // ------------------------------------------------------------------
+        void BuildAtlas(Transform canvas)
+        {
+            atlasPanel = MakePanel(canvas, "AtlasPanel",
+                new Color(0f, 0f, 0.05f, 0.82f));
+
+            Text title = MakeText(atlasPanel.transform, "Title", "THE ATLAS",
+                64, starGold, TextAnchor.MiddleCenter,
+                new Vector2(0.3f, 0.86f), new Vector2(0.7f, 0.96f), 0f, 0f, 0f, 0f);
+            title.fontStyle = FontStyle.Bold;
+
+            atlasStarsTotal = MakeText(atlasPanel.transform, "StarsTotal", "",
+                26, new Color(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter,
+                new Vector2(0.3f, 0.79f), new Vector2(0.7f, 0.86f), 0f, 0f, 0f, 0f);
+
+            atlasHeader = MakeText(atlasPanel.transform, "RegionHeader", "",
+                34, Color.white, TextAnchor.MiddleCenter,
+                new Vector2(0.08f, 0.68f), new Vector2(0.92f, 0.77f), 0f, 0f, 0f, 0f);
+            atlasHeader.fontStyle = FontStyle.Bold;
+
+            atlasMilestone = MakeText(atlasPanel.transform, "RegionMilestone", "",
+                22, new Color(0.75f, 0.82f, 0.95f), TextAnchor.MiddleCenter,
+                new Vector2(0.14f, 0.60f), new Vector2(0.86f, 0.68f), 0f, 0f, 0f, 0f);
+            atlasMilestone.fontStyle = FontStyle.Italic;
+
+            // Three level rows; regions with fewer deactivate the spares.
+            atlasRows = new Button[3];
+            float[] rowY = { 0.48f, 0.34f, 0.20f };
+            for (int i = 0; i < atlasRows.Length; i++)
+            {
+                int slot = i; // captured for the delegate
+                atlasRows[i] = MakeButton(atlasPanel.transform, "",
+                    new Vector2(0.5f, rowY[i]), new Vector2(0f, 0f),
+                    new Vector2(560f, 60f),
+                    delegate { AtlasRowClicked(slot); }, 24);
+            }
+
+            atlasPrev = MakeButton(atlasPanel.transform, "‹",
+                new Vector2(0.10f, 0.34f), new Vector2(0f, 0f),
+                new Vector2(90f, 100f), delegate { FlipAtlasRegion(-1); }, 44);
+            atlasNext = MakeButton(atlasPanel.transform, "›",
+                new Vector2(0.90f, 0.34f), new Vector2(0f, 0f),
+                new Vector2(90f, 100f), delegate { FlipAtlasRegion(1); }, 44);
+            atlasPageLabel = MakeText(atlasPanel.transform, "RegionLabel", "",
+                20, new Color(0.85f, 0.87f, 0.92f), TextAnchor.MiddleCenter,
+                new Vector2(0.44f, 0.545f), new Vector2(0.56f, 0.59f), 0f, 0f, 0f, 0f);
+
+            atlasBack = MakeButton(atlasPanel.transform, "BACK",
+                new Vector2(0.5f, 0.09f), new Vector2(0f, 0f),
+                new Vector2(260f, 64f), delegate { CloseAtlas(); });
+
+            WireAtlasNav();
+            atlasPanel.SetActive(false);
+        }
+
+        /// A row was activated (gamepad Submit or click): play its level.
+        /// The interactable flag already gates locked levels; this is the
+        /// belt to those braces.
+        void AtlasRowClicked(int slot)
+        {
+            if (atlasRegion < 0 || atlasRegion >= LevelLibrary.Regions.Length)
+                return;
+            LevelLibrary.Region region = LevelLibrary.Regions[atlasRegion];
+            int index = region.First + slot;
+            if (slot >= region.Count) return;
+            if (index > SaveSystem.UnlockedLevel) return;
+            GameManager.Instance.PlayLevel(index);
+        }
+
+        void FlipAtlasRegion(int dir)
+        {
+            int count = LevelLibrary.Regions.Length;
+            // Wrap-around: the atlas is a loop, like the festival.
+            atlasRegion = (atlasRegion + dir + count) % count;
+            RefreshAtlas();
+            WireAtlasNav();
+        }
+
+        public void ShowAtlas()
+        {
+            atlasRegion = 0;
+            RefreshAtlas();
+            WireAtlasNav();
+            atlasPanel.SetActive(true);
+            // Land on the frontier: the first not-yet-cleared level of the
+            // first region that still has one, else the first row.
+            Focus(FirstAtlasRow());
+            AudioManager.Instance.PlayPanel(true);
+        }
+
+        public void CloseAtlas()
+        {
+            if (atlasPanel == null || !atlasPanel.activeSelf) return;
+            atlasPanel.SetActive(false);
+            EventSystem es = EventSystem.current;
+            if (es != null && es.currentSelectedGameObject != null)
+                es.SetSelectedGameObject(null);
+            AudioManager.Instance.PlayPanel(false);
+            Focus(playButton); // the menu is underneath; hand focus back
+        }
+
+        public bool AtlasOpen
+        {
+            get { return atlasPanel != null && atlasPanel.activeSelf; }
+        }
+
+        Button FirstAtlasRow()
+        {
+            LevelLibrary.Region region = LevelLibrary.Regions[atlasRegion];
+            for (int i = 0; i < region.Count && i < atlasRows.Length; i++)
+            {
+                int index = region.First + i;
+                if (index <= SaveSystem.UnlockedLevel &&
+                    atlasRows[i].gameObject.activeInHierarchy &&
+                    atlasRows[i].interactable)
+                    return atlasRows[i];
+            }
+            return atlasRows[0];
+        }
+
+        void RefreshAtlas()
+        {
+            if (atlasRows == null) return;
+            LevelLibrary.Region region =
+                LevelLibrary.Regions[Mathf.Clamp(atlasRegion, 0,
+                    LevelLibrary.Regions.Length - 1)];
+
+            int regionStars = 0;
+            for (int i = 0; i < region.Count; i++)
+                regionStars += SaveSystem.Stars(region.First + i);
+            atlasHeader.text = "REGION " + region.Roman + " — " +
+                region.Name.ToUpper();
+            atlasStarsTotal.text = "STARS " + SaveSystem.TotalStars(
+                LevelLibrary.Levels.Length) + " / " +
+                LevelLibrary.Levels.Length * 3 +
+                "        REGION " + regionStars + " / " + region.Count * 3;
+
+            string milestone = LevelLibrary.Levels[
+                region.First + region.Count - 1].Milestone;
+            atlasMilestone.text = string.IsNullOrEmpty(milestone)
+                ? "Charted skies, drawn in Pip's small, determined handwriting."
+                : milestone;
+            atlasPageLabel.text = (atlasRegion + 1) + " / " +
+                LevelLibrary.Regions.Length;
+
+            for (int i = 0; i < atlasRows.Length; i++)
+            {
+                bool used = i < region.Count;
+                if (atlasRows[i].gameObject.activeSelf != used)
+                    atlasRows[i].gameObject.SetActive(used);
+                if (!used) continue;
+
+                int index = region.First + i;
+                LevelDefinition def = LevelLibrary.Levels[index];
+                bool unlocked = index <= SaveSystem.UnlockedLevel;
+                atlasRows[i].interactable = unlocked;
+
+                int stars = SaveSystem.Stars(index);
+                float best = SaveSystem.BestTime(index);
+                string detail;
+                if (!unlocked) detail = "LOCKED";
+                else if (best < 0f) detail = "Cleared awaits — no time yet";
+                else
+                {
+                    string medal = def.MedalFor(best);
+                    detail = "Stars " + stars + "/3" +
+                        (medal != "" ? "  ·  " + medal : "") +
+                        "  ·  Best " + FormatTime(best);
+                }
+                Text label = atlasRows[i].GetComponentInChildren<Text>();
+                if (label != null)
+                    label.text = "LEVEL " + (index + 1) + "  ·  " + def.Name +
+                        "\n" + detail;
+
+                Image img = atlasRows[i].targetGraphic as Image;
+                if (img != null)
+                    img.color = unlocked ? onColor : lockedColor;
+                FocusFX fx = atlasRows[i].GetComponent<FocusFX>();
+                if (fx != null) fx.RefreshRestColor();
+            }
+        }
+
+        /// Gamepad navigation for the atlas (D5): the rows chain
+        /// vertically with the region arrows flanking horizontally, and
+        /// BACK hangs under the last row. Rewired per region — regions
+        /// with fewer levels deactivate their spare rows.
+        void WireAtlasNav()
+        {
+            if (atlasRows == null) return;
+            LevelLibrary.Region region =
+                LevelLibrary.Regions[Mathf.Clamp(atlasRegion, 0,
+                    LevelLibrary.Regions.Length - 1)];
+            for (int i = 0; i < atlasRows.Length; i++)
+            {
+                Button up = i > 0 && i - 1 < region.Count
+                    ? atlasRows[i - 1] : null;
+                Button down = i + 1 < region.Count ? atlasRows[i + 1] : null;
+                MenuNav.Set(atlasRows[i], up, down, atlasPrev, atlasNext);
+            }
+            Button last = atlasRows[region.Count - 1];
+            MenuNav.Set(atlasPrev, null, atlasRows[0], null, null);
+            MenuNav.Set(atlasNext, null, atlasRows[0], null, null);
+            MenuNav.Set(atlasBack, last, null, null, null);
+            Navigation backNav = last.navigation;
+            backNav.selectOnDown = atlasBack;
+            last.navigation = backNav;
         }
 
         void ShowSettings()
@@ -1317,6 +1550,7 @@ namespace GemRush
             self.overPanel.SetActive(false);
             self.completePanel.SetActive(false);
             self.settingsPanel.SetActive(false);
+            self.atlasPanel.SetActive(false);
             self.pausePanel.SetActive(false);
             self.introPanel.SetActive(false);
             // No panel owns focus while nothing is on screen — gameplay

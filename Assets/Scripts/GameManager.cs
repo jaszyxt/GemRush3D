@@ -125,12 +125,12 @@ namespace GemRush
             {
                 GamepadInput.MarkOther();
                 // Enter confirms whatever screen is on top; while an overlay
-                // (Settings, quit dialog) holds the menu, it must not fire
-                // the shortcuts underneath it. And when a menu button
-                // already holds focus, the UI module's Submit has confirmed
-                // it — the shortcut below is for the pre-focus keyboard
-                // flow only, or PLAY would fire twice in one press.
-                if (ui.SettingsOpen || ui.QuitOpen) return;
+                // (Settings, Atlas, quit dialog) holds the menu, it must
+                // not fire the shortcuts underneath it. And when a menu
+                // button already holds focus, the UI module's Submit has
+                // confirmed it — the shortcut below is for the pre-focus
+                // keyboard flow only, or PLAY would fire twice in one press.
+                if (ui.SettingsOpen || ui.QuitOpen || ui.AtlasOpen) return;
                 EventSystem es = EventSystem.current;
                 if (es != null && es.currentSelectedGameObject != null) return;
 
@@ -167,6 +167,11 @@ namespace GemRush
             if (ui.SettingsOpen)
             {
                 ui.CloseSettings();
+                return;
+            }
+            if (ui.AtlasOpen)
+            {
+                ui.CloseAtlas();
                 return;
             }
             switch (State)

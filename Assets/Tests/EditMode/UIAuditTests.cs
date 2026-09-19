@@ -18,7 +18,7 @@ namespace GemRush.Tests
         static readonly string[] PanelFields =
         {
             "menuPanel", "hudPanel", "winPanel", "overPanel",
-            "completePanel", "settingsPanel", "pausePanel"
+            "completePanel", "settingsPanel", "atlasPanel", "pausePanel"
         };
 
         static object InvokePrivate(object target, string method, params object[] args)
