@@ -527,6 +527,42 @@ namespace GemRush
             return MakeClip(name, data);
         }
 
+        /// Gloomfang's giggle: three low, soft blips on a rising breath —
+        /// a big storm being discreet about his delight. Deliberately
+        /// quieter and deeper than Nim's gust-giggle, never startling.
+        public static AudioClip SoftGiggle(string name)
+        {
+            float[] notes = { 392f, 440f, 493.88f };
+            float[] starts = { 0f, 0.11f, 0.24f };
+            float dur = 0.55f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            for (int i = 0; i < notes.Length; i++)
+            {
+                bool last = i == notes.Length - 1;
+                Voice(data, notes[i], starts[i], last ? 0.24f : 0.08f, 0.15f,
+                    new float[] { 1f, 2f }, new float[] { 1f, 0.12f },
+                    new float[] { 1f, 1.6f }, 0.012f, 2.1f,
+                    last ? 7f : 0f, 0.03f, 0.3f);
+            }
+            // A whisper of breath under the laugh (breathe family).
+            NoiseVoice(data, 0f, 0.4f, 0.03f, 700f, 1300f, 0.1f, 0.25f, 612);
+            return MakeClip(name, data);
+        }
+
+        /// The raindrop bloom: a breathy plop, then two soft music-box
+        /// notes (E5 -> A5, pentatonic) — his rain waking one more flower.
+        public static AudioClip RaindropBloom(string name)
+        {
+            float dur = 1.1f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            NoiseVoice(data, 0f, 0.07f, 0.1f, 900f, 240f, 0.002f, 0.05f, 611, 1.4f);
+            Voice(data, 659.25f, 0.05f, 0.5f, 0.16f,
+                BoxPartials, BoxWeights, BoxDecays, 0.006f, 2f);
+            Voice(data, 880f, 0.19f, 0.7f, 0.14f,
+                BoxPartials, BoxWeights, BoxDecays, 0.008f, 2.2f);
+            return MakeClip(name, data);
+        }
+
         /// A bell strike: hum-weighted inharmonic partials, each dying at
         /// its own pace, ringing for `duration` seconds.
         public static AudioClip BellTone(string name, float frequency, float duration, float volume)

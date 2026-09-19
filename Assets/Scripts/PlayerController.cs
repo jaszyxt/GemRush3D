@@ -34,6 +34,27 @@ namespace GemRush
         WindStreaks windStreaks; // speed-line rig while wind carries Pip
         float lastSkidTime = -99f;
 
+        // ---- Idle life: the glance -> wave -> sit -> nap ladder ----
+        // Acted, never explained: every rung is pure body language.
+        enum IdleStage { Neutral, Glance, Wave, Sit, Sleep }
+        IdleStage idleStage = IdleStage.Neutral;
+        float idleTime;      // scaled seconds of eligible stillness
+        float stageTime;     // scaled seconds since the current rung began
+        float spawnGrace = IdleSpawnGrace;
+        float moteTimer;     // sleepy "z" motes while sitting / napping
+        float gazeWeight;    // glance at the camera: pupils + shy body turn
+        float sitWeight;     // sit/nap pose blend
+        float breathDepth = 0.045f;
+        float breathSpeed = 2.2f;
+        float pupilSparkle;  // the wave: two bright pupil pulses
+        bool waveSecondPop;
+        Vector2 lastMoveInput;
+        Vector3 pupilBaseScale;
+
+        // ---- Checkpoint twirl (visual only) ----
+        float twirlTime = -1f;
+        float twirlYaw;
+
         // A reversal only counts at speed, and skid puffs are rate-limited
         // so a jittery stick can't machine-gun dust.
         const float SkidMinSpeed = 6f;
@@ -42,6 +63,23 @@ namespace GemRush
         const float WindFovHold = 5f;
         // Jump, land and skid puffs share one soft near-white.
         static readonly Color DustColor = new Color(0.9f, 0.9f, 0.9f);
+
+        // Idle ladder rungs, in seconds of stillness. The spawn grace is
+        // the intro-card window: no rung may trigger inside it.
+        const float IdleGlanceAt = 6f;
+        const float IdleWaveAt = 12f;
+        const float IdleSitAt = 20f;
+        const float IdleSleepAt = 35f;
+        const float IdleSpawnGrace = 3.5f;
+        const float GlanceSeconds = 1.5f;
+        const float WaveBeatSeconds = 1.5f;
+        const float YawnSeconds = 2.4f;
+        const float TwirlSeconds = 0.35f;
+
+        /// Fired once per landing (Pip's position, impact speed). The
+        /// reactive world — the pokeable flowers — listens to this instead
+        /// of polling anything per frame.
+        public static event System.Action<Vector3, float> Landed;
 
         /// Bonus-flight mode (playing as Gloomfang): no gravity, hold jump
         /// to rise, gentle sink otherwise, fall deaths replaced by a clamp.
@@ -116,6 +154,8 @@ namespace GemRush
 
             ArtLib.DecorCube(tr, new Vector3(0f, 0.35f, 0.5f),
                 new Vector3(0.22f, 0.22f, 0.34f), Quaternion.identity, nose);
+
+            if (pupilL != null) pupilBaseScale = pupilL.localScale;
         }
 
         /// Gloomfang's playable body: the shared real-cloud look, scaled to
@@ -124,6 +164,7 @@ namespace GemRush
         {
             Gloomfang.BuildBody(tr, 0.62f, out bodyVisual,
                 out pupilL, out pupilR);
+            if (pupilL != null) pupilBaseScale = pupilL.localScale;
         }
 
         static Transform BuildEye(Transform body, Material white, Material pupilMat,
@@ -154,6 +195,7 @@ namespace GemRush
             {
                 lastJumpPressedTime = Time.time;
                 GamepadInput.MarkOther();
+                EndReverie();
             }
             // Gamepad jump rides the same buffered queue as keyboard and
             // touch; hold state feeds variable height / fly mode below.
@@ -161,12 +203,17 @@ namespace GemRush
             {
                 lastJumpPressedTime = Time.time;
                 GamepadInput.MarkGamepad();
+                EndReverie();
             }
 
             if (TouchControls.JumpQueued)
             {
                 TouchControls.JumpQueued = false;
-                if (playing) lastJumpPressedTime = Time.time;
+                if (playing)
+                {
+                    lastJumpPressedTime = Time.time;
+                    EndReverie();
+                }
             }
 
             bool wantJump = Time.time - lastJumpPressedTime <= jumpBuffer;
@@ -183,6 +230,7 @@ namespace GemRush
                 rb.linearVelocity = vel;
                 squash = 0.28f;
                 AudioManager.Instance.PlayJump();
+                if (!flyMode) Gloomfang.OnPipJumped(tr.position);
                 Vector3 feet = tr.position + Vector3.down * 0.9f;
                 Fx.Burst(feet, DustColor, 8);
             }
@@ -226,17 +274,32 @@ namespace GemRush
         }
 
         /// Classic platformer juice: stretch while rising, squash on landing,
-        /// lean into motion, breathe when idle.
+        /// lean into motion, breathe when idle — and the idle ladder (glance
+        /// -> wave -> sit -> nap) when Pip is left alone a while.
         void UpdateSquash()
         {
             if (bodyVisual == null) return;
 
+            UpdateIdleLife(GameManager.Instance != null &&
+                GameManager.Instance.State == GameState.Playing);
+
             Vector3 localVel = tr.InverseTransformDirection(rb.linearVelocity);
             float speed = localVel.magnitude;
 
-            float target = 0f;
-            if (grounded && speed < 0.6f)
+            float target;
+            if (sitWeight > 0.001f)
+            {
+                // Sitting/napping: a low pose with its own breathing sine,
+                // blended in over the plain idle breathe.
+                float sitPose = -0.18f +
+                    Mathf.Sin(Time.time * breathSpeed) * breathDepth;
+                float neutralPose = grounded && speed < 0.6f
+                    ? Mathf.Sin(Time.time * 2.2f) * 0.045f : 0f;
+                target = Mathf.Lerp(neutralPose, sitPose, sitWeight);
+            }
+            else if (grounded && speed < 0.6f)
                 target = Mathf.Sin(Time.time * 2.2f) * 0.045f; // idle breathing
+            else target = 0f;
             // Underdamped spring instead of a plain decay: the squash passes
             // slightly past neutral on recovery — classic follow-through, so
             // landings read as bouncy rather than damped.
@@ -252,20 +315,231 @@ namespace GemRush
             bodyVisual.localScale = new Vector3(
                 1f - squash * 0.6f, 1f + squash, 1f - squash * 0.6f);
 
-            // Lean into horizontal motion.
+            // Lean into horizontal motion; a glance adds a shy turn toward
+            // the camera; the checkpoint twirl rides on the same yaw.
+            float glanceYaw = 0f;
+            float glanceGazeX = 0f;
+            if (gazeWeight > 0.001f)
+            {
+                Camera cam = Camera.main;
+                if (cam != null)
+                {
+                    Vector3 local = tr.InverseTransformDirection(
+                        cam.transform.position - tr.position);
+                    glanceYaw = Mathf.Clamp(local.x * 1.4f, -26f, 26f)
+                        * gazeWeight;
+                    glanceGazeX = Mathf.Clamp(local.x * 0.02f, -0.035f, 0.035f);
+                }
+            }
             float pitch = Mathf.Clamp(localVel.z * 1.6f, -12f, 12f);
             float roll = Mathf.Clamp(-localVel.x * 1.6f, -12f, 12f);
-            bodyVisual.localRotation = Quaternion.Euler(pitch, 0f, roll);
+            bodyVisual.localRotation = Quaternion.Euler(pitch,
+                glanceYaw + twirlYaw, roll);
 
-            // Pupils glance toward the movement direction.
+            // Pupils glance toward the movement direction, drift up toward
+            // the camera mid-glance, and sparkle twice for the wave.
             if (pupilL != null && pupilR != null)
             {
                 float px = Mathf.Clamp(localVel.x * 0.025f, -0.05f, 0.05f);
                 float py = Mathf.Clamp(rb.linearVelocity.y * 0.012f, -0.04f, 0.04f);
                 Vector3 gaze = new Vector3(px, py, 0f);
+                if (gazeWeight > 0.001f)
+                    gaze += new Vector3(glanceGazeX * gazeWeight,
+                        0.03f * gazeWeight, 0f);
                 pupilL.localPosition = gaze;
                 pupilR.localPosition = gaze;
+                float sparkleScale = 1f + pupilSparkle;
+                pupilL.localScale = pupilBaseScale * sparkleScale;
+                pupilR.localScale = pupilBaseScale * sparkleScale;
             }
+        }
+
+        // ------------------------------------------------------------------
+        // The idle ladder. A tiny state machine on stillness: glance at the
+        // camera, a happy double-bounce with sparkling pupils, a sit with a
+        // slow yawn, then full sleep under Gloomfang's shade. Zero words.
+        // ------------------------------------------------------------------
+
+        void UpdateIdleLife(bool playing)
+        {
+            float dt = Time.deltaTime;
+
+            // The checkpoint twirl is pure visual and runs through anything.
+            if (twirlTime >= 0f)
+            {
+                twirlTime += dt;
+                float k = Mathf.Clamp01(twirlTime / TwirlSeconds);
+                twirlYaw = 360f * (1f - (1f - k) * (1f - k) * (1f - k));
+                if (k >= 1f) { twirlTime = -1f; twirlYaw = 0f; }
+            }
+
+            if (playing && spawnGrace > 0f) spawnGrace -= dt;
+
+            bool eligible = playing && Time.timeScale > 0f && grounded &&
+                spawnGrace <= 0f &&
+                lastMoveInput.sqrMagnitude < 0.01f &&
+                rb.linearVelocity.sqrMagnitude < 1f;
+
+            if (eligible)
+            {
+                idleTime += dt;
+                stageTime += dt;
+                AdvanceIdleStage();
+                if (idleStage == IdleStage.Wave && !waveSecondPop &&
+                    stageTime >= 0.45f)
+                {
+                    // the second hop of the happy double-bounce
+                    waveSecondPop = true;
+                    squashVel = 1.8f;
+                }
+                if (idleStage >= IdleStage.Sit) TickSleepMotes(dt);
+            }
+            else if (playing && !grounded && idleStage >= IdleStage.Sit)
+            {
+                CancelIdleLife(); // the sit pose makes no sense mid-air
+            }
+
+            UpdateExpression(Time.timeScale > 0f ? dt : 0f);
+        }
+
+        void AdvanceIdleStage()
+        {
+            switch (idleStage)
+            {
+                case IdleStage.Neutral:
+                    if (idleTime >= IdleGlanceAt)
+                        EnterIdleStage(IdleStage.Glance);
+                    break;
+                case IdleStage.Glance:
+                    if (idleTime >= IdleWaveAt)
+                        EnterIdleStage(IdleStage.Wave);
+                    break;
+                case IdleStage.Wave:
+                    if (idleTime >= IdleSitAt)
+                        EnterIdleStage(IdleStage.Sit);
+                    break;
+                case IdleStage.Sit:
+                    if (idleTime >= IdleSleepAt)
+                        EnterIdleStage(IdleStage.Sleep);
+                    break;
+            }
+        }
+
+        void EnterIdleStage(IdleStage stage)
+        {
+            idleStage = stage;
+            stageTime = 0f;
+            if (stage == IdleStage.Wave)
+            {
+                waveSecondPop = false;
+                squash = -0.08f; // first hop of the double-bounce
+                squashVel = 1.6f;
+            }
+            else if (stage == IdleStage.Sleep)
+            {
+                // Eyes close; if Gloomfang is along, he drifts over to
+                // hover above the nap as a shade.
+                if (pupilL != null) pupilL.gameObject.SetActive(false);
+                if (pupilR != null) pupilR.gameObject.SetActive(false);
+                if (Gloomfang.Companion != null)
+                    Gloomfang.Companion.SetShade(tr);
+            }
+        }
+
+        void TickSleepMotes(float dt)
+        {
+            moteTimer -= dt;
+            if (moteTimer > 0f) return;
+            moteTimer = idleStage == IdleStage.Sleep ? 1.2f : 2.4f;
+            Fx.SleepMote(tr.position + Vector3.up * 1.15f +
+                new Vector3(Random.Range(-0.2f, 0.2f), 0f,
+                    Random.Range(-0.2f, 0.2f)));
+        }
+
+        /// Expression targets for the current rung; the weights ease at
+        /// real-frame rate so cancelling fades the pose instead of snapping.
+        void UpdateExpression(float dt)
+        {
+            float gazeTarget = 0f;
+            float sitTarget = 0f;
+            pupilSparkle = 0f;
+            breathDepth = 0.045f;
+            breathSpeed = 2.2f;
+
+            if (idleStage == IdleStage.Glance)
+            {
+                // Rise, hold, return — one full glance across ~1.5 s.
+                float k = stageTime / GlanceSeconds;
+                gazeTarget =
+                    Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(k / 0.25f)) *
+                    Mathf.SmoothStep(1f, 0f, Mathf.Clamp01((k - 0.75f) / 0.25f));
+            }
+            else if (idleStage == IdleStage.Wave)
+            {
+                if (stageTime < WaveBeatSeconds)
+                    pupilSparkle = (Mathf.Sin(stageTime / WaveBeatSeconds *
+                        Mathf.PI * 4f) * 0.5f + 0.5f) * 0.3f;
+            }
+            else if (idleStage == IdleStage.Sit)
+            {
+                // The yawn is one big slow breath on the way into the sit.
+                float yawn = Mathf.Sin(Mathf.PI *
+                    Mathf.Clamp01(stageTime / YawnSeconds));
+                breathDepth = 0.02f + yawn * 0.09f;
+                breathSpeed = 1.6f;
+                sitTarget = 1f;
+            }
+            else if (idleStage == IdleStage.Sleep)
+            {
+                breathDepth = 0.07f;  // deeper, slower napping breath
+                breathSpeed = 1.1f;
+                sitTarget = 1f;
+            }
+
+            sitWeight = Mathf.MoveTowards(sitWeight, sitTarget, dt * 2.5f);
+            gazeWeight = Mathf.MoveTowards(gazeWeight, gazeTarget, dt * 5f);
+        }
+
+        /// Any input or level event tears the ladder down; waking from an
+        /// actual pose (eyes shut) gets one springy squash-pop.
+        void CancelIdleLife()
+        {
+            idleStage = IdleStage.Neutral;
+            idleTime = 0f;
+            stageTime = 0f;
+            moteTimer = 0f;
+            waveSecondPop = false;
+            if ((pupilL != null && !pupilL.gameObject.activeSelf) ||
+                (pupilR != null && !pupilR.gameObject.activeSelf))
+            {
+                squash = -0.12f;
+                squashVel = 1.4f;
+                if (pupilL != null) pupilL.gameObject.SetActive(true);
+                if (pupilR != null) pupilR.gameObject.SetActive(true);
+                if (Gloomfang.Companion != null)
+                    Gloomfang.Companion.SetShade(null);
+            }
+        }
+
+        /// Input happened: the idle ladder resets and any checkpoint twirl
+        /// is cut short.
+        void EndReverie()
+        {
+            CancelIdleLife();
+            if (twirlTime >= 0f) { twirlTime = -1f; twirlYaw = 0f; }
+        }
+
+        /// The checkpoint celebration: a quick 360° yaw twirl plus a
+        /// hop-squash, both purely visual — the movement state is never
+        /// touched, so this layers over the pad's ring, burst and toast.
+        /// Back-to-back checkpoints each get their own twirl.
+        public void Twirl()
+        {
+            CancelIdleLife();
+            twirlTime = 0f;
+            twirlYaw = 0f;
+            squash = -0.14f; // the hop is sold entirely in the squash spring
+            squashVel = 2.4f;
         }
 
         void OnLand(float impactSpeed)
@@ -274,6 +548,7 @@ namespace GemRush
             AudioManager.Instance.PlayLand(impactSpeed);
             if (impactSpeed > 5f)
                 Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 10);
+            if (!flyMode && Landed != null) Landed(tr.position, impactSpeed);
         }
 
         void FixedUpdate()
@@ -316,6 +591,8 @@ namespace GemRush
                     GamepadInput.MarkOther();
                 }
             }
+            lastMoveInput = input;
+            if (playing && input.sqrMagnitude > 0.01f) EndReverie();
 
             Vector3 wishDir = Vector3.zero;
             if (input.sqrMagnitude > 0.01f)
@@ -482,6 +759,7 @@ namespace GemRush
         /// Keeps the squash-and-stretch feel consistent with jumping.
         public void Launch(float verticalVelocity)
         {
+            EndReverie(); // a pad launch is a level event: the ladder resets
             Vector3 vel = rb.linearVelocity;
             vel.y = Mathf.Max(vel.y, 0f);
             vel.y = verticalVelocity;
@@ -520,6 +798,11 @@ namespace GemRush
             platformVelocity = Vector3.zero;
             lastJumpPressedTime = -99f;
             lastGroundedTime = Time.time;
+            // Respawn (checkpoint or death) restarts the idle ladder and
+            // the twirl from scratch.
+            CancelIdleLife();
+            twirlTime = -1f;
+            twirlYaw = 0f;
         }
     }
 }

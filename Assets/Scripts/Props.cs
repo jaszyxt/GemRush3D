@@ -5,8 +5,10 @@ namespace GemRush
 {
     /// Build-time decorations for platform tops: grass tufts, flowers, rocks
     /// and trees. Everything is deterministic per seed (System.Random — never
-    /// UnityEngine.Random) and purely static: no MonoBehaviour, no update loop.
-    /// All props are collider-free children of the platform transform.
+    /// UnityEngine.Random) and purely static: no update loop. All props are
+    /// collider-free children of the platform transform. (Some flowers carry
+    /// one dormant FlowerPoke component — they only animate when Pip lands
+    /// on them.)
     public static class Props
     {
         // Cached materials — created once on the first DressPlatform call.
@@ -187,19 +189,68 @@ namespace GemRush
             }
         }
 
-        /// Thin cylinder stem with a small pastel sphere head on top.
-        static void Flower(System.Random rng, Transform parent, float topY, Vector3 spot)
+        /// Thin cylinder stem with a small pastel sphere head on top,
+        /// grouped under one root so a poke can bounce the whole flower.
+        /// Some flowers also become poke reactors — the per-level budget
+        /// lives in FlowerPoke, so selection stays deterministic: the same
+        /// build order always registers the same flowers.
+        static void Flower(System.Random rng, Transform parent, float topY,
+            Vector3 spot)
         {
             Material petal = pastelMats[rng.Next(pastelMats.Length)];
 
+            GameObject root = new GameObject("Flower");
+            root.transform.SetParent(parent, false);
+            root.transform.localPosition = new Vector3(spot.x, topY, spot.z);
+
             // Cylinder primitive is 2 units tall: scale y 0.15 = 0.3 stem.
-            DecorPrimitive(PrimitiveType.Cylinder, parent,
-                new Vector3(spot.x, topY + 0.15f, spot.z),
+            DecorPrimitive(PrimitiveType.Cylinder, root.transform,
+                new Vector3(0f, 0.15f, 0f),
                 new Vector3(0.04f, 0.15f, 0.04f), Quaternion.identity, stemMat);
 
-            DecorPrimitive(PrimitiveType.Sphere, parent,
-                new Vector3(spot.x, topY + 0.34f, spot.z),
+            DecorPrimitive(PrimitiveType.Sphere, root.transform,
+                new Vector3(0f, 0.34f, 0f),
                 new Vector3(0.12f, 0.12f, 0.12f), Quaternion.identity, petal);
+
+            root.AddComponent<FlowerPoke>();
+        }
+
+        /// Builds one instant flower at a world position — Gloomfang's
+        /// raindrop bloom uses it. Returns the root at zero scale so the
+        /// caller can spring it up to full size.
+        public static Transform SproutFlower(Transform parent,
+            Vector3 basePosition)
+        {
+            EnsureMaterials();
+            GameObject root = new GameObject("BloomedFlower");
+            root.transform.SetParent(parent, false);
+            root.transform.position = basePosition;
+
+            // Same proportions as the dressed flowers: 0.3 stem, 0.12 head.
+            DecorPrimitive(PrimitiveType.Cylinder, root.transform,
+                new Vector3(0f, 0.15f, 0f),
+                new Vector3(0.04f, 0.15f, 0.04f), Quaternion.identity, stemMat);
+            Material petal =
+                pastelMats[StableHash(basePosition) % pastelMats.Length];
+            DecorPrimitive(PrimitiveType.Sphere, root.transform,
+                new Vector3(0f, 0.34f, 0f),
+                new Vector3(0.12f, 0.12f, 0.12f), Quaternion.identity, petal);
+            return root.transform;
+        }
+
+        /// Stable integer hash of a world position: the same spot always
+        /// hashes the same, so a flower's chime note never changes between
+        /// visits to the same level.
+        public static int StableHash(Vector3 v)
+        {
+            unchecked
+            {
+                int h = 17;
+                h = h * 31 + Mathf.RoundToInt(v.x * 97f);
+                h = h * 31 + Mathf.RoundToInt(v.y * 97f);
+                h = h * 31 + Mathf.RoundToInt(v.z * 97f);
+                return h < 0 ? -h : h;
+            }
         }
 
         /// Unevenly scaled, randomly rotated rock sunk partway into the turf.

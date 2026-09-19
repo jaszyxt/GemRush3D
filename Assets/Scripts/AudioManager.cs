@@ -39,6 +39,8 @@ namespace GemRush
         AudioClip bridgeOff;
         AudioClip guardianWake;
         AudioClip giggle;
+        AudioClip softGiggle;
+        AudioClip raindropBloom;
         AudioClip lanternLight;
         AudioClip meltSigh;
         AudioClip uiClick;
@@ -114,6 +116,8 @@ namespace GemRush
             bridgeOff = SfxSynth.BridgeOff("sfx_bridge_off");
             guardianWake = SfxSynth.GuardianWake("sfx_guardian_wake");
             giggle = SfxSynth.Giggle("sfx_giggle");
+            softGiggle = SfxSynth.SoftGiggle("sfx_gloomfang_giggle");
+            raindropBloom = SfxSynth.RaindropBloom("sfx_raindrop");
             lanternLight = SfxSynth.LanternLight("sfx_lantern");
             meltSigh = SfxSynth.MeltSigh("sfx_melt");
 
@@ -350,6 +354,17 @@ namespace GemRush
         {
             if (musicSource.clip == null) return;
             musicSource.time = 0f;
+            SyncMusic();
+        }
+
+        /// Checkpoint cadence: restarts the pad at its LAST chord (the
+        /// dominant), so the loop's next step resolves home to the tonic
+        /// right under the checkpoint chime. Phase-lock worlds (gusts)
+        /// simply re-sync to the new phase on their next read.
+        public void RestartMusicAtDominant()
+        {
+            if (musicSource.clip == null) return;
+            musicSource.time = musicLoopLength * 0.75f;
             SyncMusic();
         }
 
@@ -659,6 +674,23 @@ namespace GemRush
         {
             if (volumeScale < 0.03f) return;
             PlayIfOn(giggle, volumeScale);
+        }
+
+        /// Gloomfang's own giggle when Pip jumps close by: lower and
+        /// softer than Nim's gust-giggle — a big storm being discreet
+        /// about his delight. volumeScale fades with distance from Pip.
+        public void PlaySoftGiggle(float volumeScale)
+        {
+            if (volumeScale < 0.03f) return;
+            PlayIfOn(softGiggle, volumeScale);
+        }
+
+        /// The giggle-raindrop landing: a breathy plop and a two-note
+        /// bloom chime, very soft.
+        public void PlayRaindropBloom(float volumeScale)
+        {
+            if (volumeScale < 0.03f) return;
+            PlayIfOn(raindropBloom, volumeScale);
         }
 
         /// Melody gems: plays a soft music-box tone; cached per frequency.

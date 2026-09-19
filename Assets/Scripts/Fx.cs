@@ -116,6 +116,30 @@ namespace GemRush
             GameObject go = new GameObject("Popup");
             go.transform.position = position;
             TextMesh tm = go.AddComponent<TextMesh>();
+            Font font = UiFont();
+            tm.font = font;
+            tm.text = text;
+            tm.fontSize = 64;
+            tm.characterSize = 0.22f * scale;
+            tm.anchor = TextAnchor.MiddleCenter;
+            tm.color = color;
+            MeshRenderer renderer = go.GetComponent<MeshRenderer>();
+            if (renderer != null && font != null)
+                renderer.sharedMaterial = font.material;
+
+            Transform tr = go.transform;
+            Tweener.Value(0f, 1f, 0.9f, delegate(float k)
+            {
+                tr.position = position + Vector3.up * (k * 1.7f);
+                Color c = color;
+                c.a = 1f - k;
+                tm.color = c;
+            }, delegate { Object.Destroy(go); });
+        }
+
+        /// The built-in UI font, resolved once (Popup and SleepMote share it).
+        static Font UiFont()
+        {
             if (uiFont == null)
             {
                 try { uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); }
@@ -126,22 +150,39 @@ namespace GemRush
                     catch (System.Exception) { uiFont = null; }
                 }
             }
-            tm.font = uiFont;
-            tm.text = text;
-            tm.fontSize = 64;
-            tm.characterSize = 0.22f * scale;
+            return uiFont;
+        }
+
+        /// One sleepy "z": a tiny wordless mote drifting up and fading on
+        /// the unscaled clock — the nap ladder's tell. One text mesh,
+        /// auto-destroys.
+        public static void SleepMote(Vector3 position)
+        {
+            GameObject go = new GameObject("SleepMote");
+            go.transform.position = position;
+            TextMesh tm = go.AddComponent<TextMesh>();
+            Font font = UiFont();
+            tm.font = font;
+            tm.text = "z";
+            tm.fontSize = 48;
+            tm.characterSize = 0.1f;
             tm.anchor = TextAnchor.MiddleCenter;
+            Color color = ArtLib.CloudWhite;
+            color.a = 0f;
             tm.color = color;
             MeshRenderer renderer = go.GetComponent<MeshRenderer>();
-            if (renderer != null && uiFont != null)
-                renderer.sharedMaterial = uiFont.material;
+            if (renderer != null && font != null)
+                renderer.sharedMaterial = font.material;
 
             Transform tr = go.transform;
-            Tweener.Value(0f, 1f, 0.9f, delegate(float k)
+            Tweener.Value(0f, 1f, 2.2f, delegate(float k)
             {
-                tr.position = position + Vector3.up * (k * 1.7f);
+                if (go == null) return; // world tore down mid-mote
+                tr.position = position + Vector3.up * (k * 1.15f)
+                    + Vector3.right * (Mathf.Sin(k * 6.6f) * 0.08f);
                 Color c = color;
-                c.a = 1f - k;
+                c.a = 0.85f * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(k / 0.2f))
+                    * (1f - Mathf.Clamp01((k - 0.55f) / 0.45f));
                 tm.color = c;
             }, delegate { Object.Destroy(go); });
         }
@@ -189,6 +230,64 @@ namespace GemRush
             ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
             Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
             if (shader != null) renderer.sharedMaterial = new Material(shader);
+
+            go.AddComponent<AutoDestroy>();
+            ps.Play();
+        }
+
+        /// A soft puff of tiny round particles on a gentle arc — flower
+        /// petals when a poke sings, the raindrop's splash. One-shot,
+        /// budget-capped under the 30-particle rule, auto-destroys exactly
+        /// like Burst.
+        public static void PetalPuff(Vector3 position, Color color, int count)
+        {
+            if (count > 30) count = 30;
+            GameObject go = new GameObject("PetalPuff");
+            go.transform.position = position;
+
+            ParticleSystem ps = go.AddComponent<ParticleSystem>();
+
+            ParticleSystem.MainModule main = ps.main;
+            main.duration = 0.4f;
+            main.loop = false;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 0.8f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.8f, 1.6f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.07f, 0.13f);
+            main.startColor = color;
+            main.gravityModifier = 0.55f; // a gentle arc, not a splatter
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+            ParticleSystem.EmissionModule emission = ps.emission;
+            emission.rateOverTime = new ParticleSystem.MinMaxCurve(0f);
+            ParticleSystem.Burst burst = new ParticleSystem.Burst(0f, (short)count);
+            emission.SetBursts(new ParticleSystem.Burst[] { burst });
+
+            ParticleSystem.ShapeModule shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.1f;
+
+            ParticleSystem.ColorOverLifetimeModule fade = ps.colorOverLifetime;
+            fade.enabled = true;
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(
+                new GradientColorKey[] {
+                    new GradientColorKey(color, 0f),
+                    new GradientColorKey(color, 1f)
+                },
+                new GradientAlphaKey[] {
+                    new GradientAlphaKey(1f, 0f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            fade.color = new ParticleSystem.MinMaxGradient(gradient);
+
+            ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
+            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (shader != null)
+            {
+                Material mat = new Material(shader);
+                mat.mainTexture = DiscTexture();
+                renderer.sharedMaterial = mat;
+            }
 
             go.AddComponent<AutoDestroy>();
             ps.Play();

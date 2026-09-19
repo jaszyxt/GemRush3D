@@ -50,12 +50,16 @@ namespace GemRush
         void OnTriggerEnter(Collider other)
         {
             if (activated) return;
-            if (other.GetComponentInParent<PlayerController>() == null) return;
+            PlayerController pip = other.GetComponentInParent<PlayerController>();
+            if (pip == null) return;
             activated = true;
 
             Vector3 top = transform.localPosition;
             GameManager.Instance.SetSpawn(top + new Vector3(0f, 1.2f, 0f));
             AudioManager.Instance.PlayCheckpoint();
+            // Checkpoint cadence: the pad steps to the dominant chord, so
+            // it resolves home to the tonic under the chime.
+            AudioManager.Instance.RestartMusicAtDominant();
             Haptics.Light();
 
             if (ringMaterial != null)
@@ -67,6 +71,10 @@ namespace GemRush
                 ring.transform.localScale = new Vector3(2.8f, 0.08f, 2.8f);
 
             Fx.Burst(top + new Vector3(0f, 0.5f, 0f), ArtLib.CheckpointOn * 1.5f, 20);
+
+            // Pip's own reaction, layered over the pad's fanfare: a quick
+            // joyful twirl. Purely visual on his side.
+            pip.Twirl();
 
             if (!string.IsNullOrEmpty(storyLine) && UIManager.Instance != null)
                 UIManager.Instance.ShowStoryToast(storyLine);

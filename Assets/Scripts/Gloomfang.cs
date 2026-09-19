@@ -21,6 +21,25 @@ namespace GemRush
         float bob;
         bool mirror; // mirror twin: haunts the opposite side of the sky
         float sparkTimer;
+        float bodyScale = 1f;
+        float wobble;    // giggle wobble energy, decaying
+        float wobbleAge;
+        bool shading;    // nap watch: hovering right above sleeping Pip
+        Transform shadeBlob;
+
+        /// The level's companion (never the mirror twin): PlayerController
+        /// finds him for jump giggles, the idle ladder for nap shade.
+        public static Gloomfang Companion { get; private set; }
+
+        /// One raindrop in the air at a time.
+        public static bool DropInFlight { get; set; }
+
+        // Pip's jumps read as "nearby" from ~4.5 u out: the view contract
+        // already parks him 3.2 u right and 2.2 u back of Pip, so a tighter
+        // ring could never fire.
+        const float NearbyRadius = 4.5f;
+        const float RaindropCooldown = 10f;
+        static float nextRaindropAt;
 
         /// Shared body builder: soft overlapping spheres at vapor opacity.
         /// Used by the follower AND the playable Gloomfang so they always
@@ -88,6 +107,7 @@ namespace GemRush
             Gloomfang g = go.AddComponent<Gloomfang>();
             g.target = followTarget;
             g.mirror = mirror;
+            if (!mirror) Companion = g;
             BuildBody(go.transform, 1f, out g.bodyVisual, out g.pupilL, out g.pupilR);
 
             if (mirror)
@@ -138,10 +158,21 @@ namespace GemRush
             Vector3 anchor = mirror
                 ? new Vector3(-target.position.x, 0f, target.position.z)
                 : target.position;
-            Vector3 station = anchor
-                + right * 3.2f
-                + Vector3.up * (1.5f + Mathf.Sin(bob * 1.3f) * 0.25f)
-                - fwd * 2.2f;
+            Vector3 station;
+            if (shading)
+            {
+                // Nap watch: directly above sleeping Pip, a shade against
+                // the sun until he wakes.
+                station = anchor + Vector3.up *
+                    (2.6f + Mathf.Sin(bob * 1.3f) * 0.15f);
+            }
+            else
+            {
+                station = anchor
+                    + right * 3.2f
+                    + Vector3.up * (1.5f + Mathf.Sin(bob * 1.3f) * 0.25f)
+                    - fwd * 2.2f;
+            }
 
             // Critically-damped chase: never snaps, never overshoots.
             Vector3 toStation = station - transform.position;
@@ -149,12 +180,28 @@ namespace GemRush
                 toStation * 2.2f, 1f - Mathf.Exp(-4f * Time.deltaTime));
             transform.position += velocity * Time.deltaTime;
 
-            // Body leans into his own drift.
+            // Body leans into his own drift; a giggle wobbles the whole
+            // cloud with a scale-and-yaw pulse.
+            float wiggle = 0f;
+            float puff = 0f;
+            if (wobble > 0f)
+            {
+                wobbleAge += Time.deltaTime;
+                wobble = Mathf.Max(0f, wobble - Time.deltaTime * 1.3f);
+                // ~1.4 Hz: a soft jiggle, kept under the ~1.8 Hz comfort
+                // law (motion, but never flicker).
+                float s = Mathf.Sin(wobbleAge * 9f) * wobble;
+                puff = s * 0.07f;
+                wiggle = s * 14f;
+            }
             if (bodyVisual != null)
+            {
+                bodyVisual.localScale = Vector3.one * (bodyScale * (1f + puff));
                 bodyVisual.localRotation = Quaternion.Euler(
                     Mathf.Clamp(-velocity.y * 0.8f, -8f, 8f),
-                    0f,
+                    wiggle,
                     Mathf.Clamp(velocity.x * 0.8f, -8f, 8f));
+            }
 
             // Pupils drift toward Pip, because what else is there to look at.
             if (pupilL != null && pupilR != null)
@@ -181,6 +228,154 @@ namespace GemRush
                     sparkTimer = Random.Range(0.15f, 0.35f);
                 }
             }
+        }
+
+        void OnDestroy()
+        {
+            if (ReferenceEquals(Companion, this)) Companion = null;
+        }
+
+        /// Pip jumped nearby: a happy wobble, a shy giggle, and — his old
+        /// joy, remembered — one soft raindrop that blooms where it lands.
+        public static void OnPipJumped(Vector3 pipPosition)
+        {
+            Gloomfang g = Companion;
+            if (g == null) return;
+            if (Time.time < nextRaindropAt) return;
+            Vector3 flat = pipPosition - g.transform.position;
+            flat.y = 0f;
+            if (flat.sqrMagnitude > NearbyRadius * NearbyRadius) return;
+
+            nextRaindropAt = Time.time + RaindropCooldown;
+            g.wobble = 1f;
+            g.wobbleAge = 0f;
+            AudioManager.Instance.PlaySoftGiggle(
+                AudioManager.Falloff(g.transform.position, 20f));
+            if (!DropInFlight)
+            {
+                DropInFlight = true;
+                GloomfangRaindrop.Spawn(g, pipPosition);
+            }
+        }
+
+        /// Nap watch: while Pip sleeps he drifts from his perch to hover
+        /// right above him, casting a soft shade until wake. A null sleeper
+        /// sends him back to the camera edge.
+        public void SetShade(Transform sleeper)
+        {
+            bool want = sleeper != null;
+            if (want == shading) return;
+            shading = want;
+            if (shading)
+            {
+                shadeBlob = GameObject.CreatePrimitive(PrimitiveType.Sphere)
+                    .transform;
+                SphereCollider col = shadeBlob.gameObject
+                    .GetComponent<SphereCollider>();
+                if (col != null) Object.Destroy(col); // decoration only
+                shadeBlob.name = "Shade";
+                shadeBlob.SetParent(sleeper, false);
+                shadeBlob.localPosition = new Vector3(0f, -0.95f, 0f);
+                shadeBlob.localScale = new Vector3(1.5f, 0.1f, 1.5f);
+                Material m = ArtLib.Solid(new Color(0.30f, 0.34f, 0.48f), 0f);
+                ArtLib.SetFade(m, 0.22f);
+                shadeBlob.GetComponent<MeshRenderer>().sharedMaterial = m;
+            }
+            else if (shadeBlob != null)
+            {
+                Object.Destroy(shadeBlob.gameObject);
+                shadeBlob = null;
+            }
+        }
+    }
+
+    /// The single raindrop Gloomfang lets fall when Pip jumps near him:
+    /// a small Air-colored bead, a soft accelerating fall, and where it
+    /// lands a tiny flower blooms. Purely cosmetic — no collider, no
+    /// gameplay — and it cleans itself up once the bloom settles.
+    class GloomfangRaindrop : MonoBehaviour
+    {
+        const float FallSeconds = 0.6f;
+        const float BloomSeconds = 0.5f;
+
+        Vector3 start;
+        Vector3 end;
+        float age;
+        Transform bead;
+        Transform flower;
+        bool landed;
+
+        public static void Spawn(Gloomfang from, Vector3 pipPosition)
+        {
+            GameObject go = new GameObject("Raindrop");
+            go.transform.SetParent(from.transform.parent, false);
+            GloomfangRaindrop drop = go.AddComponent<GloomfangRaindrop>();
+
+            // Land one step toward Gloomfang's side of Pip, at Pip's feet.
+            Vector3 side = from.transform.position - pipPosition;
+            side.y = 0f;
+            if (side.sqrMagnitude < 0.01f) side = Vector3.right;
+            else side.Normalize();
+            drop.end = pipPosition + side * 0.9f;
+            drop.end.y = pipPosition.y - 0.95f;
+            drop.start = from.transform.position + Vector3.down * 0.4f;
+            go.transform.position = drop.start;
+
+            drop.bead = GameObject.CreatePrimitive(PrimitiveType.Sphere)
+                .transform;
+            SphereCollider col = drop.bead.gameObject
+                .GetComponent<SphereCollider>();
+            if (col != null) Object.Destroy(col); // decoration only
+            drop.bead.SetParent(go.transform, false);
+            drop.bead.localPosition = Vector3.zero;
+            drop.bead.localScale = new Vector3(0.14f, 0.18f, 0.14f);
+            drop.bead.GetComponent<MeshRenderer>().sharedMaterial =
+                ArtLib.Solid(ArtLib.Air, 1.2f);
+        }
+
+        void Update()
+        {
+            age += Time.deltaTime;
+            if (!landed)
+            {
+                float k = Mathf.Clamp01(age / FallSeconds);
+                // Ease-in fall: gravity reads in the accelerating half.
+                transform.position = Vector3.Lerp(start, end, k * k);
+                if (k >= 1f) Land();
+            }
+            else
+            {
+                float k = Mathf.Clamp01(age / BloomSeconds);
+                float pop = Mathf.Sin(k * Mathf.PI) * 0.22f;
+                if (flower != null)
+                    flower.localScale = Vector3.one *
+                        (Mathf.Lerp(0.05f, 1f, k) * (1f + pop));
+                if (k >= 1f)
+                {
+                    flower = null; // the bloom stays; only the spawner leaves
+                    Destroy(gameObject);
+                }
+            }
+        }
+
+        void Land()
+        {
+            landed = true;
+            age = 0f;
+            Gloomfang.DropInFlight = false;
+            if (bead != null) bead.gameObject.SetActive(false);
+            flower = Props.SproutFlower(transform.parent, end);
+            if (flower != null) flower.localScale = Vector3.one * 0.05f;
+            AudioManager.Instance.PlayRaindropBloom(
+                AudioManager.Falloff(end, 16f));
+            Fx.PetalPuff(end + Vector3.up * 0.05f, ArtLib.Air, 3);
+        }
+
+        void OnDestroy()
+        {
+            // A world torn down mid-fall must never strand the "one at a
+            // time" gate.
+            Gloomfang.DropInFlight = false;
         }
     }
 }
