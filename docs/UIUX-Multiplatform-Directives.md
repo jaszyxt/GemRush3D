@@ -493,3 +493,27 @@ preset.
 **Resolved:** the `GoalPortal.Update()` NRE at line 75 noted on 2026-09-18
 is fixed — `AudioManager.Instance` was the unguarded dereference during
 teardown; the proximity-hum report now no-ops without an audio manager.
+
+## Appendix C — Quality-audit fix run (UI/general agent · 2026-09-19 evening)
+
+Second quality audit over the grown UI layer (gamepad, atlas, photo mode,
+share card): **all 3 P1 findings and the P2 list fixed same day.**
+
+| Finding | Fix |
+|---|---|
+| **P1** Gamepad Start during photo mode resumed gameplay under the orbit camera | `GameManager.Update`: Start while `PhotoModeOpen` calls `ClosePhotoMode()` — hands the pause menu back, symmetric with "Start toggles pause" |
+| **P1** ATLAS button unreachable by gamepad/keyboard (missed the D5 nav sweep) | `atlasMenuButton` captured; `WireMenuNav` (both branches) wires SETTINGS↔ATLAS horizontally and drops both into the grid's top-right cell; covered by `UIAuditTests.UIManager_AtlasButton_IsReachableInMenuNav` |
+| **P1** PHOTO offered on mobile but desktop-only under the hood (MyPictures path) | PHOTO pause button built only when `IsDesktopPlatform()`; mobile path (`persistentDataPath` + share) is the documented future item |
+| **P2** `HideAll` leaked the photo bar/scorecard | Both retired in `HideAll`; covered by `UIAuditTests.UIManager_HideAll_RetiresThePhotoBar` |
+| **P2** `RefreshSettings` hardcoded English row names (latent D11 divergence) | Uses the `Strings.Setting*` constants, same as build time |
+| **P2** Menu hint followed pad *presence*, not last use | `CurrentInstructionMode` reads `GamepadInput.LastDeviceWasGamepad`; accepted residual: mouse/touch activity does not flip the flag back |
+| **P3** `WireAtlasNav` would index `atlasRows[-1]` on a zero-level region | Zero-count guard |
+| **P3** Capture comment claimed "at 2x"; capture is native res | Comment corrected |
+
+**Verification:** in-editor compile clean; EditMode suite **29/29** (27 prior
++ 2 new). Deferred: FocusFX focused-scale vs press-tween conflict (cosmetic);
+scorecard star/name-band spacing (one render check, in-flight share-card
+owner); MarkOther on mouse/touch; mobile photo path.
+
+**Note:** the boot-visible photo bar itself was independently fixed in
+`00d4f5c` (art agent) — `HideAll` coverage remains as belt-and-braces.

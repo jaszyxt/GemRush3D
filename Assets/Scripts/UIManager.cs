@@ -75,6 +75,7 @@ namespace GemRush
         // and explicit navigation wiring.
         Button playButton;
         Button menuSettingsButton;
+        Button atlasMenuButton;
         Button[] settingsButtons;
         Button settingsBackButton;
         Button winNextButton, winReplayButton, winMenuButton;
@@ -476,7 +477,7 @@ namespace GemRush
                 delegate { ShowSettings(); });
 
             // The Atlas: the collection view, one region at a time.
-            MakeButton(menuPanel.transform, Strings.Atlas,
+            atlasMenuButton = MakeButton(menuPanel.transform, Strings.Atlas,
                 new Vector2(touch ? 0.75f : 0.775f, touch ? 0.93f : 0.965f),
                 new Vector2(0f, 0f),
                 touch ? new Vector2(190f, 100f) : new Vector2(160f, 54f),
@@ -505,8 +506,9 @@ namespace GemRush
 
         /// Explicit gamepad navigation for the menu (D5): PLAY anchors
         /// everything, the grid wraps per row, SETTINGS hangs off PLAY's
-        /// right and drops into the grid's top-right cell. The paged touch
-        /// grid wires only its visible page, so rewire after every flip.
+        /// right with ATLAS beside it — both drop into the grid's top-right
+        /// cell. The paged touch grid wires only its visible page, so
+        /// rewire after every flip.
         void WireMenuNav(bool touch)
         {
             if (playButton == null || menuSettingsButton == null ||
@@ -517,7 +519,10 @@ namespace GemRush
                 MenuNav.Set(playButton, null, levelButtons[0], null,
                     menuSettingsButton);
                 MenuNav.Set(menuSettingsButton, null,
-                    levelButtons[menuPerRow - 1], playButton, null);
+                    levelButtons[menuPerRow - 1], playButton, atlasMenuButton);
+                if (atlasMenuButton != null)
+                    MenuNav.Set(atlasMenuButton, null,
+                        levelButtons[menuPerRow - 1], menuSettingsButton, null);
                 return;
             }
             int pages = PageCount();
@@ -526,16 +531,25 @@ namespace GemRush
             Button[] page = new Button[inPage];
             for (int i = 0; i < inPage; i++) page[i] = levelButtons[first + i];
             MenuNav.Grid(page, menuPerRow, playButton);
+            Button topRight = page[Mathf.Min(menuPerRow - 1, inPage - 1)];
             MenuNav.Set(playButton, null, page[0], null, menuSettingsButton);
-            MenuNav.Set(menuSettingsButton, null,
-                page[Mathf.Min(menuPerRow - 1, inPage - 1)], playButton, null);
+            MenuNav.Set(menuSettingsButton, null, topRight, playButton,
+                atlasMenuButton);
+            if (atlasMenuButton != null)
+                MenuNav.Set(atlasMenuButton, null, topRight,
+                    menuSettingsButton, null);
         }
 
         /// Which device the menu hint line should describe right now:
-        /// 2 = gamepad, 1 = touch, 0 = keyboard.
+        /// 2 = gamepad, 1 = touch, 0 = keyboard. Follows the last device
+        /// actually used (the flag flips on pad back/start/page presses and
+        /// keyboard back/enter), not merely whether a pad is plugged in —
+        /// a keyboard player with a controller on the desk keeps keyboard
+        /// hints. Accepted approximation: mouse/touch activity does not
+        /// flip the flag back.
         int CurrentInstructionMode()
         {
-            if (GamepadInput.Available) return 2;
+            if (GamepadInput.LastDeviceWasGamepad) return 2;
             if (Input.touchSupported) return 1;
             return 0;
         }
@@ -1089,10 +1103,13 @@ namespace GemRush
         /// with fewer levels deactivate their spare rows.
         void WireAtlasNav()
         {
-            if (atlasRows == null) return;
+            if (atlasRows == null || atlasRows.Length == 0) return;
             LevelLibrary.Region region =
                 LevelLibrary.Regions[Mathf.Clamp(atlasRegion, 0,
                     LevelLibrary.Regions.Length - 1)];
+            // A zero-level region would index atlasRows[-1] below; the data
+            // invariant says every region has levels, but the guard is free.
+            if (region.Count <= 0) return;
             for (int i = 0; i < atlasRows.Length; i++)
             {
                 Button up = i > 0 && i - 1 < region.Count
@@ -1140,11 +1157,13 @@ namespace GemRush
         void RefreshSettings()
         {
             if (settingsLabels == null) return;
-            ApplyLabel(settingsLabels[0], "Sound", SaveSystem.SoundOn);
-            ApplyLabel(settingsLabels[1], "Screen Shake", SaveSystem.ShakeOn);
-            ApplyLabel(settingsLabels[2], "Haptics", SaveSystem.HapticsOn);
-            ApplyLabel(settingsLabels[3], "Shadows", SaveSystem.ShadowsOn);
-            ApplyLabel(settingsLabels[4], "Left-handed Controls", SaveSystem.LeftyOn);
+            // Same constants BuildSettings used for the rows — refresh and
+            // build can never drift apart (D11).
+            ApplyLabel(settingsLabels[0], Strings.SettingSound, SaveSystem.SoundOn);
+            ApplyLabel(settingsLabels[1], Strings.SettingShake, SaveSystem.ShakeOn);
+            ApplyLabel(settingsLabels[2], Strings.SettingHaptics, SaveSystem.HapticsOn);
+            ApplyLabel(settingsLabels[3], Strings.SettingShadows, SaveSystem.ShadowsOn);
+            ApplyLabel(settingsLabels[4], Strings.SettingLefty, SaveSystem.LeftyOn);
             if (settingsLabels.Length > 5 && settingsLabels[5] != null)
             {
                 // A mode, not an on/off: the label names the value, and the
@@ -1155,7 +1174,8 @@ namespace GemRush
                 if (img != null) img.color = SaveSystem.TextLargeOn ? onColor : offColor;
             }
             if (settingsLabels.Length > 6)
-                ApplyLabel(settingsLabels[6], "Fullscreen", SaveSystem.FullscreenOn);
+                ApplyLabel(settingsLabels[6], Strings.SettingFullscreen,
+                    SaveSystem.FullscreenOn);
             // Keep the focus highlight honest after the tint repaints (D5).
             for (int i = 0; i < settingsButtons.Length; i++)
             {
@@ -1249,10 +1269,14 @@ namespace GemRush
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
             // Photo mode (photo postcards, DESIGN.md community plan): pause
-            // the run, frame the sky, take the shot.
-            pausePhotoButton = MakeButton(pausePanel.transform, Strings.Photo,
-                new Vector2(0.5f, 0.185f), new Vector2(0f, 0f),
-                new Vector2(360f, 60f), delegate { ShowPhotoMode(); });
+            // the run, frame the sky, take the shot. Desktop-only for now —
+            // the save path (MyPictures) and OPEN FOLDER are desktop
+            // concepts; a mobile path via persistentDataPath is the
+            // documented future item.
+            if (IsDesktopPlatform())
+                pausePhotoButton = MakeButton(pausePanel.transform, Strings.Photo,
+                    new Vector2(0.5f, 0.185f), new Vector2(0f, 0f),
+                    new Vector2(360f, 60f), delegate { ShowPhotoMode(); });
 
             // Settings joins the pause menu (D9): sound/haptics/text size
             // are adjustable mid-run, without abandoning the level. MENU and
@@ -1425,7 +1449,8 @@ namespace GemRush
 
         /// CAPTURE: hide the bar for the frame the shot is taken (the
         /// screenshot is composited at end of frame), save a timestamped
-        /// PNG at 2x into the Pictures folder, then restore the bar.
+        /// PNG at native resolution into the Pictures folder, then restore
+        /// the bar.
         void CapturePhoto()
         {
             string path = System.IO.Path.Combine(photoFolder,
@@ -1990,6 +2015,10 @@ namespace GemRush
             self.atlasPanel.SetActive(false);
             self.pausePanel.SetActive(false);
             self.introPanel.SetActive(false);
+            // The photo bar and its share card must never outlive the
+            // screen they were raised over (belt to the back-stack braces).
+            self.photoPanel.SetActive(false);
+            if (self.scorecard != null) self.scorecard.SetActive(false);
             self.photoPanel.SetActive(false);
             // No panel owns focus while nothing is on screen — gameplay
             // must never leave a selectable behind for Submit to hit.

@@ -29,6 +29,15 @@ namespace GemRush.Tests
             return info.Invoke(target, args);
         }
 
+        static object InvokeStaticPrivate(System.Type type, string method,
+            params object[] args)
+        {
+            MethodInfo info = type.GetMethod(method,
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.IsNotNull(info, "expected private static method " + method);
+            return info.Invoke(null, args);
+        }
+
         static object GetPrivate(object target, string field)
         {
             return target.GetType().GetField(field,
@@ -134,6 +143,67 @@ namespace GemRush.Tests
             finally
             {
                 SaveSystem.TextLargeOn = originalLarge;
+                Object.DestroyImmediate(go);
+                SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
+            }
+        }
+
+        [Test]
+        public void UIManager_AtlasButton_IsReachableInMenuNav()
+        {
+            GameObject go = new GameObject("UIProbe3", typeof(RectTransform));
+            go.AddComponent<UIManager>();
+            try
+            {
+                InvokePrivate(go.GetComponent<UIManager>(), "Awake");
+                UIManager ui = go.GetComponent<UIManager>();
+                Button atlas = GetPrivate(ui, "atlasMenuButton") as Button;
+                Button settings = GetPrivate(ui, "menuSettingsButton") as Button;
+                Button[] levels = GetPrivate(ui, "levelButtons") as Button[];
+                int perRow = (int)GetPrivate(ui, "menuPerRow");
+
+                Assert.IsNotNull(atlas, "atlas menu button captured for nav");
+                Assert.AreEqual(atlas, settings.navigation.selectOnRight,
+                    "SETTINGS right steps to ATLAS");
+                Assert.AreEqual(settings, atlas.navigation.selectOnLeft,
+                    "ATLAS left returns to SETTINGS");
+                Assert.IsNull(atlas.navigation.selectOnRight,
+                    "ATLAS is the top-right dead end");
+                Assert.AreEqual(levels[perRow - 1],
+                    atlas.navigation.selectOnDown,
+                    "ATLAS down drops into the grid's top-right cell");
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+                SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
+            }
+        }
+
+        [Test]
+        public void UIManager_HideAll_RetiresThePhotoBar()
+        {
+            GameObject go = new GameObject("UIProbe4", typeof(RectTransform));
+            go.AddComponent<UIManager>();
+            try
+            {
+                InvokePrivate(go.GetComponent<UIManager>(), "Awake");
+                UIManager ui = go.GetComponent<UIManager>();
+                GameObject photoPanel = GetPrivate(ui, "photoPanel") as GameObject;
+                GameObject scorecard = GetPrivate(ui, "scorecard") as GameObject;
+                Assert.IsNotNull(photoPanel, "photo bar built");
+
+                photoPanel.SetActive(true);
+                if (scorecard != null) scorecard.SetActive(true);
+                InvokeStaticPrivate(typeof(UIManager), "HideAll");
+                Assert.IsFalse(photoPanel.activeSelf,
+                    "HideAll retires the photo bar");
+                if (scorecard != null)
+                    Assert.IsFalse(scorecard.activeSelf,
+                        "HideAll retires the share card");
+            }
+            finally
+            {
                 Object.DestroyImmediate(go);
                 SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
             }

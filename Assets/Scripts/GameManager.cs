@@ -110,6 +110,11 @@ namespace GemRush
             {
                 GamepadInput.MarkGamepad();
                 if (State == GameState.Playing) PauseGame();
+                // Photo mode keeps State Paused while the pause panel is
+                // hidden — Start there hands the pause menu back instead
+                // of resuming gameplay under the orbit camera.
+                else if (State == GameState.Paused && ui.PhotoModeOpen)
+                    ui.ClosePhotoMode();
                 else if (State == GameState.Paused) ResumeGame();
             }
 
