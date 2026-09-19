@@ -41,7 +41,25 @@ namespace GemRush.EditorTools
 
         class Runner : MonoBehaviour
         {
-            void Update() { Step(); }
+            float age;
+
+            void Update()
+            {
+                // A probe that outlives its run must never haunt a later
+                // play session: DontDestroyOnLoad survives domain reloads,
+                // and a stale runner was observed driving photo mode in an
+                // unrelated one. Any runner still stepping 90 s after its
+                // own start (the full probe takes ~10) self-destructs, and
+                // a manager-less world (post-reload, mid-teardown) ends it.
+                age += Time.unscaledDeltaTime;
+                if (age > 90f || GemRush.GameManager.Instance == null)
+                {
+                    Debug.Log("[PhotoProbe] runner retired (age " +
+                        (int)age + "s) — stale or world torn down.");
+                    Destroy(gameObject);
+                }
+                PhotoProbe.Step();
+            }
         }
 
         static void Check(string label, bool pass, string detail)
@@ -64,7 +82,6 @@ namespace GemRush.EditorTools
         {
             if (!Application.isPlaying || runner == null) return;
             if (waitFrames > 0) { waitFrames--; return; }
-
             switch (phase)
             {
                 case 0:

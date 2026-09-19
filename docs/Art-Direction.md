@@ -51,10 +51,14 @@ removed seven copy-pasted golds and four air-blues; keep it that way.)
 | `HazardRed` | (0.85, 0.20, 0.15) | **spinner arms only** | see the exclusivity rule below |
 | `GemPink` | (0.98, 0.30, 0.75) | gems, bounce pads, start flag | the "playful reward" family |
 | `PortalCyan` | (0.20, 0.90, 0.95) | the goal portal (+ win burst) | one object owns one hue |
-| `Gold` | (1.00, 0.84, 0.25) | **every reward**: hearts, bells, stars, daily gift, UI accents | the reward gold family |
-| `Air` | (0.65, 0.92, 1.00) | updrafts, mirror panes, Gloomfang's spark | air/mirror substance, always faded |
+| `Gold` | (1.00, 0.84, 0.25) | **every reward**: hearts, bells, stars, daily gift, lantern sunstone, see-saw edge stripes, UI accents | the reward gold family |
+| `Air` | (0.65, 0.92, 1.00) | updrafts, mirror panes, echo bridges, Gloomfang's spark | air/mirror substance, always faded |
 | `CheckpointOff/On` | grey → green | checkpoint state | the only state-change color pair in the world |
 | `CloudWhite` | (0.97, 0.98, 1.00) | clouds | always alpha-faded (0.3–0.45) |
+| `Snow` / `IceBlue` / `FrostedLeaf` / `FrostedRock` | pale glacial family | The Long Winter: tops, ice gates, frost props | "frozen" reads one way everywhere |
+| `Trunk` / `Leaf` / `Rock` / `Bud` / `Wood` | prop families | platform dressing, garden buds, see-saw planks | `LongWinter` swaps leaf/rock for the frosted pair |
+| `Aurora` (4-color array) | green→cyan→violet→pink | Aurora Festival ribbons, sky bands, finale | shimmer drifts through it **in order**, everywhere |
+| `Pastels` (5-color array) | flower heads | platform flowers, poke flowers, bloom wave | one garden, one petal palette |
 
 **Exclusivity rules (accessibility, non-negotiable):**
 
@@ -87,6 +91,10 @@ colors stay constant:
 | Far Isles (5) / Storm Chasers (8) | pale aerated blues | "thin air" — winds live here |
 | Bell Towers (9) | dusk amber → lilac → violet | evening climbs; the last level is the darkest day realm |
 | Mirror Skies (10) | glassy blue-greys | slightly wrong on purpose; MirrorGloomfang is 55% alpha |
+| The Long Winter (11, `LongWinter`) | near-white glacial | props swap to frost variants; falling snow; lantern gold is the only warmth |
+| Aurora Festival (12) | dusk violet | the aurora (green/cyan/violet/pink) is the only saturated thing; bands persist over the menu once unlocked |
+| The Homecoming (13) | default day | deliberately home — no new sky, just wood and gold |
+| B-Sides | nightfall deeps | remix skies of earlier levels, hours later in the day |
 
 `PostFx` grades per realm: daylight gets +4 saturation/+4 contrast, the
 Undercloud −12/+10. Bloom is global (intensity 0.85, threshold 0.95,
@@ -169,10 +177,12 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 - **Typography**: one font (LegacyRuntime.ttf, Arial fallback), one
   black outline (2,−2 @ 85%) on every text. Hierarchy by size/weight
   only; titles bold + gold, story italic + pale blue, HUD plain white.
-- **Gamepad focus style (reserved for D5, art-owned spec):** selected
-  button brightens ~25% toward white and scales to 1.06 (same spring as
-  the press dip); exactly one focus highlight visible per panel; the
-  focus ring never uses hue alone (scale + brightness both change).
+- **Gamepad focus style (implemented in `FocusFX` per D5):** selected
+  button brightens ~30% toward white and scales to 1.08; exactly one
+  focus highlight visible per panel; the focus ring never uses hue alone
+  (scale + brightness both change); non-interactable (locked) buttons
+  take selection with no highlight — selection rests without pretending
+  they are alive.
 - Every screen parents under `SafeRoot` (`SafeArea`). The component
   clamps reported insets to 0..1 — some editors/devices misreport
   safe area larger than the screen, and unclamped anchors stretch the
@@ -229,6 +239,18 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 
 ## 10. Change log
 
+- **2026-09-19 (art audit v2 — post-content-era sweep)** — audited all
+  content since v1 (packs 11–13, B-Sides, delight pass, Secret Life,
+  photo mode, gamepad support): shader pinning, fade recipes, emission
+  semantics, photosensitivity cadence and particle budgets all PASS.
+  Consolidated the duplicated aurora palette (AuroraRibbon +
+  AuroraBand) into `ArtLib.Aurora`, the duplicated petal pastels
+  (Props + bloom wave) into `ArtLib.Pastels`, and the prop literals
+  (trunk/leaf/rock/bud, see-saw wood) into named ArtLib constants —
+  zero inline gameplay-color literals remain outside ArtLib. Echo
+  bridges now use `Air` (their old literal was a near-duplicate).
+  Bible updated: Long Winter / Aurora / Homecoming / B-Sides realms,
+  extended palette table, FocusFX implementation note.
 - **2026-09-19 (art audit v1)** — consolidated seven gold literals into
   `ArtLib.Gold` and four air-blues into `ArtLib.Air`; HUD Lives counter
   moved to gold (heart identity); win stars are now painted five-point

@@ -32,7 +32,7 @@ namespace GemRush
                 new Vector3(0.7f, 0.4f, 0.7f), Quaternion.identity, stone);
 
             // The plank: a wooden slab hinged at the pivot's top.
-            Material wood = ArtLib.Solid(new Color(0.62f, 0.45f, 0.28f), 0f);
+            Material wood = ArtLib.Solid(ArtLib.Wood, 0f);
             GameObject plank = new GameObject("Plank");
             plank.transform.SetParent(go.transform, false);
             plank.transform.localPosition = new Vector3(0f, 0.4f, 0f);

@@ -19,12 +19,12 @@ namespace GemRush
             Material elevatorMat = ArtLib.Solid(ArtLib.ElevatorBlue, 0.15f);
             Material stone = ArtLib.Solid(ArtLib.Stone, 0f);
             Material cloudMat = ArtLib.Solid(ArtLib.CloudWhite, 0.25f);
-            Material trunk = ArtLib.Solid(new Color(0.45f, 0.30f, 0.18f), 0f);
+            Material trunk = ArtLib.Solid(ArtLib.Trunk, 0f);
             // Winter props wear frost: muted white-green canopies, pale rocks.
             Material leaf = ArtLib.Solid(
-                level.LongWinter ? ArtLib.FrostedLeaf : new Color(0.30f, 0.62f, 0.28f), 0f);
+                level.LongWinter ? ArtLib.FrostedLeaf : ArtLib.Leaf, 0f);
             Material rock = ArtLib.Solid(
-                level.LongWinter ? ArtLib.FrostedRock : new Color(0.52f, 0.54f, 0.58f), 0f);
+                level.LongWinter ? ArtLib.FrostedRock : ArtLib.Rock, 0f);
 
             int nameSeed = 0;
             for (int i = 0; i < level.Name.Length; i++) nameSeed += level.Name[i];
@@ -104,7 +104,7 @@ namespace GemRush
             {
                 EchoBridgeSpec b = level.EchoBridges[i];
                 EchoBridge.Create(parent, b,
-                    ArtLib.Solid(new Color(0.75f, 0.85f, 1f), 0f));
+                    ArtLib.Solid(ArtLib.Air, 0f));
             }
 
             for (int i = 0; i < level.MirrorDoors.Count; i++)
@@ -170,7 +170,7 @@ namespace GemRush
             int seed = 0;
             for (int i = 0; i < level.Name.Length; i++) seed += level.Name[i];
             System.Random rng = new System.Random(seed + 999);
-            Material budMat = ArtLib.Solid(new Color(0.80f, 0.88f, 0.70f), 0f);
+            Material budMat = ArtLib.Solid(ArtLib.Bud, 0f);
 
             foreach (PlatformSpec p in level.Platforms)
             {

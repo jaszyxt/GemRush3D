@@ -37,6 +37,35 @@ namespace GemRush
         public static readonly Color IceBlue = new Color(0.62f, 0.85f, 0.98f);
         public static readonly Color FrostedLeaf = new Color(0.72f, 0.80f, 0.80f);
         public static readonly Color FrostedRock = new Color(0.84f, 0.87f, 0.92f);
+        /// Props families: trunk/leaf/rock dress every platform, the pale
+        /// bud is the Sky Garden's sleeping flower, wood is the Homecoming's
+        /// see-saw planks. One constant per material family — new props
+        /// reference these instead of re-inventing the hue.
+        public static readonly Color Trunk = new Color(0.45f, 0.30f, 0.18f);
+        public static readonly Color Leaf = new Color(0.30f, 0.62f, 0.28f);
+        public static readonly Color Rock = new Color(0.52f, 0.54f, 0.58f);
+        public static readonly Color Bud = new Color(0.80f, 0.88f, 0.70f);
+        public static readonly Color Wood = new Color(0.62f, 0.45f, 0.28f);
+        /// The Aurora Festival family, in shimmer order. Ribbons, sky bands
+        /// and finale visuals drift through exactly these four, in this
+        /// order, so every aurora surface breathes in unison.
+        public static readonly Color AuroraGreen = new Color(0.35f, 0.95f, 0.65f);
+        public static readonly Color AuroraCyan = new Color(0.35f, 0.80f, 0.95f);
+        public static readonly Color AuroraViolet = new Color(0.75f, 0.55f, 0.98f);
+        public static readonly Color AuroraPink = new Color(0.98f, 0.55f, 0.85f);
+        /// The aurora shimmer cycle, in drift order.
+        public static readonly Color[] Aurora = { AuroraGreen, AuroraCyan,
+            AuroraViolet, AuroraPink };
+        /// The flower-petal pastels, shared by platform flowers, poke
+        /// flowers and the garden bloom wave — one garden, one palette.
+        public static readonly Color[] Pastels =
+        {
+            new Color(1.00f, 0.70f, 0.80f),
+            new Color(1.00f, 0.92f, 0.55f),
+            new Color(0.65f, 0.82f, 1.00f),
+            new Color(0.98f, 0.98f, 0.94f),
+            new Color(0.80f, 0.70f, 0.95f)
+        };
 
         static Shader standardShader;
 

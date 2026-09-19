@@ -46,14 +46,8 @@ namespace GemRush
 
         static Color BandColor(int i)
         {
-            Color[] colors =
-            {
-                new Color(0.35f, 0.95f, 0.65f),  // aurora green
-                new Color(0.35f, 0.80f, 0.95f),  // ice cyan
-                new Color(0.75f, 0.55f, 0.98f),  // violet
-                new Color(0.98f, 0.55f, 0.85f)   // festival pink
-            };
-            return colors[i % colors.Length];
+            // The shared festival palette, in shimmer order.
+            return ArtLib.Aurora[i % ArtLib.Aurora.Length];
         }
     }
 

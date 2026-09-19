@@ -17,15 +17,6 @@ namespace GemRush
         Vector3 swayAxis;
         Rigidbody rb;
 
-        /// Aurora shimmer: a slow drift through the festival palette.
-        static readonly Color[] AuroraColors =
-        {
-            new Color(0.35f, 0.95f, 0.65f),  // aurora green
-            new Color(0.35f, 0.80f, 0.95f),  // ice cyan
-            new Color(0.75f, 0.55f, 0.98f),  // violet
-            new Color(0.98f, 0.55f, 0.85f)   // festival pink
-        };
-
         public static AuroraRibbon Create(Transform parent, AuroraRibbonSpec spec)
         {
             GameObject go = new GameObject("AuroraRibbon");
@@ -35,13 +26,14 @@ namespace GemRush
             BoxCollider col = go.AddComponent<BoxCollider>();
             col.size = spec.Size;
 
-            // The ribbon slab: translucent, luminous, hue-drifting.
-            Material ribbon = ArtLib.Solid(AuroraColors[0], 0.9f);
+            // The ribbon slab: translucent, luminous, hue-drifting through
+            // the shared aurora palette (ArtLib.Aurora).
+            Material ribbon = ArtLib.Solid(ArtLib.Aurora[0], 0.9f);
             ArtLib.SetFade(ribbon, 0.7f);
             ArtLib.DecorCube(go.transform, Vector3.zero, spec.Size,
                 Quaternion.identity, ribbon);
             // A soft underside glow so it reads from below too.
-            Material underglow = ArtLib.Solid(AuroraColors[1], 0.6f);
+            Material underglow = ArtLib.Solid(ArtLib.Aurora[1], 0.6f);
             ArtLib.SetFade(underglow, 0.3f);
             ArtLib.DecorCube(go.transform,
                 new Vector3(0f, -spec.Size.y * 0.6f, 0f),
@@ -83,8 +75,8 @@ namespace GemRush
             {
                 if (mat != null)
                 {
-                    Color from = AuroraColors[a % AuroraColors.Length];
-                    Color to = AuroraColors[(a + 1) % AuroraColors.Length];
+                    Color from = ArtLib.Aurora[a % ArtLib.Aurora.Length];
+                    Color to = ArtLib.Aurora[(a + 1) % ArtLib.Aurora.Length];
                     for (float k = 0f; k < 1f; k += Time.deltaTime / 2.2f)
                     {
                         mat.color = Color.Lerp(from, to, k);

@@ -20,14 +20,8 @@ namespace GemRush
 
         // Fixed pastel palette for flower heads: pink, yellow, light blue,
         // white, lavender.
-        static readonly Color[] PastelPalette = new Color[]
-        {
-            new Color(1.00f, 0.70f, 0.80f),
-            new Color(1.00f, 0.92f, 0.55f),
-            new Color(0.65f, 0.82f, 1.00f),
-            new Color(0.98f, 0.98f, 0.94f),
-            new Color(0.80f, 0.70f, 0.95f)
-        };
+        // Flower-head pastels — the shared ArtLib.Pastels array.
+        static readonly Color[] PastelPalette = ArtLib.Pastels;
 
         const float CenterClear = 1.2f;   // gameplay strip kept free of props
         const float EdgeMargin = 0.5f;    // keep props off the platform edges

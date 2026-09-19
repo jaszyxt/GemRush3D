@@ -1379,6 +1379,10 @@ namespace GemRush
                 new Vector2(0.7f, 0.14f), 0f, 0f, 0f, 0f);
 
             scorecard.SetActive(false);
+            // The capture bar itself ships hidden too: it exists only
+            // inside photo mode, and an always-created panel left active
+            // showed the bar on the menu at boot.
+            photoPanel.SetActive(false);
         }
 
         public void ShowPhotoMode()
@@ -1986,6 +1990,7 @@ namespace GemRush
             self.atlasPanel.SetActive(false);
             self.pausePanel.SetActive(false);
             self.introPanel.SetActive(false);
+            self.photoPanel.SetActive(false);
             // No panel owns focus while nothing is on screen — gameplay
             // must never leave a selectable behind for Submit to hit.
             EventSystem es = EventSystem.current;
