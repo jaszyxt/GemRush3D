@@ -213,6 +213,21 @@ namespace GemRush
         public const string StampCharted = "REGION CHARTED";
         public const string StampPerfect = "PERFECT CHART";
 
+        // ---------- Golden gems (remix gate) ----------
+
+        public const string GoldenSuffix = "  · GOLD";
+        public const string GoldenGateLocked = "FIND THE GOLDEN GEM";
+        public static string GoldenGateHint(string sourceName)
+        {
+            return "Find the golden gem in " + sourceName;
+        }
+        public const string GoldenFoundLine =
+            "A golden gem! The atlas glints.";
+        public static string GoldenUnlocksRemix(string remixName)
+        {
+            return "The golden gem! " + remixName + " awaits at night.";
+        }
+
         // ---------- Photo mode ----------
 
         public const string Photo = "PHOTO";

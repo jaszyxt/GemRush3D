@@ -245,6 +245,32 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "aurora", value ? 1 : 0); Save(); }
         }
 
+        /// The golden-gem remix gate: one hidden golden gem per level;
+        /// finding a source level's golden unlocks its night remix
+        /// (B-side). Every golden is also plain collection.
+        public static bool GoldenFound(int level)
+        {
+            MigrateIfNeeded();
+            return PlayerPrefs.GetInt(LevelKey(level, "golden"), 0) == 1;
+        }
+
+        public static void SetGoldenFound(int level)
+        {
+            MigrateIfNeeded();
+            PlayerPrefs.SetInt(LevelKey(level, "golden"), 1);
+            Save();
+        }
+
+        /// How many goldens have been found across the atlas.
+        public static int TotalGoldens(int levelCount)
+        {
+            MigrateIfNeeded();
+            int n = 0;
+            for (int i = 0; i < levelCount; i++)
+                if (GoldenFound(i)) n++;
+            return n;
+        }
+
         /// The date of Pip's very first flight on this device, recorded
         /// once on first boot. The living calendar celebrates its
         /// anniversary with a festival week of confetti skies — gently,

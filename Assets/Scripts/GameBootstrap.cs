@@ -121,6 +121,7 @@ namespace GemRush
             if (SkyCalendar.RainAppliesTo(level))
                 level = Remixes.Remixed(level, SkyCalendar.RainMutation);
             DailyGem.ActiveLevelIndex = levelIndex;
+            GoldenGem.ActiveLevelIndex = levelIndex;
             LevelBuilder.Build(level, World.transform);
 
             Player = PlayerController.Create(World.transform,

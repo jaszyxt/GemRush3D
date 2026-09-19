@@ -515,6 +515,30 @@ namespace GemRush.Tests
             }
         }
 
+        [Test]
+        public void Spawn_ReachesThePortal_OnEveryLevel()
+        {
+            // The local checks above pass even when a course is cut in
+            // half: every island still has A neighbour, and the portal
+            // still sits near A top. This is the whole-course contract —
+            // under the real movement physics (jump arcs with coyote
+            // time, movers, updraft rides and their ejection arcs, gust
+            // lanes, bounce pads, mirror doors) the portal's surface must
+            // lie on the spawn's island. Engine margins sit inside what a
+            // careful player can do: when this fails, fix the LEVEL.
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                LevelReachability.Report r = LevelReachability.Analyze(l);
+                Assert.IsTrue(r.PortalReachable && r.Problems.Count == 0,
+                    Label(i, l) + ": " + string.Join("; ", r.Problems.ToArray())
+                    + (r.PortalReachable ? "" : " — the portal is on a " +
+                      "surface the spawn cannot reach (" + r.ReachableCount +
+                      " of " + r.TopCount + " surfaces reachable)."));
+                i++;
+            }
+        }
+
         // ------------------------------------------------------------------
         // The Long Winter (pack 11): the lantern/ice-gate contract
         // ------------------------------------------------------------------
@@ -652,6 +676,60 @@ namespace GemRush.Tests
                         " sits below the death plane.");
                 }
                 i++;
+            }
+        }
+
+        [Test]
+        public void BSideGate_SourcesAreEarlierAndNamed()
+        {
+            // The golden-gem gate map: B-sides 28/29/30 unlock via the
+            // goldens of levels 19/22/2. Locked here so a future pack
+            // shuffle can't silently orphan the gate.
+            Assert.AreEqual(19, LevelLibrary.BSideSourceIndex(28),
+                "B-side 28 (Gust Alley — Nightfall) <- Gust Alley");
+            Assert.AreEqual(22, LevelLibrary.BSideSourceIndex(29),
+                "B-side 29 (The Garden That Dreams) <- The First Bell");
+            Assert.AreEqual(2, LevelLibrary.BSideSourceIndex(30),
+                "B-side 30 (The Ascent — Nightfall) <- The Ascent");
+            Assert.AreEqual(-1, LevelLibrary.BSideSourceIndex(0));
+            Assert.AreEqual(-1, LevelLibrary.BSideSourceIndex(27));
+            Assert.AreEqual(-1, LevelLibrary.BSideSourceIndex(31));
+            // Every source must sit EARLIER in the ladder than its gate:
+            // the golden is always collectible before the B-side is
+            // ladder-reachable (no dead ends).
+            for (int i = 0; i < LevelLibrary.Levels.Length; i++)
+            {
+                int source = LevelLibrary.BSideSourceIndex(i);
+                if (source >= 0)
+                    Assert.Less(source, i,
+                        "gate source must precede its B-side");
+            }
+        }
+
+        [Test]
+        public void GoldenPlacement_IsDeterministicAndOnACourse()
+        {
+            // Same level -> same hidden spot, every call; and the spot
+            // must stand on (or hover just over) a platform of the level.
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.BonusFlight) continue;
+                Vector3 a = GemRush.GoldenGem.PickSpot(l);
+                Vector3 b = GemRush.GoldenGem.PickSpot(l);
+                Assert.AreEqual(a, b,
+                    "golden spot must be deterministic for " + l.Name);
+                bool nearTop = false;
+                for (int p = 0; p < l.Platforms.Count; p++)
+                {
+                    PlatformSpec s = l.Platforms[p];
+                    float dx = Mathf.Abs(a.x - s.Center.x) - s.Size.x * 0.5f;
+                    float dz = Mathf.Abs(a.z - s.Center.z) - s.Size.z * 0.5f;
+                    if (dx <= 1.2f && dz <= 1.2f &&
+                        a.y > s.Center.y + s.Size.y * 0.5f - 0.5f)
+                        nearTop = true;
+                }
+                Assert.IsTrue(nearTop,
+                    l.Name + ": golden spot floats off the course at " + a);
             }
         }
 

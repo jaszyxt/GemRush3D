@@ -604,7 +604,13 @@ namespace GemRush
                     levelButtons[i].gameObject.SetActive(onPage);
                 if (!onPage) continue;
 
-                bool unlocked = i <= SaveSystem.UnlockedLevel;
+                // The golden-gem gate: a B-side also needs its source
+                // level's golden gem; a found golden gilds the row.
+                int gateSource = LevelLibrary.BSideSourceIndex(i);
+                bool goldenFound = SaveSystem.GoldenFound(i);
+                bool gateOpen = gateSource < 0 ||
+                    SaveSystem.GoldenFound(gateSource);
+                bool unlocked = i <= SaveSystem.UnlockedLevel && gateOpen;
                 levelButtons[i].interactable = unlocked;
                 Image img = levelButtons[i].targetGraphic as Image;
                 bool isDaily = unlocked && i == dailyIndex && !giftTaken;
@@ -612,6 +618,8 @@ namespace GemRush
                 {
                     if (isDaily)
                         img.color = starGold; // the reward gold, on a button
+                    else if (unlocked && goldenFound)
+                        img.color = starGold; // found goldens gild, too
                     else img.color = unlocked ? onColor : lockedColor;
                 }
                 if (levelButtonTexts[i] != null)
@@ -620,6 +628,15 @@ namespace GemRush
                     {
                         levelButtonTexts[i].text = Strings.LevelUnlockedRow(
                             i + 1, SaveSystem.Stars(i), 3, isDaily);
+                        if (goldenFound)
+                            levelButtonTexts[i].text += Strings.GoldenSuffix;
+                    }
+                    else if (gateSource >= 0 && i <= SaveSystem.UnlockedLevel)
+                    {
+                        // Ladder-reached but gate-locked: teach the quest.
+                        levelButtonTexts[i].text =
+                            Strings.LevelLabel(i + 1) + "\n" +
+                            Strings.GoldenGateLocked;
                     }
                     else
                     {
@@ -1034,6 +1051,8 @@ namespace GemRush
             int index = region.First + slot;
             if (slot >= region.Count) return;
             if (index > SaveSystem.UnlockedLevel) return;
+            int gate = LevelLibrary.BSideSourceIndex(index);
+            if (gate >= 0 && !SaveSystem.GoldenFound(gate)) return;
             GameManager.Instance.PlayLevel(index);
         }
 
@@ -1132,13 +1151,21 @@ namespace GemRush
 
                 int index = region.First + i;
                 LevelDefinition def = LevelLibrary.Levels[index];
-                bool unlocked = index <= SaveSystem.UnlockedLevel;
+                // The golden-gem gate, atlas-side: B-sides need their
+                // source's golden; the locked detail names the quest.
+                int gateSource = LevelLibrary.BSideSourceIndex(index);
+                bool gateOpen = gateSource < 0 ||
+                    SaveSystem.GoldenFound(gateSource);
+                bool unlocked = index <= SaveSystem.UnlockedLevel && gateOpen;
                 atlasRows[i].interactable = unlocked;
 
                 int stars = SaveSystem.Stars(index);
                 float best = SaveSystem.BestTime(index);
                 string detail;
-                if (!unlocked) detail = Strings.Locked;
+                if (!unlocked && !gateOpen)
+                    detail = Strings.GoldenGateHint(
+                        LevelLibrary.Levels[gateSource].Name);
+                else if (!unlocked) detail = Strings.Locked;
                 else if (best < 0f) detail = Strings.NoTimeYet;
                 else
                 {
@@ -1149,6 +1176,7 @@ namespace GemRush
                 Text label = atlasRows[i].GetComponentInChildren<Text>();
                 if (label != null)
                     label.text = Strings.AtlasRowTitle(index + 1, def.Name) +
+                        (SaveSystem.GoldenFound(index) ? Strings.GoldenSuffix : "") +
                         "\n" + detail;
 
                 Image img = atlasRows[i].targetGraphic as Image;

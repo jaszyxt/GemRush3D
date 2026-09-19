@@ -1,0 +1,13 @@
+"app_build"
+{
+    "appid"     "APPID_PLACEHOLDER"
+    "desc"      "Gem Rush 3D VERSION_PLACEHOLDER"  // keep in sync with PlayerSettings.bundleVersion + the commit tag
+    "buildoutput" "..\output"
+    "contentroot" "..\..\..uild\steam\win"
+    "setlive"   ""
+
+    "depots"
+    {
+        "DEPOTID_PLACEHOLDER" "1"
+    }
+}

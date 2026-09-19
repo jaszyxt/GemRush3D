@@ -61,7 +61,7 @@ namespace GemRush
             l.Gems.Add(new Vector3(0f, 7.6f, 113f));
             l.Gems.Add(new Vector3(-3.5f, 8.6f, 121f));
             l.Gems.Add(new Vector3(3.5f, 8.6f, 127f));
-            l.Gems.Add(new Vector3(0f, 8.6f, 16f));     // beside door A — a hello
+            l.Gems.Add(new Vector3(0f, 1.6f, 16f));     // beside door A — a hello
 
             l.Portal = new Vector3(0f, 7.5f, 127f);
 

@@ -142,6 +142,7 @@ namespace GemRush
             GoalPortal.Create(parent, level.Portal);
 
             DailyGem.PlaceIfActive(level, parent);
+            GoldenGem.PlaceIfHidden(level, parent);
 
             float courseLength = level.Portal.z + 14f;
             for (int i = 0; i < level.Platforms.Count; i++)

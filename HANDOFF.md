@@ -276,6 +276,36 @@ except D11**) → this file.
   over the release key (first install needed a clean uninstall — it had
   debug-signed v1.0). Tablet SM-X810 still awaits USB.
 
+## Shipped in v1.25.0 — Golden-gem remix gate + Steam prep (this session)
+- **The golden-gem gate — THE NAMED BACKLOG IS NOW EMPTY**:
+  `GoldenGem.cs` hides one golden gem per level (37: all but B-sides
+  and bonus flight) — deterministic PickSpot (name-seeded, scored by
+  distance-to-nearest-gem + from-spawn), DailyStar-style collect that
+  NEVER touches gem/star math (`SaveSystem.GoldenFound/SetGoldenFound/
+  TotalGoldens`). Finding the source's golden unlocks its night remix:
+  gate map `LevelLibrary.BSideSourceIndex` (28<-19 Gust Alley,
+  29<-22 The First Bell, 30<-2 The Ascent). Menu rows: gated B-sides
+  show "FIND THE GOLDEN GEM"; found goldens gild the row + "· GOLD"
+  suffix (menu AND atlas); AtlasRowClick guard added. Rain-remix safe
+  (ActiveLevelIndex pattern).
+- **Steam prep (docs/Steam-Deploy.md "start today" items — all done)**:
+  companyName=PipStudio stamped by Build() **with the Android package
+  identity PINNED to the legacy com.DefaultCompany.GemRush3D**
+  (companyName otherwise re-keys the package — first 1.25.0 APK came
+  out as com.PipStudio.* and would have installed as a SECOND app,
+  orphaning device saves; caught by the aapt version check, fixed,
+  rebuilt). SteamStage.cs (`GemRush/Stage Steam Build (win)`) stages
+  the ship list into build/steam/win/ excluding pdb/apk/backup —
+  verified 194 files, zero banned. VDF templates in
+  tools/ContentBuilder/scripts/. Remaining Steam work is user-side
+  (account, $100 fee, store assets).
+- **Verified**: suite 42/42 (new: BSideGate map lock + golden placement
+  determinism/course-standability); GoldenProbe 8/8 (spawn, deterministic
+  spot, gate opens/plays/closes, gem math untouched, B-sides hide no
+  golden). APK v1.25.0/34 release-signed under the LEGACY identity;
+  laptop auto-deployed byte-verified. Phone was disconnected at deploy
+  time — install v1.25.0 on next USB.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).

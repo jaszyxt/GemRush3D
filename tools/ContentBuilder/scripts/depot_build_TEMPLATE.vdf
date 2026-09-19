@@ -1,0 +1,19 @@
+"DepotBuildConfig"
+{
+    "DepotID" "DEPOTID_PLACEHOLDER"
+
+    "contentroot" "..\..\..uild\steam\win"
+
+    "FileMapping"
+    {
+        "LocalPath" "*"
+        "DepotPath" "."
+        "recursive" "1"
+    }
+
+    // Banned from the depot (also excluded at staging time by
+    // Assets/Editor/SteamStage.cs — belt and braces):
+    "FileExclusion" "*.pdb"
+    "FileExclusion" "*.apk"
+    "FileExclusion" "GemRush3D_BackUpThisFolder_ButDontShipItWithYourGame*"
+}

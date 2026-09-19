@@ -153,6 +153,8 @@ out of the box there is nothing to sync. Options:
 
 Total: roughly **1–2 weeks calendar**, most of it waiting on verification and
 review. Work that can start today without the account: name check, staging
+> **Status 2026-09-20 (v1.25.0): DONE — companyName = PipStudio (stamped by the build script), staging via `GemRush/Stage Steam Build (win)` into `build/steam/win/` (pdb/apk/backup excluded), VDF templates in `tools/ContentBuilder/scripts/`. Remaining user-side: account, $100 fee, store assets, trailer.**
+
 build script, store assets from existing screenshots, the two VDF scripts
 (AppID placeholder).
 

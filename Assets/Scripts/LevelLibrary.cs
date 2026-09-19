@@ -19,6 +19,19 @@ namespace GemRush
             public int Count;
         }
 
+        /// The golden-gem gate map: which level's golden gem unlocks a
+        /// given B-side. -1 for everything that is not a gated remix.
+        /// B-side 28 "Gust Alley — Nightfall" <- 19 "Gust Alley";
+        /// B-side 29 "The Garden That Dreams" <- 22 "The First Bell";
+        /// B-side 30 "The Ascent — Nightfall" <- 2 "The Ascent".
+        public static int BSideSourceIndex(int levelIndex)
+        {
+            if (levelIndex == 28) return 19;
+            if (levelIndex == 29) return 22;
+            if (levelIndex == 30) return 2;
+            return -1;
+        }
+
         public static readonly Region[] Regions =
         {
             new Region { Roman = "I",     Name = "The Storm",            First = 0,  Count = 3 },

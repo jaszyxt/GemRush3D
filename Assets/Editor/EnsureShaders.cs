@@ -87,8 +87,18 @@ namespace GemRush.EditorTools
         public static void Build()
         {
             PlayerSettings.productName = "Gem Rush 3D";
-            PlayerSettings.bundleVersion = "1.24.0";
-            PlayerSettings.Android.bundleVersionCode = 33;
+            // Steam-Deploy doc: DefaultCompany must never ship (it feeds
+            // the exe's copyright metadata); match the signing cert's
+            // organization.
+            PlayerSettings.companyName = "PipStudio";
+            // But the ANDROID package identity must stay the legacy one:
+            // Unity derives it from companyName, and every installed
+            // device knows com.DefaultCompany.GemRush3D — a new identity
+            // would orphan their saves. Pin it explicitly.
+            PlayerSettings.SetApplicationIdentifier(
+                BuildTargetGroup.Android, "com.DefaultCompany.GemRush3D");
+            PlayerSettings.bundleVersion = "1.25.0";
+            PlayerSettings.Android.bundleVersionCode = 34;
 
             // Desktop window UX (D8): a resizable borderless-fullscreen
             // window at the UI's native reference size that keeps running

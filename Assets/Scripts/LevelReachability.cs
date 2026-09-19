@@ -1,0 +1,669 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace GemRush
+{
+    /// Deterministic spawn-to-portal reachability analysis for a level.
+    ///
+    /// The older audit heuristics in LevelAuditTests check that every
+    /// platform has SOME neighbour; this engine answers the sharper
+    /// question the game actually asks: starting from the spawn, under the
+    /// real movement physics, can Pip reach the portal? It builds a graph
+    /// of standable surfaces (platforms, mover sweeps, echo bridges,
+    /// aurora ribbons, see-saw planks), wires jump-arc edges between them
+    /// with the exact constants from PlayerController and the project's
+    /// gravity, adds the special movement edges (updraft columns, gust
+    /// lanes, bounce pads, mirror doors), then breadth-first searches from
+    /// the spawn's surface to the portal's surface.
+    ///
+    /// A failure here means a level (or an island in it) is genuinely
+    /// impossible — fix the LEVEL, never the model.
+    public static class LevelReachability
+    {
+        // ---- Movement constants, mirrored from the live components ----
+        public const float Gravity = 9.81f;         // DynamicsManager
+        public const float JumpVelocity = 9.5f;     // PlayerController.jumpVelocity
+        public const float RunSpeed = 8f;           // PlayerController.moveSpeed
+        public const float BounceVelocity = 13f;    // BouncePad.LaunchVelocity
+
+        // Safety margins so a jump the model calls "possible" is possible
+        // in hand-too: not every takeoff has a full runway, air control
+        // blends in over a few frames, and real players mis-time hops.
+        const float SpeedSafety = 0.95f;   // horizontal speed at takeoff
+        const float MaxRiseMargin = 0.15f; // rise headroom below the apex
+        const float AirtimeCap = 3.2f;     // long-drop generosity clamp
+        const float LandExpand = 0.3f;     // feet OverlapSphere radius
+        const float TakeoffExpand = 0.8f;  // coyote-time walk-off grace
+        const float ApexForRise = 0.5f * JumpVelocity * JumpVelocity / Gravity;
+
+        /// One standable surface: the top face's world center + XZ half
+        /// extents. Group: surfaces of one moving body (a mover's sweep
+        /// samples, a ribbon's path samples) share a group and are always
+        /// mutually reachable — you ride the body between its samples.
+        public struct Top
+        {
+            public Vector3 Center;
+            public Vector2 Half;
+            public int Group;
+            public string Kind;
+
+            public float TopY { get { return Center.y; } }
+        }
+
+        /// Outcome of one level's analysis. Problems block finishing
+        /// (or float content nobody can ever touch); warnings are softer.
+        public class Report
+        {
+            public string LevelName;
+            public bool PortalReachable;
+            public int TopCount;
+            public int ReachableCount;
+            public List<int> Path = new List<int>();
+            public List<string> Problems = new List<string>();
+            public List<string> Warnings = new List<string>();
+            public bool Bad
+            {
+                get { return !PortalReachable || Problems.Count > 0; }
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Entry point
+        // ------------------------------------------------------------------
+
+        public static Report Analyze(LevelDefinition level)
+        {
+            Report r = new Report();
+            r.LevelName = level.Name;
+
+            if (level.BonusFlight)
+            {
+                // Gloomfang flights: no gravity, no fall deaths, free 3D
+                // drift. Nothing to be unreachable.
+                r.PortalReachable = true;
+                r.ReachableCount = 1;
+                r.TopCount = 1;
+                return r;
+            }
+
+            if (level.EchoBridges.Count > 0 && level.Bells.Count == 0)
+                r.Problems.Add("level has echo bridges but no bell to " +
+                    "solidify them — the bridge can never exist.");
+
+            List<Top> tops = BuildTops(level);
+            r.TopCount = tops.Count;
+
+            // Kill-plane discipline: nothing standable may sit at or below
+            // the death plane.
+            for (int i = 0; i < tops.Count; i++)
+            {
+                if (tops[i].TopY <= level.KillY + 0.5f)
+                    r.Problems.Add("top " + Describe(tops[i]) +
+                        " sits at/below KillY " + level.KillY +
+                        " — landing there dies.");
+            }
+
+            // ---- Graph edges ----
+            List<List<int>> adj = new List<List<int>>();
+            for (int i = 0; i < tops.Count; i++) adj.Add(new List<int>());
+            for (int i = 0; i < tops.Count; i++)
+            {
+                for (int j = i + 1; j < tops.Count; j++)
+                {
+                    bool linked;
+                    if (tops[i].Group == tops[j].Group && tops[i].Group >= 0)
+                        linked = true; // one moving body: ride between samples
+                    else
+                        linked = JumpLinks(level, tops[i], tops[j]);
+                    if (linked) { adj[i].Add(j); adj[j].Add(i); }
+                }
+            }
+            AddWindEdges(level, tops, adj);
+            AddGustEdges(level, tops, adj);
+            AddBouncePadEdges(level, tops, adj);
+            AddMirrorDoorEdges(level, tops, adj, r);
+
+            // ---- Start and goal ----
+            List<int> starts = SnapTops(tops, level.Spawn, 1.2f, -1f, 3.5f);
+            if (starts.Count == 0)
+            {
+                r.Problems.Add("spawn " + level.Spawn +
+                    " is not on/near any standable surface.");
+                return r;
+            }
+
+            // The portal trigger is 2.4 x 3.4 x 1.6 with its base on a
+            // platform top: walking in needs the capsule within ~1.7 xz.
+            List<int> goals = SnapTops(tops, level.Portal, 1.7f, -1.5f, 2f);
+            if (goals.Count == 0)
+            {
+                // Generous fallback: a jump can carry Pip through the
+                // trigger mid-arc. The older audit allows 4.2 here.
+                goals = SnapTops(tops, level.Portal, 4.2f, -1.5f, 4.5f);
+                if (goals.Count > 0)
+                    r.Warnings.Add("portal is off every platform; only " +
+                        "jump-reach touches it (is the arch meant to float?)");
+            }
+            if (goals.Count == 0)
+            {
+                r.Problems.Add("portal " + level.Portal +
+                    " floats beyond all jump reach — nothing can touch it.");
+                return r;
+            }
+
+            // ---- BFS ----
+            bool[] seen = new bool[tops.Count];
+            int[] prev = new int[tops.Count];
+            Queue<int> frontier = new Queue<int>();
+            foreach (int s in starts)
+            {
+                seen[s] = true;
+                prev[s] = -1;
+                frontier.Enqueue(s);
+            }
+            bool won = false;
+            while (frontier.Count > 0 && !won)
+            {
+                int cur = frontier.Dequeue();
+                for (int k = 0; k < adj[cur].Count; k++)
+                {
+                    int next = adj[cur][k];
+                    if (seen[next]) continue;
+                    seen[next] = true;
+                    prev[next] = cur;
+                    frontier.Enqueue(next);
+                }
+                for (int g = 0; g < goals.Count; g++)
+                    if (seen[goals[g]]) won = true;
+            }
+
+            r.ReachableCount = CountTrue(seen);
+            r.PortalReachable = won;
+            if (!won)
+            {
+                r.Problems.Add("portal is on a surface the spawn cannot " +
+                    "reach: " + r.ReachableCount + " of " + tops.Count +
+                    " surfaces are on the spawn's island.");
+                List<int> stranded = new List<int>();
+                for (int i = 0; i < tops.Count; i++)
+                    if (!seen[i]) stranded.Add(i);
+                r.Warnings.Add("unreachable surfaces: " +
+                    DescribeSome(tops, stranded));
+            }
+            else
+            {
+                // Reconstruct one path for debugging/reporting.
+                int goal = -1;
+                for (int g = 0; g < goals.Count; g++)
+                    if (seen[goals[g]]) { goal = goals[g]; break; }
+                for (int at = goal; at >= 0; at = prev[at]) r.Path.Add(at);
+                r.Path.Reverse();
+            }
+
+            CheckCheckpoints(level, tops, seen, r);
+            CheckGems(level, tops, seen, r);
+            return r;
+        }
+
+        // ------------------------------------------------------------------
+        // Surfaces
+        // ------------------------------------------------------------------
+
+        static List<Top> BuildTops(LevelDefinition l)
+        {
+            List<Top> tops = new List<Top>();
+            int group = 0;
+
+            for (int i = 0; i < l.Platforms.Count; i++)
+            {
+                PlatformSpec p = l.Platforms[i];
+                tops.Add(new Top
+                {
+                    Center = new Vector3(p.Center.x,
+                        p.Center.y + p.Size.y * 0.5f, p.Center.z),
+                    Half = new Vector2(p.Size.x * 0.5f, p.Size.z * 0.5f),
+                    Group = -1,
+                    Kind = "platform"
+                });
+            }
+
+            for (int i = 0; i < l.Movers.Count; i++)
+            {
+                MoverSpec m = l.Movers[i];
+                // Sample the sweep; samples share a group (you ride it).
+                for (int s = 0; s <= 4; s++)
+                {
+                    float t = s / 4f;
+                    tops.Add(new Top
+                    {
+                        Center = new Vector3(
+                            m.Center.x + m.Offset.x * t,
+                            m.Center.y + m.Size.y * 0.5f + m.Offset.y * t,
+                            m.Center.z + m.Offset.z * t),
+                        Half = new Vector2(m.Size.x * 0.5f, m.Size.z * 0.5f),
+                        Group = group,
+                        Kind = "mover"
+                    });
+                }
+                group++;
+            }
+
+            for (int i = 0; i < l.EchoBridges.Count; i++)
+            {
+                EchoBridgeSpec b = l.EchoBridges[i];
+                tops.Add(new Top
+                {
+                    Center = new Vector3(b.Center.x,
+                        b.Center.y + b.Size.y * 0.5f, b.Center.z),
+                    Half = new Vector2(b.Size.x * 0.5f, b.Size.z * 0.5f),
+                    Group = -1,
+                    Kind = "echo bridge"
+                });
+            }
+
+            for (int i = 0; i < l.AuroraRibbons.Count; i++)
+            {
+                AuroraRibbonSpec rb = l.AuroraRibbons[i];
+                // Samples along the travel; sway folded into the extents.
+                Vector2 half = new Vector2(
+                    rb.Size.x * 0.5f + rb.Sway, rb.Size.z * 0.5f + rb.Sway);
+                for (int s = 0; s <= 4; s++)
+                {
+                    float t = s / 4f;
+                    tops.Add(new Top
+                    {
+                        Center = new Vector3(
+                            rb.Center.x + rb.Travel.x * t,
+                            rb.Center.y + rb.Size.y * 0.5f + rb.Travel.y * t,
+                            rb.Center.z + rb.Travel.z * t),
+                        Half = half,
+                        Group = group,
+                        Kind = "aurora ribbon"
+                    });
+                }
+                group++;
+            }
+
+            for (int i = 0; i < l.SeeSaws.Count; i++)
+            {
+                SeeSawSpec s = l.SeeSaws[i];
+                bool alongX = s.Axis == "x";
+                tops.Add(new Top
+                {
+                    Center = new Vector3(s.PlatformTop.x,
+                        s.PlatformTop.y + 0.52f, s.PlatformTop.z),
+                    Half = alongX
+                        ? new Vector2(s.Length * 0.5f, s.Width * 0.5f)
+                        : new Vector2(s.Width * 0.5f, s.Length * 0.5f),
+                    Group = -1,
+                    Kind = "see-saw"
+                });
+            }
+
+            return tops;
+        }
+
+        static string Describe(Top t)
+        {
+            return t.Kind + "@" + t.Center;
+        }
+
+        static string DescribeSome(List<Top> tops, List<int> idx)
+        {
+            int show = Mathf.Min(idx.Count, 6);
+            List<string> parts = new List<string>();
+            for (int i = 0; i < show; i++)
+                parts.Add(Describe(tops[idx[i]]));
+            if (idx.Count > show) parts.Add("…" + (idx.Count - show) + " more");
+            return string.Join("; ", parts.ToArray());
+        }
+
+        // ------------------------------------------------------------------
+        // Geometry + physics
+        // ------------------------------------------------------------------
+
+        /// XZ distance between two axis-aligned rects (0 when overlapping).
+        static float RectDistXz(Vector3 cA, Vector2 hA, Vector3 cB, Vector2 hB)
+        {
+            float dx = Mathf.Abs(cA.x - cB.x) - (hA.x + hB.x);
+            float dz = Mathf.Abs(cA.z - cB.z) - (hA.y + hB.y);
+            if (dx <= 0f && dz <= 0f) return 0f;
+            return Mathf.Sqrt(Mathf.Max(dx, 0f) * Mathf.Max(dx, 0f)
+                            + Mathf.Max(dz, 0f) * Mathf.Max(dz, 0f));
+        }
+
+        static float RectDistXz(Top a, Top b, float expandA, float expandB)
+        {
+            return RectDistXz(a.Center,
+                new Vector2(a.Half.x + expandA, a.Half.y + expandA),
+                b.Center,
+                new Vector2(b.Half.x + expandB, b.Half.y + expandB));
+        }
+
+        static bool RectContains(Top t, Vector3 p, float expand,
+            float yMinAboveTop, float yMaxAboveTop)
+        {
+            float dy = p.y - t.TopY;
+            if (dy < yMinAboveTop || dy > yMaxAboveTop) return false;
+            return Mathf.Abs(p.x - t.Center.x) <= t.Half.x + expand &&
+                   Mathf.Abs(p.z - t.Center.z) <= t.Half.y + expand;
+        }
+
+        /// Horizontal range of a jump landing at rise `rise` (negative =
+        /// drop). Return launch speed times the descending-branch time.
+        static float JumpRange(float launchVelocity, float rise)
+        {
+            float apex = 0.5f * launchVelocity * launchVelocity / Gravity;
+            if (rise > apex - MaxRiseMargin) return -1f;
+            float disc = launchVelocity * launchVelocity
+                - 2f * Gravity * rise;
+            if (disc < 0f) return -1f;
+            float t = (launchVelocity + Mathf.Sqrt(disc)) / Gravity;
+            return SpeedSafety * RunSpeed * Mathf.Min(t, AirtimeCap);
+        }
+
+        /// True when a running jump from surface a can land on surface b.
+        static bool JumpLinks(LevelDefinition l, Top a, Top b)
+        {
+            float rise = b.TopY - a.TopY;
+            float range = JumpRange(JumpVelocity, rise);
+            if (range < 0f) return false;
+            return RectDistXz(a, b, TakeoffExpand, LandExpand) <= range;
+        }
+
+        // ------------------------------------------------------------------
+        // Special edges: wind, gusts, pads, doors
+        // ------------------------------------------------------------------
+
+        static void ConnectClique(List<int> members, List<List<int>> adj)
+        {
+            for (int i = 0; i < members.Count; i++)
+                for (int j = i + 1; j < members.Count; j++)
+                {
+                    adj[members[i]].Add(members[j]);
+                    adj[members[j]].Add(members[i]);
+                }
+        }
+
+        /// An updraft is a shared elevator AND a launcher. Standing in the
+        /// column blends Pip's rise toward the lift strength, so he pops
+        /// out of the top still climbing (~0.9x lift on a short column;
+        /// 0.8 here, deliberately shy) and then arcs ballistically onto
+        /// the ledge the wind points at. Surfaces in/beside the column
+        /// form a clique (enter, rise, hop out); the column's top
+        /// rectangle additionally launches to every top within pad-like
+        /// range of that ejection arc.
+        static void AddWindEdges(LevelDefinition l, List<Top> tops,
+            List<List<int>> adj)
+        {
+            for (int w = 0; w < l.WindZones.Count; w++)
+            {
+                WindSpec wind = l.WindZones[w];
+                Vector3 wc = wind.Center;
+                Vector2 whalf = new Vector2(wind.Size.x * 0.5f,
+                    wind.Size.z * 0.5f);
+                float bottom = wind.Center.y - wind.Size.y * 0.5f;
+                float top = wind.Center.y + wind.Size.y * 0.5f;
+                List<int> members = new List<int>();
+                for (int i = 0; i < tops.Count; i++)
+                {
+                    float y = tops[i].TopY;
+                    if (y < bottom - 1f || y > top + 14f) continue;
+                    if (RectDistXz(tops[i].Center, tops[i].Half,
+                            wc, whalf + new Vector2(2f, 2f)) <= 0.01f)
+                        members.Add(i);
+                }
+                ConnectClique(members, adj);
+
+                // The ejection arc off the column's top.
+                float launch = 0.8f * wind.Lift;
+                Top mouth = new Top
+                {
+                    Center = new Vector3(wc.x, top, wc.z),
+                    Half = whalf + new Vector2(1.5f, 1.5f), // drift while rising
+                    Group = -1,
+                    Kind = "updraft mouth"
+                };
+                for (int j = 0; j < tops.Count; j++)
+                {
+                    if (members.Contains(j)) continue;
+                    float rise = tops[j].TopY - top;
+                    float range = JumpRange(launch, rise);
+                    if (range < 0f) continue;
+                    if (RectDistXz(mouth, tops[j], 0f, LandExpand) > range)
+                        continue;
+                    // Ride + eject links every member to the landing,
+                    // and the landing can hop back into the wind.
+                    for (int m = 0; m < members.Count; m++)
+                    {
+                        adj[members[m]].Add(j);
+                        adj[j].Add(members[m]);
+                    }
+                }
+            }
+        }
+
+        /// A gust's swept corridor: its box carried `Size.z + 10` along the
+        /// blow direction. Surfaces inside the corridor are mutually
+        /// linked — the gust is the ride between them.
+        static void AddGustEdges(LevelDefinition l, List<Top> tops,
+            List<List<int>> adj)
+        {
+            for (int g = 0; g < l.Gusts.Count; g++)
+            {
+                GustSpec gust = l.Gusts[g];
+                Vector3 dir = gust.Direction.normalized;
+                Vector3 exit = gust.Center + dir * (gust.Size.z * 0.5f + 10f);
+                Vector3 lo = Vector3.Min(gust.Center, exit)
+                    - gust.Size * 0.5f - new Vector3(2.5f, 4f, 2.5f);
+                Vector3 hi = Vector3.Max(gust.Center, exit)
+                    + gust.Size * 0.5f + new Vector3(2.5f, 8f, 2.5f);
+                List<int> members = new List<int>();
+                for (int i = 0; i < tops.Count; i++)
+                {
+                    Top t = tops[i];
+                    if (t.TopY < lo.y || t.TopY > hi.y) continue;
+                    if (t.Center.x + t.Half.x < lo.x ||
+                        t.Center.x - t.Half.x > hi.x) continue;
+                    if (t.Center.z + t.Half.y < lo.z ||
+                        t.Center.z - t.Half.y > hi.z) continue;
+                    members.Add(i);
+                }
+                ConnectClique(members, adj);
+            }
+        }
+
+        /// A bounce pad supercharges its host surface: launch velocity 13
+        /// reaches ~8.6 units of rise and ~20 units of gap.
+        static void AddBouncePadEdges(LevelDefinition l, List<Top> tops,
+            List<List<int>> adj)
+        {
+            for (int p = 0; p < l.BouncePads.Count; p++)
+            {
+                Vector3 pad = l.BouncePads[p];
+                int host = -1;
+                for (int i = 0; i < tops.Count && host < 0; i++)
+                    if (RectContains(tops[i], pad, 0.6f, -0.4f, 0.4f))
+                        host = i;
+                if (host < 0)
+                {
+                    // Not registered as a problem here; the pad's platform
+                    // may itself be an echo bridge the pad list predates.
+                    continue;
+                }
+                for (int j = 0; j < tops.Count; j++)
+                {
+                    if (j == host) continue;
+                    float rise = tops[j].TopY - tops[host].TopY;
+                    float range = JumpRange(BounceVelocity, rise);
+                    if (range < 0f) continue;
+                    if (RectDistXz(tops[host], tops[j],
+                            TakeoffExpand, LandExpand) <= range)
+                    {
+                        adj[host].Add(j);
+                        adj[j].Add(host);
+                    }
+                }
+            }
+        }
+
+        /// Mirror doors teleport: the surface under door A and the surface
+        /// under door B are one hop apart (exit lands just in front of the
+        /// twin).
+        static void AddMirrorDoorEdges(LevelDefinition l, List<Top> tops,
+            List<List<int>> adj, Report r)
+        {
+            for (int d = 0; d < l.MirrorDoors.Count; d++)
+            {
+                int a = SnapTop(tops, l.MirrorDoors[d].DoorA, 2f, -1f, 1f);
+                int b = SnapTop(tops, l.MirrorDoors[d].DoorB, 2f, -1f, 1f);
+                if (a >= 0 && b >= 0)
+                {
+                    if (a != b) { adj[a].Add(b); adj[b].Add(a); }
+                }
+                else
+                    r.Warnings.Add("mirror door " + d + " (A " +
+                        l.MirrorDoors[d].DoorA + ", B " +
+                        l.MirrorDoors[d].DoorB + ") has a side with no " +
+                        "surface under it — the exit may drop into void.");
+            }
+        }
+
+        static int SnapTop(List<Top> tops, Vector3 p, float expand,
+            float yMinAboveTop, float yMaxAboveTop)
+        {
+            int best = -1;
+            float bestDist = float.MaxValue;
+            for (int i = 0; i < tops.Count; i++)
+            {
+                if (!RectContains(tops[i], p, expand,
+                        yMinAboveTop, yMaxAboveTop)) continue;
+                float d = RectDistXz(tops[i].Center, tops[i].Half,
+                    p, Vector2.zero);
+                if (d < bestDist) { bestDist = d; best = i; }
+            }
+            return best;
+        }
+
+        static List<int> SnapTops(List<Top> tops, Vector3 p, float expand,
+            float yMinAboveTop, float yMaxAboveTop)
+        {
+            List<int> found = new List<int>();
+            for (int i = 0; i < tops.Count; i++)
+                if (RectContains(tops[i], p, expand,
+                        yMinAboveTop, yMaxAboveTop))
+                    found.Add(i);
+            return found;
+        }
+
+        // ------------------------------------------------------------------
+        // Soft checks: checkpoints and gems
+        // ------------------------------------------------------------------
+
+        static void CheckCheckpoints(LevelDefinition l, List<Top> tops,
+            bool[] seen, Report r)
+        {
+            for (int c = 0; c < l.Checkpoints.Count; c++)
+            {
+                Vector3 cp = l.Checkpoints[c];
+                int at = SnapTop(tops, cp, 1f, -0.5f, 1.5f);
+                if (at < 0)
+                    r.Warnings.Add("checkpoint " + c + " at " + cp +
+                        " is not on any standable surface.");
+                else if (!seen[at])
+                    r.Warnings.Add("checkpoint " + c + " at " + cp +
+                        " sits on a surface the spawn cannot reach.");
+            }
+        }
+
+        static void CheckGems(LevelDefinition l, List<Top> tops,
+            bool[] seen, Report r)
+        {
+            for (int g = 0; g < l.Gems.Count; g++)
+            {
+                Vector3 gem = l.Gems[g];
+                if (gem.y <= l.KillY + 0.5f)
+                {
+                    r.Warnings.Add("gem " + g + " at " + gem +
+                        " is below the death plane.");
+                    continue;
+                }
+                if (!GemGettable(l, tops, seen, gem))
+                    r.Warnings.Add("gem " + g + " at " + gem +
+                        " is beyond jump reach of every reachable surface" +
+                        " (blocks 3-star, not the finish).");
+            }
+        }
+
+        static bool GemGettable(LevelDefinition l, List<Top> tops,
+            bool[] seen, Vector3 gem)
+        {
+            // Jump reach, audit parity: within landing-reach in XZ of a
+            // reachable top and inside the vertical window a jump (or a
+            // short drop) can sweep.
+            for (int i = 0; i < tops.Count; i++)
+            {
+                if (!seen[i]) continue;
+                float dy = gem.y - tops[i].TopY;
+                if (dy < -8f || dy > ApexForRise + 1f) continue;
+                if (RectDistXz(tops[i].Center, tops[i].Half,
+                        gem, Vector2.zero) <= 4.2f)
+                    return true;
+            }
+            // Bounce-pad apex gems: the launch reaches ~8.6 up, and the
+            // trigger fires with the capsule already a step onto the pad.
+            for (int p = 0; p < l.BouncePads.Count; p++)
+            {
+                Vector3 pad = l.BouncePads[p];
+                if (Mathf.Abs(pad.x - gem.x) <= 1.7f &&
+                    Mathf.Abs(pad.z - gem.z) <= 1.7f &&
+                    gem.y - pad.y <= 8.2f && gem.y >= pad.y)
+                    return true;
+            }
+            return InAnyWind(l, gem) || InAnyGust(l, gem);
+        }
+
+        static bool InAnyWind(LevelDefinition l, Vector3 p)
+        {
+            for (int i = 0; i < l.WindZones.Count; i++)
+            {
+                WindSpec w = l.WindZones[i];
+                if (Mathf.Abs(p.x - w.Center.x) <= w.Size.x * 0.5f + 2f &&
+                    Mathf.Abs(p.z - w.Center.z) <= w.Size.z * 0.5f + 2f &&
+                    p.y >= w.Center.y - w.Size.y * 0.5f - 1f &&
+                    p.y <= w.Center.y + w.Size.y * 0.5f + 14f)
+                    return true;
+            }
+            return false;
+        }
+
+        static bool InAnyGust(LevelDefinition l, Vector3 p)
+        {
+            for (int i = 0; i < l.Gusts.Count; i++)
+            {
+                GustSpec g = l.Gusts[i];
+                float carry = g.Size.z + 10f;
+                Vector3 far = g.Center + Vector3.Scale(g.Direction,
+                    new Vector3(carry, 0f, carry));
+                Vector3 lo = Vector3.Min(g.Center, far);
+                Vector3 hi = Vector3.Max(g.Center, far);
+                float margin = 2.5f;
+                if (p.x >= lo.x - g.Size.x * 0.5f - margin &&
+                    p.x <= hi.x + g.Size.x * 0.5f + margin &&
+                    p.z >= lo.z - g.Size.z * 0.5f - margin &&
+                    p.z <= hi.z + g.Size.z * 0.5f + margin &&
+                    p.y >= g.Center.y - g.Size.y * 0.5f - margin &&
+                    p.y <= g.Center.y + g.Size.y * 0.5f + 8f)
+                    return true;
+            }
+            return false;
+        }
+
+        static int CountTrue(bool[] flags)
+        {
+            int n = 0;
+            for (int i = 0; i < flags.Length; i++) if (flags[i]) n++;
+            return n;
+        }
+    }
+}
