@@ -68,6 +68,10 @@ namespace GemRush
 
         AudioSource source;
 
+        /// Play level of the narration channel; calibrated in the mix pass
+        /// (docs/Audio-Design.md #9) and locked by AudioAuditTests.
+        public const float VoiceVolume = 0.62f;
+
         [System.Serializable]
         public class VoiceEntry
         {
@@ -99,7 +103,7 @@ namespace GemRush
             source.priority = 0; // voice outranks everything
             // Calibrated to ~-20 LUFS at play level: present in the world,
             // not shouting over it (mobile norm ~-18; narration sits lower).
-            source.volume = 0.62f;
+            source.volume = VoiceVolume;
         }
 
         static void EnsureManifest()

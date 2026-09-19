@@ -288,6 +288,11 @@ namespace GemRush
             ui.CloseQuitConfirm(); // defensive: never rebuild a screen under it
             State = GameState.Menu;
             AudioManager.Instance.SetMood(SoundMood.Menu);
+            // The menu is home: always show the start island behind it,
+            // so Pip's shelf (and its fresh trophies) is what you see —
+            // wherever you just came from. EnsureWorld skips the churn
+            // when the home island is already standing.
+            GameBootstrap.EnsureWorld(0);
             ui.ShowMenu();
 
             // The festival's thank-you: once the finale is cleared, the

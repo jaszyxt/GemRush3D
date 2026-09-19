@@ -13,6 +13,10 @@ namespace GemRush
         public static PlayerController Player { get; private set; }
         public static CameraFollow CameraRig { get; private set; }
 
+        /// Index of the world currently built (-1 = none yet). Lets callers
+        /// skip a redundant rebuild (the menu re-homes to world 0).
+        public static int BuiltLevelIndex { get; private set; } = -1;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
         {
@@ -50,8 +54,9 @@ namespace GemRush
             SetupRenderSettings();
             CreateManagers();
             SaveSystem.SnapshotVisit();
-            BuildWorld(Mathf.Clamp(SaveSystem.UnlockedLevel,
-                0, LevelLibrary.Levels.Length - 1));
+            // The menu is home: it opens over the start island (level 1),
+            // where Pip's shelf keeps the story of everything achieved.
+            BuildWorld(0);
         }
 
         static void SetupRenderSettings()
@@ -99,6 +104,7 @@ namespace GemRush
         /// Called at boot and on every level change / restart.
         public static void BuildWorld(int levelIndex)
         {
+            BuiltLevelIndex = levelIndex;
             if (World != null) Object.Destroy(World);
             World = new GameObject("~World");
             // A new level means the old level's voice clips (loaded on
@@ -154,6 +160,22 @@ namespace GemRush
                 if (path != null && path.Count > 4)
                     GhostRunner.Create(World.transform, path);
             }
+
+            // Cosmetic identity: the star-milestone trail rides Pip once
+            // you have earned it (15/30/45 stars; see StarTrail).
+            if (Player != null && !level.BonusFlight)
+                StarTrail.Create(Player.transform);
+        }
+
+        /// Builds `levelIndex` only if it is not the world already standing.
+        /// The menu's home-island path: repeated ShowMenu calls (boot, level
+        /// exits) must not churn a rebuild every time — while PlayLevel
+        /// always calls BuildWorld directly, because replaying a level
+        /// needs fresh gems and state.
+        public static void EnsureWorld(int levelIndex)
+        {
+            if (BuiltLevelIndex == levelIndex && World != null) return;
+            BuildWorld(levelIndex);
         }
     }
 }

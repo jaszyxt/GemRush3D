@@ -156,6 +156,13 @@ namespace GemRush
             if (level.AuroraFestival)
                 AuroraBand.Create(parent, level.Portal.z + 20f);
 
+            // Pip's shelf lives on the home island only — the start
+            // platform of First Steps, next to the flag post.
+            if (level == LevelLibrary.Levels[0])
+                Shelf.Create(parent,
+                    new Vector3(-2.6f, level.Platforms[0].Center.y +
+                        level.Platforms[0].Size.y * 0.5f, -1.6f));
+
             ApplyAtmosphere(level);
 
             BuildBackdrop(level, parent, cloudMat, stone);
