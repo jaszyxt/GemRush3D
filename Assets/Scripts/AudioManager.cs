@@ -18,6 +18,7 @@ namespace GemRush
 
         AudioSource source;
         AudioSource musicSource;
+        AudioSource bedSource;   // the same pad, melody stripped (adaptive)
         AudioSource windSource;
         AudioSource humSource;
 
@@ -60,6 +61,8 @@ namespace GemRush
         // ---- Music / mood ----
         static readonly Dictionary<int, AudioClip> moodLoops =
             new Dictionary<int, AudioClip>();
+        static readonly Dictionary<int, AudioClip> moodBedLoops =
+            new Dictionary<int, AudioClip>();
         static readonly Dictionary<int, AudioClip> ambienceLoops =
             new Dictionary<int, AudioClip>();
         SoundMood activeMood = SoundMood.Day;
@@ -79,6 +82,15 @@ namespace GemRush
             musicSource.spatialBlend = 0f;
             musicSource.volume = MusicVolume;
             musicSource.loop = true;
+
+            // The bed layer: the same pad loop with the melody stripped.
+            // Always in sync with musicSource; the melody crossfades to it
+            // when the music "holds its breath" (last life, game over).
+            bedSource = gameObject.AddComponent<AudioSource>();
+            bedSource.playOnAwake = false;
+            bedSource.spatialBlend = 0f;
+            bedSource.volume = 0f;
+            bedSource.loop = true;
 
             windSource = gameObject.AddComponent<AudioSource>();
             windSource.playOnAwake = false;
@@ -152,6 +164,13 @@ namespace GemRush
                 moodLoops[(int)mood] = loop;
             }
             musicSource.clip = loop;
+            if (!moodBedLoops.TryGetValue((int)mood, out AudioClip bed))
+            {
+                bed = MusicSynth.MoodLoop("music_bed_" + mood, mood, 0.13f,
+                    withMotif: false);
+                moodBedLoops[(int)mood] = bed;
+            }
+            bedSource.clip = bed;
 
             // The mood's ambience bed sits under the pad on the wind
             // channel; updrafts and gusts pulse the same channel on top.
@@ -216,16 +235,49 @@ namespace GemRush
         // silent, so world rhythms (gusts) keep their beat with sound off.
         float fallbackPhase;
 
+        // Adaptive intensity (RESEARCH audio queue): the melody layer
+        // crossfades OUT when the music holds its breath — game over, or
+        // Pip down to his last life — and back IN when a heart returns.
+        // The chord bed never stops, so the loop stays seamless; the fade
+        // runs on unscaled time and is slow enough to feel like weather.
+        const float MelodyFadeSeconds = 2f;
+        float melodyFactor = 1f;
+
+        bool MelodyWanted
+        {
+            get
+            {
+                if (GameManager.Instance == null) return true;
+                switch (GameManager.Instance.State)
+                {
+                    case GameState.GameOver:
+                        return false;
+                    case GameState.Playing:
+                    case GameState.Paused:
+                        return GameManager.Instance.Lives >= 2;
+                    default: // menu, won, complete: celebrate
+                        return true;
+                }
+            }
+        }
+
         void Update()
         {
-            // Ease the ducked music back up to its full level.
+            // One volume pass per frame: duck factor (death/win sting)
+            // times the melody crossfade, applied to both layers.
+            float duck = 1f;
             if (duckTimer > 0f)
             {
                 duckTimer = Mathf.Max(0f, duckTimer - Time.unscaledDeltaTime);
                 float restore = Mathf.SmoothStep(0f, 1f,
                     1f - duckTimer / DuckRestoreSeconds);
-                musicSource.volume = MusicVolume * Mathf.Lerp(DuckFraction, 1f, restore);
+                duck = Mathf.Lerp(DuckFraction, 1f, restore);
             }
+            float wanted = MelodyWanted ? 1f : 0f;
+            melodyFactor = Mathf.MoveTowards(melodyFactor, wanted,
+                Time.unscaledDeltaTime / MelodyFadeSeconds);
+            bedSource.volume = MusicVolume * duck;
+            musicSource.volume = MusicVolume * duck * melodyFactor;
 
             // The fallback clock only advances while the real music clock
             // is silent, so GetMusicPhase always offers a fresh phase.
@@ -246,7 +298,11 @@ namespace GemRush
                                GameManager.Instance.State == GameState.Menu ||
                                GameManager.Instance.State == GameState.Paused);
             if (shouldPlay && !musicSource.isPlaying) SyncMusic();
-            if (!shouldPlay && musicSource.isPlaying) musicSource.Stop();
+            if (!shouldPlay && musicSource.isPlaying)
+            {
+                musicSource.Stop();
+                bedSource.Stop();
+            }
 
             UpdateWind();
             UpdateHum();
@@ -254,7 +310,15 @@ namespace GemRush
 
         void SyncMusic()
         {
-            if (musicSource.clip != null && SaveSystem.SoundOn) musicSource.Play();
+            if (musicSource.clip == null || !SaveSystem.SoundOn) return;
+            musicSource.Play();
+            bedSource.clip = moodBedLoops.TryGetValue((int)activeMood,
+                out AudioClip bed) ? bed : null;
+            if (bedSource.clip != null)
+            {
+                bedSource.time = musicSource.time;
+                bedSource.Play();
+            }
         }
 
         // ------------------------------------------------------------------
@@ -354,6 +418,7 @@ namespace GemRush
         {
             if (musicSource.clip == null) return;
             musicSource.time = 0f;
+            bedSource.time = 0f;
             SyncMusic();
         }
 
@@ -365,6 +430,7 @@ namespace GemRush
         {
             if (musicSource.clip == null) return;
             musicSource.time = musicLoopLength * 0.75f;
+            bedSource.time = musicLoopLength * 0.75f;
             SyncMusic();
         }
 

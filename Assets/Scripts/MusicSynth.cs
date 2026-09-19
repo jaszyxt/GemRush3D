@@ -223,6 +223,15 @@ namespace GemRush
         /// sparse motif on top.
         public static AudioClip MoodLoop(string name, SoundMood mood, float volume)
         {
+            return MoodLoop(name, mood, volume, true);
+        }
+
+        /// withMotif = false renders the bed layer: chords only, no
+        /// music-box melody. Identical length and chord envelopes to the
+        /// full loop, so the two crossfade sample-for-sample.
+        public static AudioClip MoodLoop(string name, SoundMood mood,
+            float volume, bool withMotif)
+        {
             MoodSpec s = Spec(mood);
             int perChord = Mathf.Max(1, (int)(s.ChordSeconds * SampleRate));
             float[] data = new float[perChord * s.Chords.Length];
@@ -258,7 +267,7 @@ namespace GemRush
 
             // The motif: music-box notes dropped into the pad, always
             // pentatonic against the current chords.
-            if (s.MotifNotes != null && s.MotifTimes != null)
+            if (withMotif && s.MotifNotes != null && s.MotifTimes != null)
             {
                 float[] partials = s.BellMotif
                     ? new float[] { 0.5f, 1f, 2.76f, 5.42f }

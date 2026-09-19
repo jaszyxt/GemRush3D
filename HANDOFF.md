@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.18.0 session, 2026-09-19)
+# HANDOFF — current state (update: v1.19.0 session, 2026-09-19)
 
 **Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
@@ -20,7 +20,7 @@ except D11**) → this file.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Code: v1.18.0 (versionCode 27), committed on main** — 40 levels,
+- **Code: v1.19.0 (versionCode 28), committed on main** — 40 levels,
   13 packs + B-Sides. Release-signed
   `Builds/GemRush3D.apk` (V2 cert `CN=Gem Rush 3D, O=PipStudio`) +
   `Builds/GemRush3D.exe` (check `GemRush3D_Data/Managed/GemRush.dll`
@@ -128,6 +128,25 @@ except D11**) → this file.
 - Improvement backlog for future sessions: parameterized MusicSynth
   intensity (menu/explore/near-death layering — the last big audio
   item), photo mode, ghost runs, Pip's shelf visuals, atlas polish.
+
+## Shipped in v1.19.0 — Adaptive music intensity (this session)
+- **The last big audio ADAPT item is DONE**: parameterized music
+  intensity. Every mood now renders TWO synced layers — the full loop
+  (chords + motif) and a "bed" layer (chords only, identical length and
+  envelopes). `AudioManager` plays both sample-locked; the melody layer
+  crossfades OUT over 2 s when the music "holds its breath" (Pip on his
+  LAST life, or game over) and back IN when a heart returns. The chord
+  bed never stops, so the loop stays seamless; ducking (death/win sting)
+  applies to both layers; tonic/dominant restarts apply to both.
+- Menu/won/complete keep the melody (celebration states). GetMusicPhase
+  and the gust phase-lock are unaffected (musicSource.time keeps
+  advancing even when faded).
+- **Play-verified**: `Assets/Editor/MusicProbe.cs` (`GemRush/Music
+  Probe/Run`) — 7/7: melody up at full lives, layers in sync
+  (drift 0.000 s), melody drops at last life (vol 0.00 vs bed 0.55),
+  bed keeps singing, melody returns on heart.
+- Memory note: two loops per mood are synthesized lazily and cached
+  (each 8.8–13.6 s mono — negligible).
 
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
