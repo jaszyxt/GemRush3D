@@ -63,6 +63,7 @@ namespace GemRush
 
         Material mat;
         Collider col;
+        Renderer slabRenderer;
         bool solid;
 
         public static EchoBridge Create(Transform parent, EchoBridgeSpec spec,
@@ -97,11 +98,18 @@ namespace GemRush
             Material mat = material;
             ArtLib.SetFade(mat, 0f);
             renderer.sharedMaterial = mat;
+            // Belt and braces: while off, the mesh itself is switched off
+            // — no render, no shadow — so the bridge cannot show up
+            // through any material, shader or scaling edge case.
+            renderer.enabled = false;
+            renderer.shadowCastingMode =
+                UnityEngine.Rendering.ShadowCastingMode.Off;
 
             EchoBridge bridge = go.AddComponent<EchoBridge>();
             bridge.BellIndex = spec.BellIndex;
             bridge.mat = mat;
             bridge.col = col;
+            bridge.slabRenderer = renderer;
             return bridge;
         }
 
@@ -119,9 +127,10 @@ namespace GemRush
 
             solid = shouldBeSolid;
             col.enabled = solid;
+            // Honesty rule, enforced at the mesh level: no echo = the
+            // bridge is not in the world at all; echo = bright and solid.
+            if (slabRenderer != null) slabRenderer.enabled = solid;
             Color c = mat.color;
-            // Honesty rule: what you see is what you stand on. No echo =
-            // nothing there at all; echo = bright and solid.
             c.a = solid ? 0.8f : 0f;
             mat.color = c;
 
