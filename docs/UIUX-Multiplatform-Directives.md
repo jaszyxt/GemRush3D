@@ -738,3 +738,55 @@ D17 (deferred by decision), D18 all closed. **D16 (settings grouping) is
 the only open item**, and it is P2 cosmetic — the settings panel is
 functional, tested, and fits; grouping it into Audio/Display/Controls is a
 readability improvement, not a defect fix.
+
+### D.8 D16 — settings grouped, and a latent bug found doing it (2026-09-21)
+
+**Shipped** (`db77729`). The settings grid reads in column order, so the old
+flat list produced these adjacencies:
+
+| Before | After |
+|---|---|
+| Sound · Voice | Sound · Voice |
+| **Mission Text · Screen Shake** | Mission Text · Haptics |
+| **Haptics · Shadows** | Text Size · Fullscreen |
+| **Left-handed Controls · Text Size** | Screen Shake · Shadows |
+| | Left-handed Controls |
+
+Unrelated rows sat next to each other (Mission Text beside Screen Shake,
+Haptics beside Shadows), which forced a player hunting for one option to
+read all eight — the cognitive-load cost D16 identified. Rows are now
+grouped: **audio/briefing → display → play**.
+
+**The reorder exposed a bug worth more than the reorder.** Rows were
+toggled by *positional index*, and the touch list (8 rows) and desktop list
+(9 rows) are different lengths sharing one index space. Reordering the
+rows — or adding one — would have silently toggled **the wrong setting**.
+Settings are now keyed by a `SettingId` enum, and one table drives build,
+refresh, toggle and the toggle-blip, so display order is free to change and
+nothing can point at the wrong row.
+
+*Test:* `Settings_RelatedRows_AreAdjacent` asserts the clusters stay
+contiguous **in display order** — which is what the player actually sees,
+not the source order.
+
+---
+
+## Appendix D — queue closed
+
+Every item in the D13–D18 queue is now resolved:
+
+| ID | Outcome |
+|----|---------|
+| **D13** | **Done** — touch floor 100 → 120 units (~54 dp); all layouts re-solved; test harness built that makes touch layouts verifiable at all |
+| **D14** | **Done** — pause button given a reserved segment of the top band; clock overlap measured at 20 units, worse than the 10 estimated |
+| **D15** | **Closed, not needed** — measured: `Outline` is an `IMeshModifier`, not a material break; there was nothing to fix |
+| **D16** | **Done** — rows grouped; positional-toggle bug found and removed |
+| **D17** | **Deferred by decision** — TMP/ATG at localization or Steam, not before |
+| **D18** | **Done** — portal cue 28 → 120 units with an ease-in; peak volume deliberately unchanged |
+
+**Still owed, and it is not code:** a **real-device pass**. Every layout in
+this appendix is asserted numerically (70+ tests) but none of it has been
+seen on a phone. The editor Game view does not reproduce a device's aspect
+ratio or safe area, so simulator/editor checks cannot close this. That,
+plus the gamepad hardware pass and installing a current build, is the
+remaining verification work.
