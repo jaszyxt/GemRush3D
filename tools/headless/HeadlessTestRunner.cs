@@ -12,21 +12,26 @@ public static class HeadlessTestRunner
 {
     public static int Main(string[] args)
     {
-        if (args.Length == 0)
-        {
-            Console.WriteLine("usage: runner.exe <test-assembly.dll>");
-            return 2;
-        }
-
+        // Two entry shapes: with an argument (the mono path runs the
+        // runner against a separately compiled test assembly) and
+        // without (dotnet run, where the tests are compiled into this
+        // very assembly — so it inspects itself).
         Assembly assembly;
-        try
+        if (args.Length > 0)
         {
-            assembly = Assembly.LoadFrom(args[0]);
+            try
+            {
+                assembly = Assembly.LoadFrom(args[0]);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("could not load " + args[0] + ": " + e.Message);
+                return 2;
+            }
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine("could not load " + args[0] + ": " + e.Message);
-            return 2;
+            assembly = Assembly.GetExecutingAssembly();
         }
 
         int passed = 0, failed = 0, skipped = 0;
