@@ -19,6 +19,11 @@ namespace GemRush
         /// The component lives on the camera itself.
         public static PhotoMode Begin(CameraFollow follow, Transform photoTarget)
         {
+            // The follow camera owns the lens, and disabling it freezes
+            // whatever FOV it last wrote — a wind-ride hold or a bounce-pad
+            // kick would be baked into every postcard. Reset first, then
+            // park: photos are always framed at the designed baseline.
+            follow.ResetLens();
             follow.enabled = false;
             PhotoMode mode = follow.gameObject.AddComponent<PhotoMode>();
             mode.follow = follow;

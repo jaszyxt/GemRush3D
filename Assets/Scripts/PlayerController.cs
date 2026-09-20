@@ -62,7 +62,7 @@ namespace GemRush
         // Wind rides hold a touch of extra lens width (CameraFollow).
         const float WindFovHold = 5f;
         // Jump, land and skid puffs share one soft near-white.
-        static readonly Color DustColor = new Color(0.9f, 0.9f, 0.9f);
+        static readonly Color DustColor = ArtLib.Dust;
 
         // Idle ladder rungs, in seconds of stillness. The spawn grace is
         // the intro-card window: no rung may trigger inside it.

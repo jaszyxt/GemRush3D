@@ -23,7 +23,8 @@ namespace GemRush
             main.startLifetime = new ParticleSystem.MinMaxCurve(9f, 12f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(0.4f, 0.9f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.2f);
-            main.startColor = new Color(1f, 1f, 1f, 0.75f);
+            main.startColor = new Color(ArtLib.Snow.r, ArtLib.Snow.g,
+                ArtLib.Snow.b, 0.75f);
             main.gravityModifier = 0.25f;
             main.maxParticles = 160;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
@@ -68,7 +69,8 @@ namespace GemRush
             Material flakeMat = renderer.sharedMaterial;
             if (flakeMat != null)
             {
-                flakeMat.color = new Color(1f, 1f, 1f, 0.75f);
+                flakeMat.color = new Color(ArtLib.Snow.r, ArtLib.Snow.g,
+                    ArtLib.Snow.b, 0.75f);
             }
         }
     }

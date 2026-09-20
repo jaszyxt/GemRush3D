@@ -50,7 +50,7 @@ namespace GemRush
             g.volumeSize = size;
             g.streakLength = Mathf.Max(size.x, size.z) * 1.4f;
 
-            Material streak = ArtLib.Solid(new Color(0.75f, 0.95f, 1f), 0f);
+            Material streak = ArtLib.Solid(ArtLib.Air, 0f);
             ArtLib.SetFade(streak, 0.22f);
             g.streakMat = streak;
 

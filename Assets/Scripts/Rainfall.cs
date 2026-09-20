@@ -21,7 +21,8 @@ namespace GemRush
             main.startLifetime = new ParticleSystem.MinMaxCurve(1.4f, 1.9f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(6.5f, 8.5f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.06f, 0.11f);
-            main.startColor = new Color(0.72f, 0.82f, 0.95f, 0.55f);
+            main.startColor = new Color(ArtLib.Rain.r, ArtLib.Rain.g,
+                ArtLib.Rain.b, 0.55f);
             main.gravityModifier = 0.1f;
             main.maxParticles = 160;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
@@ -39,8 +40,8 @@ namespace GemRush
             Gradient gradient = new Gradient();
             gradient.SetKeys(
                 new GradientColorKey[] {
-                    new GradientColorKey(new Color(0.72f, 0.82f, 0.95f), 0f),
-                    new GradientColorKey(new Color(0.72f, 0.82f, 0.95f), 1f)
+                    new GradientColorKey(ArtLib.Rain, 0f),
+                    new GradientColorKey(ArtLib.Rain, 1f)
                 },
                 new GradientAlphaKey[] {
                     new GradientAlphaKey(0f, 0f),

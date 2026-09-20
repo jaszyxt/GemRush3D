@@ -55,7 +55,9 @@ removed seven copy-pasted golds and four air-blues; keep it that way.)
 | `Air` | (0.65, 0.92, 1.00) | updrafts, mirror panes, echo bridges, Gloomfang's spark | air/mirror substance, always faded |
 | `CheckpointOff/On` | grey → green | checkpoint state | the only state-change color pair in the world |
 | `CloudWhite` | (0.97, 0.98, 1.00) | clouds | always alpha-faded (0.3–0.45) |
-| `Snow` / `IceBlue` / `FrostedLeaf` / `FrostedRock` | pale glacial family | The Long Winter: tops, ice gates, frost props | "frozen" reads one way everywhere |
+| `Snow` / `Rain` | (0.93,0.95,0.99) / (0.72,0.82,0.95) | winter snowfall vs. rain | deliberately distinct — a flurry must never read as a shower |
+| `Dust` | (0.90, 0.90, 0.90) | jump / land / skid kick-up puffs | warm-shifted off white so dust never reads as a passing glow |
+| `IceBlue` / `FrostedLeaf` / `FrostedRock` | pale glacial family | The Long Winter: ice gates, frost props | "frozen" reads one way everywhere |
 | `Trunk` / `Leaf` / `Rock` / `Bud` / `Wood` | prop families | platform dressing, garden buds, see-saw planks | `LongWinter` swaps leaf/rock for the frosted pair |
 | `Aurora` (4-color array) | green→cyan→violet→pink | Aurora Festival ribbons, sky bands, finale | shimmer drifts through it **in order**, everywhere |
 | `Pastels` (5-color array) | flower heads | platform flowers, poke flowers, bloom wave | one garden, one petal palette |
@@ -237,7 +239,44 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 - [ ] Compile-checked against `tools/stubs/UnityStubs.cs` (add stubs
       for any new Unity API you touch).
 
+- **UIs are measured, not eyeballed.** Layout claims in this doc carry
+  numbers: the win stars sit at anchor y 0.525 so their bottom edge
+  clears the stats text top by ~25 units at every aspect (verified
+  in-engine; at the old 0.5 the centre star overlapped the "Level N"
+  line). When you move a reward icon, re-measure the clearance.
+
 ## 10. Change log
+
+- **2026-09-19 (art pass v3 — lens hygiene, win spacing, trail legibility)**
+  — *(a)* **Lens:** new `CameraFollow.ResetLens()`, called by
+  `SnapToTarget()` and `PhotoMode.Begin()`. The FOV kick/hold animates on
+  the unscaled clock (deliberately, so it reads through hit-stop), which
+  meant a wind-ride hold or bounce-pad kick stayed frozen into every
+  photo-mode postcard and settled visibly on exit. Verified in-engine:
+  with a hold freshly armed, entering photo mode leaves the lens at the
+  neutral 60° baseline and exiting restores the follow with no residual.
+  *(b)* **Win screen:** stars moved 0.5 → 0.525 (verified 25 units of
+  clearance above the stats line, was overlapping); the star pop tween is
+  token-guarded like the gem pulse so a stale pop cannot overwrite a
+  re-shown panel. *(c)* **The reported gold/green trail:** not a rendering
+  bug — `StarTrail` is a progress reward whose tier comes from per-device
+  saves (gold < 15 stars, festival pink 15–29, aurora green 30+), so a
+  phone and a laptop legitimately differ. The real defects were that the
+  tier was illegible and could go stale: `StarTrail` is now a live
+  component that re-tints `startColor` **and** the lifetime gradient in
+  place when a milestone is crossed, and each tier announces itself once
+  per device through the story toast (`Strings.TrailTierLine`, tracked by
+  `SaveSystem.TrailTierAnnounced`). *(d)* **Palette:** `ArtLib.Dust` and
+  `ArtLib.Rain` added; StarTrail tiers, GustZone streaks, Snowfall flakes,
+  Rainfall drops and ConfettiSky's palette all reference ArtLib now.
+  *(e)* **Stub rig:** filled eight long-standing gaps in
+  `tools/stubs/UnityStubs.cs` (`Mathf.Approximately`/`Sign`,
+  `Vector3.Scale/Min/Max`, `Renderer.enabled`/`shadowCastingMode`,
+  `ParticleSystemRenderer.renderMode`, `Application.persistentDataPath`,
+  `SystemInfo`, the `YieldInstruction` family, `PlayerPrefs`
+  single-argument getters, `Transform.Rotate` with a `Space`) — the
+  offline syntax gate now covers the whole game again instead of failing
+  on scripts added since it last passed.
 
 - **2026-09-19 (art audit v2 — post-content-era sweep)** — audited all
   content since v1 (packs 11–13, B-Sides, delight pass, Secret Life,

@@ -16,6 +16,10 @@ namespace GemRush
         public static readonly Color GemPink = new Color(0.98f, 0.30f, 0.75f);
         public static readonly Color PortalCyan = new Color(0.20f, 0.90f, 0.95f);
         public static readonly Color CloudWhite = new Color(0.97f, 0.98f, 1.00f);
+        /// Kick-up dust: jump, landing and skid puffs. Slightly warm rather
+        /// than pure white, so dust reads as disturbed ground and never as
+        /// a portal/bell glow that happens to be flying past.
+        public static readonly Color Dust = new Color(0.90f, 0.90f, 0.90f);
         public static readonly Color HazardRed = new Color(0.85f, 0.20f, 0.15f);
         /// Reward gold — hearts, bells, stars, the daily gift, gold UI
         /// accents. One gold for everything the game gives you: rewards
@@ -34,6 +38,10 @@ namespace GemRush
         /// the same way; the sunstone lantern keeps the reward gold so
         /// "what the world gives you" stays one hue.
         public static readonly Color Snow = new Color(0.93f, 0.95f, 0.99f);
+        /// Rain, pale and blue-shifted against Snow: the two weathers fall
+        /// in different realms, and a flurry must never be mistaken for a
+        /// shower at a glance.
+        public static readonly Color Rain = new Color(0.72f, 0.82f, 0.95f);
         public static readonly Color IceBlue = new Color(0.62f, 0.85f, 0.98f);
         public static readonly Color FrostedLeaf = new Color(0.72f, 0.80f, 0.80f);
         public static readonly Color FrostedRock = new Color(0.84f, 0.87f, 0.92f);

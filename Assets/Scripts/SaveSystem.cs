@@ -174,6 +174,15 @@ namespace GemRush
             VisitStartMedals = TotalMedals(count);
         }
 
+        /// The highest StarTrail tier the player has already been told
+        /// about, so each new trail colour announces itself exactly once
+        /// per device. 0 = none announced yet.
+        public static int TrailTierAnnounced
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "trailtier", 0); }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "trailtier", value); Save(); }
+        }
+
         // ---------- Settings ----------
 
         public static bool SoundOn

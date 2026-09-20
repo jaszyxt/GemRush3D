@@ -267,5 +267,30 @@ namespace GemRush
 
         public const string BellHint =
             "Ring the bell — its song builds the bridge.";
+
+        /// StarTrail milestones: the sparkle wake behind Pip changes colour
+        /// as stars are earned. Each tier announces itself once per device
+        /// (the line explains why the colour changed), and the world keeps
+        /// a permanent record of what the trail means.
+        public const string TrailTier1 =
+            "Fifteen stars — a golden sparkle wake now drifts behind Pip.";
+
+        public const string TrailTier2 =
+            "Thirty stars — the wake turns festival pink.";
+
+        public const string TrailTier3 =
+            "Forty-five stars — the wake glows aurora green, the sky's own colour.";
+
+        /// The menu's standing legend for the trail (shown once unlocked).
+        public const string TrailLegend =
+            "Pip's sparkle wake: fifteen stars for gold, thirty for pink, " +
+            "forty-five for the aurora's green.";
+
+        public static string TrailTierLine(int tier)
+        {
+            if (tier >= 3) return TrailTier3;
+            if (tier == 2) return TrailTier2;
+            return TrailTier1;
+        }
     }
 }

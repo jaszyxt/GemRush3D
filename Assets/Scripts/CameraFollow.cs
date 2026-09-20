@@ -62,6 +62,27 @@ namespace GemRush
             transform.position = target.position + offset;
             lookPoint = target.position;
             followY = target.position.y;
+            // A respawn or level change is a hard cut: any lens motion that
+            // was mid-flight belongs to the moment we just left.
+            ResetLens();
+        }
+
+        /// Returns the lens to its designed baseline, cancelling any kick
+        /// or wind hold in flight. The FOV system animates on the unscaled
+        /// clock (so it reads through hit-stop), which means it would keep
+        /// easing while a level teardown, a respawn or photo mode froze the
+        /// world around it — leaving the camera parked at BaseFov + 5 from a
+        /// ride that ended, or settling visibly when the follow resumed.
+        /// Called on every hard cut, so the next frame starts neutral.
+        public void ResetLens()
+        {
+            kickExtra = 0f;
+            kickAge = 0f;
+            holdExtra = 0f;
+            holdCurrent = 0f;
+            holdUntil = 0f;
+            if (cam == null) cam = GetComponent<Camera>();
+            if (cam != null) cam.fieldOfView = BaseFov;
         }
 
         /// Brief position jitter, used for death feedback. Respects the

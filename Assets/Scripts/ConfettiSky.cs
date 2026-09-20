@@ -8,12 +8,14 @@ namespace GemRush
     /// the Snowfall corridor template; a fraction of the budget.
     public static class ConfettiSky
     {
+        // The reward palette (same families Fx.Confetti rains on a win):
+        // gold, festival pink, portal cyan, cloud white.
         static readonly Color[] Pastels =
         {
-            new Color(1.00f, 0.84f, 0.25f),  // reward gold
-            new Color(0.98f, 0.55f, 0.85f),  // festival pink
-            new Color(0.20f, 0.90f, 0.95f),  // portal cyan
-            new Color(0.98f, 0.98f, 0.94f)   // cloud white
+            ArtLib.Gold,
+            ArtLib.AuroraPink,
+            ArtLib.PortalCyan,
+            ArtLib.CloudWhite
         };
 
         public static void Create(Transform parent, float courseLength)

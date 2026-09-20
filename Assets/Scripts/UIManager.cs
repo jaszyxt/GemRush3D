@@ -134,6 +134,7 @@ namespace GemRush
         // fast chain restarts the tween instead of stacking tweens) and the
         // low-life heart breathing (a slow warm gold pulse, never red).
         int gemPulseSeq;
+        int starPopSeq; // retires an in-flight win-star pop on re-show
         float heartGlowPhase;
         bool heartGlowing;
 
@@ -323,10 +324,15 @@ namespace GemRush
                         Image star = winStars[starsDinged];
                         star.color = starGold;
                         // Land big, settle small — same overshoot grammar
-                        // as Pip's squash-and-stretch.
+                        // as Pip's squash-and-stretch. The token retires
+                        // this tween if the panel is re-shown before it
+                        // lands, so a stale pop can never overwrite the
+                        // reset scale of a fresh win screen.
                         RectTransform srt = star.rectTransform;
+                        int seq = ++starPopSeq;
                         Tweener.Value(1.6f, 1f, 0.28f, delegate(float k)
                         {
+                            if (seq != starPopSeq) return;
                             srt.localScale = new Vector3(k, k, 1f);
                         });
                     }
@@ -736,7 +742,13 @@ namespace GemRush
                 img.sprite = Fx.StarSprite(); // a star that looks like one
                 img.raycastTarget = false;
                 RectTransform rt = img.rectTransform;
-                rt.anchorMin = new Vector2(0.5f + (i - 1) * 0.09f, 0.5f);
+                // y 0.525, not 0.5: at rest the star's bottom edge then sits
+                // at 430 (reference units) with the stats text top at 414 —
+                // 16 units of air. At 0.5 the bottom edge landed at 408,
+                // inside the stats band, and the centre star sat on the
+                // centred "Level N" line. The canvas matches height, so
+                // this clearance holds at every aspect ratio.
+                rt.anchorMin = new Vector2(0.5f + (i - 1) * 0.09f, 0.525f);
                 rt.anchorMax = rt.anchorMin;
                 rt.sizeDelta = new Vector2(84f, 84f);
                 winStars[i] = img;
@@ -1843,6 +1855,7 @@ namespace GemRush
             // once the last star has landed.
             if (winStars != null)
             {
+                starPopSeq++; // retire a pop still in flight from a prior show
                 for (int i = 0; i < winStars.Length; i++)
                 {
                     winStars[i].color = starDim;

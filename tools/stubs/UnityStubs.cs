@@ -110,6 +110,8 @@ namespace UnityEngine
         public void Rotate(float xAngle, float yAngle, float zAngle) { }
         public void Rotate(Vector3 axis, float angle) { }
         public void Rotate(Vector3 axis, float angle, Space relativeTo) { }
+        public void Rotate(float xAngle, float yAngle, float zAngle,
+            Space relativeTo) { }
         public void Translate(Vector3 translation) { }
         public Vector3 InverseTransformDirection(Vector3 worldDirection) { return new Vector3(); }
     }
@@ -185,6 +187,9 @@ namespace UnityEngine
         public static Vector3 forward { get { return new Vector3(); } }
         public static Vector3 right { get { return new Vector3(); } }
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t) { return a; }
+        public static Vector3 Scale(Vector3 a, Vector3 b) { return a; }
+        public static Vector3 Min(Vector3 a, Vector3 b) { return a; }
+        public static Vector3 Max(Vector3 a, Vector3 b) { return a; }
         public static Vector3 MoveTowards(Vector3 current, Vector3 target,
             float maxDelta) { return current; }
         public static float Distance(Vector3 a, Vector3 b) { return 0f; }
@@ -235,7 +240,9 @@ namespace UnityEngine
         public static int Abs(int value) { return 0; }
         public static float Exp(float f) { return 0f; }
         public static float Lerp(float a, float b, float t) { return 0f; }
+        public static float Sign(float f) { return 1f; }
         public static float Clamp01(float value) { return 0f; }
+        public static bool Approximately(float a, float b) { return false; }
         public static float Clamp(float value, float min, float max) { return 0f; }
         public static int Clamp(int value, int min, int max) { return 0; }
         public static float Min(float a, float b) { return 0f; }
@@ -253,10 +260,13 @@ namespace UnityEngine
     public static class PlayerPrefs
     {
         public static int GetInt(string key, int defaultValue) { return 0; }
+        public static int GetInt(string key) { return 0; }
         public static void SetInt(string key, int value) { }
         public static float GetFloat(string key, float defaultValue) { return 0f; }
+        public static float GetFloat(string key) { return 0f; }
         public static void SetFloat(string key, float value) { }
         public static string GetString(string key, string defaultValue) { return null; }
+        public static string GetString(string key) { return null; }
         public static void SetString(string key, string value) { }
         public static bool HasKey(string key) { return false; }
         public static void DeleteKey(string key) { }
@@ -466,6 +476,8 @@ namespace UnityEngine
     {
         public Material sharedMaterial { get; set; }
         public Material material { get; set; }
+        public bool enabled { get; set; }
+        public UnityEngine.Rendering.ShadowCastingMode shadowCastingMode { get; set; }
     }
 
     public class MeshRenderer : Renderer { }
@@ -478,7 +490,13 @@ namespace UnityEngine
     public class ParticleSystemRenderer : Renderer
     {
         public float velocityScale { get; set; }
+        public ParticleSystemRenderMode renderMode { get; set; }
+        public ParticleSystemSortMode sortMode { get; set; }
+        public float lengthScale { get; set; }
     }
+
+    public enum ParticleSystemRenderMode { Billboard, Stretch, HorizontalBillboard, VerticalBillboard, Mesh, None }
+    public enum ParticleSystemSortMode { None, Distance, OldestInFront, YoungestInFront }
 
     public class Camera : Behaviour
     {
@@ -557,6 +575,23 @@ namespace UnityEngine
         public static RuntimePlatform platform { get { return RuntimePlatform.WindowsEditor; } }
         public static event System.Action quitting;
         public static void OpenURL(string url) { }
+        public static string persistentDataPath { get { return ""; } }
+        public static string dataPath { get { return ""; } }
+    }
+
+    public class YieldInstruction { }
+
+    public class WaitForEndOfFrame : YieldInstruction { }
+    public class WaitForSeconds : YieldInstruction
+    {
+        public WaitForSeconds(float seconds) { }
+    }
+
+    public static class SystemInfo
+    {
+        public static string deviceName { get { return ""; } }
+        public static string deviceModel { get { return ""; } }
+        public static string operatingSystem { get { return ""; } }
     }
 
     public static class Resources
@@ -618,6 +653,11 @@ namespace UnityEngine
     }
 
     // ---------- Post-processing (com.unity.postprocessing) ----------
+
+    namespace Rendering
+    {
+        public enum ShadowCastingMode { Off, On, TwoSided, ShadowsOnly }
+    }
 
     namespace Rendering.PostProcessing
     {
