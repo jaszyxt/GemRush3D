@@ -40,6 +40,10 @@ Thumbs.db
 # === project-specific ===
 tools/check.dll
 tools/out/
+# Headless test scratch (compiled dll, copied refs, response files).
+# tools/headless/refs IS tracked — CI needs those assemblies to run
+# the test suite without a Unity install.
+tools/.headless-test/
 tools/build-log*.txt
 tools/probe-log.txt
 tools/session-errors.log

@@ -9,3 +9,21 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile game scripts against Unity stubs (no Unity needed)
         run: dotnet build tools/Check.csproj
+      - name: Version drift check (VERSION vs docs)
+        run: sh tools/check-version.sh
+
+  level-tests:
+    # Runs the level-geometry test suite without Unity or a license.
+    # These are pure-data tests (Vector3/Mathf are managed math), so
+    # they execute under Mono against the reference assemblies in
+    # tools/headless/refs. Fast pre-flight; the GameCI tag build still
+    # runs the full suite including the scene-dependent tests.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Mono
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mono-devel
+      - name: Run level-audit tests headlessly
+        run: bash tools/run-tests-headless.sh

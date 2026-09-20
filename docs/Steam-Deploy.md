@@ -45,9 +45,10 @@ missing is entirely on the account/upload side.
   `GemRush3D_Data/`, `MonoBleedingEdge/`, `D3D12/`, `DirectML.dll`,
   `dstorage.dll`, `dstoragecore.dll`.
 - Exclude from depot: the BackUp folder, `*.pdb`, any `.apk`.
-- Versioning: keep `bundleVersion` (currently 1.22.1) in sync with the commit
-  tag convention (`v1.22.1 (code 32)`); put the same string in the SteamPipe
-  build `Desc` so builds are traceable.
+- Versioning: `VERSION` at the repo root is the single source of truth —
+  the build reads it and derives the Android versionCode automatically
+  (`tools/check-version.sh` enforces doc agreement). Put the same string
+  in the SteamPipe build `Desc` so builds are traceable.
 - Scripting backend is Mono (default) — fine for Steam. IL2CPP is optional
   hardening; don't switch for v1.
 - Min spec to state on the page: Windows 10 64-bit. The build is x64-only.
@@ -63,7 +64,7 @@ Get the SDK (partner site → "Download Steamworks SDK"), then use
 "AppBuild"
 {
   "AppID"       "<AppID>"
-  "Desc"        "v1.22.1 (code 32)"
+  "Desc"        "v1.27.0"
   "ContentRoot" "..\staging\win"       // folder holding GemRush3D.exe etc.
   "BuildOutput" "..\output"
   "Depots"

@@ -81,6 +81,54 @@ namespace GemRush.EditorTools
     {
         const string BuildMenuPath = "GemRush/Build Android APK (Release)";
 
+        /// The one place a release version is written by hand: VERSION at
+        /// the repo root. Everything else (bundleVersion, the Android
+        /// versionCode, git tags, docs) derives from it — the old
+        /// hardcoded pair here drifted from HANDOFF and Steam-Deploy
+        /// without anyone noticing.
+        const string VersionFilePath = "VERSION";
+
+        /// Minor/patch ceiling for the derived Android versionCode. Play
+        /// requires it to increase monotonically; encoding major*10000 +
+        /// minor*100 + patch keeps that true for any sane version, and
+        /// 43 (the old hand-held value) maps to 0.0.43 — so a bump to
+        /// 1.27.0 or beyond is always greater.
+        public static int DeriveVersionCode(string version)
+        {
+            string[] parts = version.Split('.');
+            int major = parts.Length > 0 ? ParsePart(parts[0]) : 0;
+            int minor = parts.Length > 1 ? ParsePart(parts[1]) : 0;
+            int patch = parts.Length > 2 ? ParsePart(parts[2]) : 0;
+            return major * 10000 + minor * 100 + patch;
+        }
+
+        static int ParsePart(string text)
+        {
+            int value = 0;
+            for (int i = 0; i < text.Length; i++)
+                if (text[i] >= '0' && text[i] <= '9')
+                    value = value * 10 + (text[i] - '0');
+            return value;
+        }
+
+        /// Reads VERSION, falling back to a loud default rather than
+        /// silently shipping a stale number if the file goes missing.
+        public static string ReadVersion()
+        {
+            try
+            {
+                if (System.IO.File.Exists(VersionFilePath))
+                    return System.IO.File.ReadAllText(VersionFilePath).Trim();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[GemRush] Could not read VERSION: " + e.Message);
+            }
+            Debug.LogError("[GemRush] VERSION file missing — shipping fallback " +
+                "version 0.0.1. Create VERSION at the repo root.");
+            return "0.0.1";
+        }
+
         /// Triggerable from the editor menu or via Unity MCP's
         /// menu-item execution tool.
         [MenuItem(BuildMenuPath)]
@@ -97,8 +145,9 @@ namespace GemRush.EditorTools
             // would orphan their saves. Pin it explicitly.
             PlayerSettings.SetApplicationIdentifier(
                 BuildTargetGroup.Android, "com.DefaultCompany.GemRush3D");
-            PlayerSettings.bundleVersion = "1.27.0";
-            PlayerSettings.Android.bundleVersionCode = 43;
+            PlayerSettings.bundleVersion = ReadVersion();
+            PlayerSettings.Android.bundleVersionCode = DeriveVersionCode(
+                PlayerSettings.bundleVersion);
 
             // Desktop window UX (D8): a resizable borderless-fullscreen
             // window at the UI's native reference size that keeps running

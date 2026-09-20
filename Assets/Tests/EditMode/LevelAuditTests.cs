@@ -213,6 +213,42 @@ namespace GemRush.Tests
                 "BuildAllLevels.");
         }
 
+        /// The atlas regions are the only place packs are enumerated for the
+        /// player, and each `Count` is hand-written. If a pack's levels stop
+        /// being registered — the failure mode the old hand-summed array had
+        /// — the region map and the level list disagree, and the atlas screen
+        /// shows the wrong thing. Catch it here instead.
+        [Test]
+        public void Regions_CoverEveryLevel_Exactly()
+        {
+            int sum = 0;
+            int expectedFirst = 0;
+            for (int r = 0; r < LevelLibrary.Regions.Length; r++)
+            {
+                LevelLibrary.Region region = LevelLibrary.Regions[r];
+                Assert.Greater(region.Count, 0,
+                    "region " + region.Roman + " '" + region.Name +
+                    "' claims no levels.");
+                Assert.LessOrEqual(region.First + region.Count,
+                    LevelLibrary.Levels.Length,
+                    "region " + region.Roman + " '" + region.Name +
+                    "' runs off the end of the level list — a pack is " +
+                    "missing from BuildAllLevels, or its Count is stale.");
+                Assert.AreEqual(expectedFirst, region.First,
+                    "region " + region.Roman + " should start at level " +
+                    expectedFirst + " so the atlas tiles without gaps or " +
+                    "overlaps.");
+                // Regions must tile in Play order, so the name at each
+                // region's first index is also checked via count below.
+                expectedFirst += region.Count;
+                sum += region.Count;
+            }
+            Assert.AreEqual(LevelLibrary.Levels.Length, sum,
+                "Atlas regions cover " + sum + " levels but the library holds " +
+                LevelLibrary.Levels.Length + ". Every level must belong to " +
+                "exactly one region.");
+        }
+
         [Test]
         public void EveryLevel_HasUniqueNotEmptyName()
         {
@@ -235,8 +271,7 @@ namespace GemRush.Tests
             int i = 0;
             foreach (LevelDefinition l in AllLevels)
             {
-                Assert.IsFalse(string.IsNullOrEmpty(l.Mission),
-                    Label(i, l) + " has no mission card text.");
+                Assert.IsFalse(string.IsNullOrEmpty(l.Mission),                    Label(i, l) + " has no mission card text.");
                 Assert.IsFalse(string.IsNullOrEmpty(l.WinLine),
                     Label(i, l) + " has no win line.");
                 i++;

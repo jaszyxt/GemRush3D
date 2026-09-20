@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.19.0 session, 2026-09-19)
+# HANDOFF — current state (update: v1.27.0 session, 2026-09-21)
 
 **Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:

@@ -52,57 +52,40 @@ namespace GemRush
 
         static LevelDefinition[] BuildAllLevels()
         {
-            LevelDefinition[] baseLevels = new LevelDefinition[]
-            {
-                FirstSteps(),
-                SpinnerGauntlet(),
-                TheAscent()
-            };
+            // Built by appending to a List rather than pre-sizing an array
+            // from a hand-summed length expression. That old form silently
+            // TRUNCATED the library if a pack was added without also
+            // editing the sum — levels would vanish from the game with no
+            // error anywhere. Appending cannot lose content; a missing
+            // pack is now a missing line, which the audit tests catch.
+            System.Collections.Generic.List<LevelDefinition> all =
+                new System.Collections.Generic.List<LevelDefinition>();
 
-            LevelDefinition[] all =
-                new LevelDefinition[baseLevels.Length
-                    + LevelPackTwo.Levels.Length
-                    + LevelPackThree.Levels.Length
-                    + LevelPackFour.Levels.Length
-                    + LevelPackFive.Levels.Length
-                    + LevelPackSix.Levels.Length
-                    + LevelPackSeven.Levels.Length
-                    + LevelPackEight.Levels.Length
-                    + LevelPackNine.Levels.Length
-                    + LevelPackTen.Levels.Length
-                    + LevelPackBSides.Levels.Length
-                    + LevelPackEleven.Levels.Length
-                    + LevelPackTwelve.Levels.Length
-                    + LevelPackThirteen.Levels.Length];
-            int n = 0;
-            for (int i = 0; i < baseLevels.Length; i++) all[n++] = baseLevels[i];
-            for (int i = 0; i < LevelPackTwo.Levels.Length; i++)
-                all[n++] = LevelPackTwo.Levels[i];
-            for (int i = 0; i < LevelPackThree.Levels.Length; i++)
-                all[n++] = LevelPackThree.Levels[i];
-            for (int i = 0; i < LevelPackFour.Levels.Length; i++)
-                all[n++] = LevelPackFour.Levels[i];
-            for (int i = 0; i < LevelPackFive.Levels.Length; i++)
-                all[n++] = LevelPackFive.Levels[i];
-            for (int i = 0; i < LevelPackSix.Levels.Length; i++)
-                all[n++] = LevelPackSix.Levels[i];
-            for (int i = 0; i < LevelPackSeven.Levels.Length; i++)
-                all[n++] = LevelPackSeven.Levels[i];
-            for (int i = 0; i < LevelPackEight.Levels.Length; i++)
-                all[n++] = LevelPackEight.Levels[i];
-            for (int i = 0; i < LevelPackNine.Levels.Length; i++)
-                all[n++] = LevelPackNine.Levels[i];
-            for (int i = 0; i < LevelPackTen.Levels.Length; i++)
-                all[n++] = LevelPackTen.Levels[i];
-            for (int i = 0; i < LevelPackBSides.Levels.Length; i++)
-                all[n++] = LevelPackBSides.Levels[i];
-            for (int i = 0; i < LevelPackEleven.Levels.Length; i++)
-                all[n++] = LevelPackEleven.Levels[i];
-            for (int i = 0; i < LevelPackTwelve.Levels.Length; i++)
-                all[n++] = LevelPackTwelve.Levels[i];
-            for (int i = 0; i < LevelPackThirteen.Levels.Length; i++)
-                all[n++] = LevelPackThirteen.Levels[i];
-            return all;
+            all.Add(FirstSteps());
+            all.Add(SpinnerGauntlet());
+            all.Add(TheAscent());
+
+            AddPack(all, LevelPackTwo.Levels);
+            AddPack(all, LevelPackThree.Levels);
+            AddPack(all, LevelPackFour.Levels);
+            AddPack(all, LevelPackFive.Levels);
+            AddPack(all, LevelPackSix.Levels);
+            AddPack(all, LevelPackSeven.Levels);
+            AddPack(all, LevelPackEight.Levels);
+            AddPack(all, LevelPackNine.Levels);
+            AddPack(all, LevelPackTen.Levels);
+            AddPack(all, LevelPackBSides.Levels);
+            AddPack(all, LevelPackEleven.Levels);
+            AddPack(all, LevelPackTwelve.Levels);
+            AddPack(all, LevelPackThirteen.Levels);
+
+            return all.ToArray();
+        }
+
+        static void AddPack(System.Collections.Generic.List<LevelDefinition> all,
+            LevelDefinition[] pack)
+        {
+            for (int i = 0; i < pack.Length; i++) all.Add(pack[i]);
         }
 
         // ------------------------------------------------------------------
