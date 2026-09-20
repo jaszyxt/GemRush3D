@@ -32,25 +32,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Unity reference assemblies (committed; see refresh script). -->
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.CoreModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.PhysicsModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.AudioModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.ParticleSystemModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.InputLegacyModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.IMGUIModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.JSONSerializeModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.TextRenderingModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.UIModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.AndroidJNIModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.ScreenCaptureModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.AnimationModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.UnityWebRequestModule.dll" />
-    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.UI.dll" />
+    <!-- Every committed Unity reference assembly, by wildcard: naming
+         modules individually guarantees one gets forgotten, and a
+         missing one surfaces as a confusing "type is defined in an
+         assembly that is not referenced". nunit.framework is excluded
+         because the real NuGet package supplies it. -->
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine*.dll" />
     <Reference Include="$(MSBuildThisFileDirectory)refs/Unity.InputSystem.dll" />
     <Reference Include="$(MSBuildThisFileDirectory)refs/Unity.RenderPipelines.Core.Runtime.dll" />
     <Reference Include="$(MSBuildThisFileDirectory)refs/Unity.RenderPipelines.Universal.Runtime.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.UI.dll" />
   </ItemGroup>
 
   <ItemGroup>
