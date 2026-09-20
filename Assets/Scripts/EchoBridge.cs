@@ -87,12 +87,15 @@ namespace GemRush
 
             MeshRenderer renderer = slab.GetComponent<MeshRenderer>();
             // The builder passes a fresh URP/Lit material per bridge (each
-            // fades on its own clock); fade it to a whisper of a hint even
-            // while off. This used to build a Built-in "Standard" material
-            // instead — broken under URP, and stripped from builds, where
-            // Shader.Find returned null and the level crashed on load.
+            // fades on its own clock). The bridge is HONEST about its
+            // state: invisible while intangible, bright while solid — the
+            // old faint ghost read as "walkable" and dropped players to
+            // their death. This used to build a Built-in "Standard"
+            // material instead — broken under URP, and stripped from
+            // builds, where Shader.Find returned null and the level
+            // crashed on load.
             Material mat = material;
-            ArtLib.SetFade(mat, 0.06f);
+            ArtLib.SetFade(mat, 0f);
             renderer.sharedMaterial = mat;
 
             EchoBridge bridge = go.AddComponent<EchoBridge>();
@@ -117,7 +120,9 @@ namespace GemRush
             solid = shouldBeSolid;
             col.enabled = solid;
             Color c = mat.color;
-            c.a = solid ? 0.8f : 0.06f;
+            // Honesty rule: what you see is what you stand on. No echo =
+            // nothing there at all; echo = bright and solid.
+            c.a = solid ? 0.8f : 0f;
             mat.color = c;
 
             // The bridge answers the bell: rising chimes as it takes shape,

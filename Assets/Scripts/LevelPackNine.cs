@@ -188,8 +188,12 @@ namespace GemRush
             // ride has to land you, not drop you at its edge (this lane
             // used to end at z 68 and dump Pip 9 units short of the next
             // platform, mid-air with no lift: an impossible crossing).
+            // It also blows CONTINUOUSLY (active time == period): this is
+            // the Bell Towers, not Storm Chasers — waiting on a baby
+            // cloud's laugh here was timing-frustration with a death
+            // penalty. Walk in, get carried, done.
             l.Gusts.Add(new GustSpec(0f, 3.5f, 68f, new Vector3(5f, 4f, 20f),
-                new Vector3(0f, 0f, 1f), 4.4f, 2.2f, 8f, 1.2f));
+                new Vector3(0f, 0f, 1f), 4.4f, 4.4f, 8f, 1.2f));
 
             l.Bells.Add(new BellSpec(0f, 3.5f, 42f, 6f, 0));
             l.Bells.Add(new BellSpec(0f, 6.5f, 101f, 7f, 1));

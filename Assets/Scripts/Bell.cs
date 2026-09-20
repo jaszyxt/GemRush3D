@@ -44,10 +44,14 @@ namespace GemRush
             clapperGo.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
             clapperGo.GetComponent<MeshRenderer>().sharedMaterial = stone;
 
+            // The ring zone covers the whole pedestal: visiting the bell
+            // at all IS ringing it — no aiming, no jump timing. (The old
+            // 2.2-wide box could be jumped past or landed beside, which
+            // read as "the bell just didn't ring".)
             BoxCollider trigger = bell.AddComponent<BoxCollider>();
             trigger.isTrigger = true;
-            trigger.size = new Vector3(2.2f, 2.4f, 2.2f);
-            trigger.center = new Vector3(0f, 1.2f, 0f);
+            trigger.size = new Vector3(3.6f, 3.2f, 3.6f);
+            trigger.center = new Vector3(0f, 1.6f, 0f);
 
             Bell b = bell.AddComponent<Bell>();
             b.bellIndex = spec.Index;
