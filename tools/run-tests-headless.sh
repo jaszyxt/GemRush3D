@@ -61,27 +61,32 @@ else
   MONO="${CI_MONO_PREFIX:-}mono"
   if command -v mono.exe >/dev/null 2>&1; then MONO="mono.exe"; fi
   MGD="$REF_DIR"
+  # Ubuntu's mono-devel ships the compiler as "mcs" in /usr/bin and no
+  # csc in the 4.5 profile, so the compiler is found by search rather
+  # than by assuming a path.
+  CI_CSC="$(command -v mcs 2>/dev/null || command -v csc 2>/dev/null || true)"
 fi
 
 # The compiler is always the managed csc.exe launched by mono — one code
 # path for local and CI, so a difference between them cannot hide here.
 if [ -n "$MB" ]; then
+  # Local: Unity bundles a full Mono, so the compiler and the base class
+  # libraries are both under its 4.5 profile.
   CSC_DIR="$MB/lib/mono/4.5"
-else
-  # CI: mono lives at <prefix>/bin/mono, so the profile is a sibling of bin.
-  CSC_DIR="$(dirname "$(command -v "$MONO")")/../lib/mono/4.5"
-fi
-# Normalize the ".." so a concatenation cannot produce the doubled
-# ".../lib/mono/lib/mono/4.5" path, and so errors show a real path.
-CSC_DIR="$(cd "$CSC_DIR" 2>/dev/null && pwd || echo "$CSC_DIR")"
-# Mono names the compiler csc.exe on Windows and plain csc on Linux.
-if [ -f "$CSC_DIR/csc.exe" ]; then
   CSC="$CSC_DIR/csc.exe"
-elif [ -f "$CSC_DIR/csc" ]; then
-  CSC="$CSC_DIR/csc"
+  BASE_LIBS="$CSC_DIR"
 else
-  echo "FAIL: no csc compiler found in $CSC_DIR"
-  echo "      (install mono-devel, which provides it)"
+  # CI: use the compiler mono-devel provides (mcs). It locates its own
+  # base class libraries, so no profile path is needed — only the extra
+  # Unity references go on the command line.
+  CSC="$CI_CSC"
+  CSC_DIR=""
+  BASE_LIBS=""
+fi
+
+if [ -z "$CSC" ] || { [ -n "$CSC_DIR" ] && [ ! -f "$CSC" ]; }; then
+  echo "FAIL: no C# compiler found (looked for csc.exe, csc, mcs)"
+  echo "      install mono-devel, or set CI_MONO_PREFIX"
   exit 1
 fi
 
@@ -175,19 +180,26 @@ echo "compiling $(wc -l < "$SRC_RSP") source files"
 
 echo "== compiling game scripts + LevelAuditTests against Unity module DLLs =="
 rm -f "$OUT_DIR/tests.dll"
-# mscorlib/netstandard come from whichever Mono we resolved: Unity's
-# bundled Mono (MB) locally, or the system Mono's 4.5 profile in CI.
-# csc.exe lives in the mono 4.5 profile, alongside the base class
-# libraries — so the profile directory is simply CSC_DIR.
-BASE_LIBS="$CSC_DIR"
-# Compile output is captured rather than piped: a pipe makes the exit
-# status come from grep, and `set -e` would then treat a clean compile
-# as a failure (or, worse, hide a real one).
+# Two toolchains, one command shape. Locally we launch Unity's managed
+# csc.exe through mono and name Unity's own mscorlib/netstandard; in CI
+# we call mono-devel's mcs directly, which locates its own base class
+# libraries.
 COMPILE_LOG="$OUT_DIR/compile.log"
+if [ -n "$CSC_DIR" ]; then
+  COMPILER=("$MONO_BIN" "$CSC")
+  BASE_REFS=(-r:"$(winpath "$BASE_LIBS/mscorlib.dll")" -r:"$(winpath "$BASE_LIBS/Facades/netstandard.dll")")
+else
+  COMPILER=("$CSC")
+  BASE_REFS=()
+fi
+
+# Compile output is captured rather than piped: a pipe makes the exit
+# status come from grep, and set -e would then treat a clean compile as
+# a failure (or, worse, hide a real error).
 set +e
-"$MONO_BIN" "$CSC" -nologo -target:library -out:"$(winpath "$OUT_DIR/tests.dll")" \
-  -r:"$(winpath "$BASE_LIBS/mscorlib.dll")" \
-  -r:"$(winpath "$BASE_LIBS/Facades/netstandard.dll")" \
+"${COMPILER[@]}" -nologo -target:library \
+  -out:"$(winpath "$OUT_DIR/tests.dll")" \
+  "${BASE_REFS[@]}" \
   @"$(winpath "$RSP")" \
   @"$(winpath "$SRC_RSP")" > "$COMPILE_LOG" 2>&1
 COMPILE_STATUS=$?
@@ -207,10 +219,11 @@ echo "compiled cleanly ($(grep -cE 'warning CS' "$COMPILE_LOG" || true) warnings
 
 echo "== building the runner =="
 rm -f "$OUT_DIR/runner.exe"
-"$MONO_BIN" "$CSC" -nologo -target:exe -out:"$(winpath "$OUT_DIR/runner.exe")" \
-  -r:"$(winpath "$BASE_LIBS/mscorlib.dll")" \
-  -r:"$(winpath "$NUNIT")" \
-  "$(winpath "$ROOT/tools/headless/HeadlessTestRunner.cs")" 2>&1 | grep -E "error CS" | head -10 || true
+set +e
+"${COMPILER[@]}" -nologo -target:exe -out:"$(winpath "$OUT_DIR/runner.exe")" \
+  "${BASE_REFS[@]}" -r:"$(winpath "$NUNIT")" \
+  "$(winpath "$ROOT/tools/headless/HeadlessTestRunner.cs")" > "$OUT_DIR/runner.log" 2>&1
+set -e
 
 if [ ! -f "$OUT_DIR/runner.exe" ]; then
   echo "FAIL: could not build the headless runner"
