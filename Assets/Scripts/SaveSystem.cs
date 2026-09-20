@@ -227,6 +227,16 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "fullscreen", value ? 1 : 0); Save(); }
         }
 
+        /// Show the level's mission briefing as on-screen text at level
+        /// start. Off by default: the briefing is narrated (VoiceOver is
+        /// the intended channel), so the band is opt-in rather than
+        /// something every player has to dismiss.
+        public static bool MissionTextOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "missiontext", 0) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "missiontext", value ? 1 : 0); Save(); }
+        }
+
         /// Larger UI text for low-vision players: every label re-derives
         /// from its designed size (UIManager.ApplyTextSize), so Large mode
         /// never overflows a layout fitted for the default.

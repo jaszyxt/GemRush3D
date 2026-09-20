@@ -153,6 +153,8 @@ namespace GemRush
         public const string SettingHaptics = "Haptics";
         public const string SettingShadows = "Shadows";
         public const string SettingLefty = "Left-handed Controls";
+        public const string SettingVoice = "Voice";
+        public const string SettingMissionText = "Mission Text";
         public const string SettingTextSize = "Text Size";
         public const string SettingFullscreen = "Fullscreen";
         public const string On = "ON";

@@ -284,5 +284,85 @@ namespace GemRush.Tests
                     System.IO.Directory.Delete(dir);
             }
         }
+
+        // The mission briefing moved out of the play area: the card used to
+        // be a full-screen dim with the text dead-center over the course,
+        // and it drew straight through the pause menu (ShowPaused does not
+        // call HideAll). Both are pinned here.
+        [Test]
+        public void UIManager_BriefingBand_SitsInTheBottomStrip_AndPauseRetiresIt()
+        {
+            GameObject go = new GameObject("UIProbe5", typeof(RectTransform));
+            go.AddComponent<UIManager>();
+            try
+            {
+                InvokePrivate(go.GetComponent<UIManager>(), "Awake");
+                UIManager ui = go.GetComponent<UIManager>();
+                GameObject intro = GetPrivate(ui, "introPanel") as GameObject;
+                Assert.IsNotNull(intro, "briefing band built");
+                RectTransform band = (RectTransform)intro.transform;
+                Assert.LessOrEqual(band.anchorMax.y, 0.20f,
+                    "briefing never reaches the middle of the screen");
+                Assert.GreaterOrEqual(band.anchorMin.x, 0.05f,
+                    "briefing is inset, not a full-screen dim");
+                Assert.LessOrEqual(band.anchorMax.x, 0.95f,
+                    "briefing is inset, not a full-screen dim");
+
+                // Mission Text defaults off: the briefing is narrated.
+                Assert.IsFalse(SaveSystem.MissionTextOn,
+                    "text briefing is opt-in by default");
+
+                // Reproduced bug: pausing mid-briefing left the band behind
+                // the pause menu. ShowPaused must retire it.
+                intro.SetActive(true);
+                ui.ShowPaused();
+                Assert.IsFalse(intro.activeSelf,
+                    "pausing retires the briefing band");
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+                SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
+            }
+        }
+
+        // Nine desktop settings rows must not collide with the BACK button,
+        // and the touch 2-column grid must still hold every row on screen.
+        [Test]
+        public void UIManager_SettingsRows_FitAboveBack()
+        {
+            GameObject go = new GameObject("UIProbe6", typeof(RectTransform));
+            go.AddComponent<UIManager>();
+            try
+            {
+                InvokePrivate(go.GetComponent<UIManager>(), "Awake");
+                UIManager ui = go.GetComponent<UIManager>();
+                Button[] rows = GetPrivate(ui, "settingsButtons") as Button[];
+                Button back = GetPrivate(ui, "settingsBackButton") as Button;
+                Assert.IsNotNull(rows, "settings rows built");
+                Assert.IsNotNull(back, "settings BACK built");
+                Assert.GreaterOrEqual(rows.Length, 8,
+                    "Voice and Mission Text rows are present");
+
+                float lowestRow = 1f;
+                float highestRow = 0f;
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    RectTransform rt = rows[i].GetComponent<RectTransform>();
+                    if (rt.anchorMin.y < lowestRow) lowestRow = rt.anchorMin.y;
+                    if (rt.anchorMin.y > highestRow) highestRow = rt.anchorMin.y;
+                }
+                float backY = ((RectTransform)back.transform).anchorMin.y;
+                Assert.Less(lowestRow, highestRow,
+                    "rows are actually laid out in a stack");
+                Assert.Greater(lowestRow, backY,
+                    "every settings row clears the BACK button");
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+                SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
+            }
+        }
     }
 }

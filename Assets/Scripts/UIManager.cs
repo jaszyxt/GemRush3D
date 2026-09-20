@@ -39,6 +39,36 @@ namespace GemRush
         Text introTitle;
         Text introMission;
         float introTimer;
+        // True while the briefing band is waiting for the player's first
+        // move. The band is dismissed by input, not by a clock alone.
+        bool introAwaitInput;
+
+        /// The briefing band's backstop lifetime: long enough that a player
+        /// who reads slowly is never rushed, short enough that an idle
+        /// player is never left with a bar across the bottom of the screen.
+        const float BriefingBackstop = 12f;
+
+        /// Any live gameplay input this frame? Keyboard axes, the touch
+        /// stick/jump, or a gamepad. Used only to dismiss the briefing.
+        static bool PlayerHasInput()
+        {
+            if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.2f ||
+                Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.2f) return true;
+            if (Input.GetButton("Jump")) return true;
+            if (TouchControls.Instance != null)
+            {
+                if (TouchControls.Instance.MoveVector.sqrMagnitude > 0.02f)
+                    return true;
+                if (TouchControls.JumpQueued || TouchControls.JumpHeld)
+                    return true;
+            }
+            if (GamepadInput.LastDeviceWasGamepad)
+            {
+                if (GamepadInput.LeftStick.sqrMagnitude > 0.02f) return true;
+                if (GamepadInput.JumpPressed || GamepadInput.JumpHeld) return true;
+            }
+            return false;
+        }
         GameObject storyToastPanel;
         Text storyToastText;
         float storyToastTimer;
@@ -250,7 +280,17 @@ namespace GemRush
                 }
                 else holdIntroForVoice = false;
                 introTimer -= Time.unscaledDeltaTime;
-                if (introTimer <= 0f) introPanel.SetActive(false);
+                // Dismiss on the player's first move, not on a clock: the
+                // briefing gets out of the way the moment they take control
+                // — or when the backstop expires, so an idle player is
+                // never left pinned under the band.
+                bool tookControl = introAwaitInput &&
+                    GameManager.Instance != null &&
+                    GameManager.Instance.State == GameState.Playing &&
+                    PlayerHasInput();
+                if (tookControl) introAwaitInput = false;
+                if (tookControl || introTimer <= 0f)
+                    introPanel.SetActive(false);
             }
             if (storyToastPanel != null && storyToastPanel.activeSelf)
             {
@@ -839,28 +879,33 @@ namespace GemRush
                 new Vector2(0f, 0.66f), new Vector2(1f, 0.78f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
-            // Rows: Sound, Screen Shake, Haptics, Shadows, Left-handed
-            // Controls, Text Size — plus Fullscreen on desktop only. The
-            // desktop step derives from seven rows so the last one keeps
-            // its distance from BACK; on touch the 100-unit-tall rows
-            // reflow into a 2-column grid (reading order; an odd last row
-            // centers itself).
+            // Rows: Sound, Voice, Mission Text, Screen Shake, Haptics,
+            // Shadows, Left-handed Controls, Text Size — plus Fullscreen on
+            // desktop only. Voice and Mission Text sit together because they
+            // are the two halves of the same choice: how the briefing
+            // reaches the player.
             string[] names = IsDesktopPlatform()
-                ? new string[] { Strings.SettingSound, Strings.SettingShake,
+                ? new string[] { Strings.SettingSound, Strings.SettingVoice,
+                    Strings.SettingMissionText, Strings.SettingShake,
                     Strings.SettingHaptics, Strings.SettingShadows,
                     Strings.SettingLefty, Strings.SettingTextSize,
                     Strings.SettingFullscreen }
-                : new string[] { Strings.SettingSound, Strings.SettingShake,
+                : new string[] { Strings.SettingSound, Strings.SettingVoice,
+                    Strings.SettingMissionText, Strings.SettingShake,
                     Strings.SettingHaptics, Strings.SettingShadows,
                     Strings.SettingLefty, Strings.SettingTextSize };
             settingsLabels = new Text[names.Length];
             settingsButtons = new Button[names.Length];
             bool touch = Input.touchSupported;
+            // Nine desktop rows at the old 0.068 step would run into BACK,
+            // so the column tightens and BACK drops with it. Touch keeps
+            // its 2-column grid (now five rows, the last one centered).
+            float step = IsDesktopPlatform() ? 0.058f : 0.068f;
             for (int i = 0; i < names.Length; i++)
             {
                 int index = i;
                 float x = 0.5f;
-                float y = touch ? 0f : 0.63f - i * 0.068f;
+                float y = touch ? 0f : 0.655f - i * step;
                 if (touch)
                 {
                     int row = i / 2;
@@ -876,7 +921,7 @@ namespace GemRush
             }
 
             settingsBackButton = MakeButton(settingsPanel.transform, Strings.Back,
-                new Vector2(0.5f, touch ? 0.17f : 0.11f), new Vector2(0f, 0f),
+                new Vector2(0.5f, touch ? 0.17f : 0.075f), new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseSettings(); });
 
             // Gamepad navigation (D5): touch lays the rows out as a
@@ -1218,21 +1263,24 @@ namespace GemRush
             // Same constants BuildSettings used for the rows — refresh and
             // build can never drift apart (D11).
             ApplyLabel(settingsLabels[0], Strings.SettingSound, SaveSystem.SoundOn);
-            ApplyLabel(settingsLabels[1], Strings.SettingShake, SaveSystem.ShakeOn);
-            ApplyLabel(settingsLabels[2], Strings.SettingHaptics, SaveSystem.HapticsOn);
-            ApplyLabel(settingsLabels[3], Strings.SettingShadows, SaveSystem.ShadowsOn);
-            ApplyLabel(settingsLabels[4], Strings.SettingLefty, SaveSystem.LeftyOn);
-            if (settingsLabels.Length > 5 && settingsLabels[5] != null)
+            ApplyLabel(settingsLabels[1], Strings.SettingVoice, SaveSystem.VoiceOn);
+            ApplyLabel(settingsLabels[2], Strings.SettingMissionText,
+                SaveSystem.MissionTextOn);
+            ApplyLabel(settingsLabels[3], Strings.SettingShake, SaveSystem.ShakeOn);
+            ApplyLabel(settingsLabels[4], Strings.SettingHaptics, SaveSystem.HapticsOn);
+            ApplyLabel(settingsLabels[5], Strings.SettingShadows, SaveSystem.ShadowsOn);
+            ApplyLabel(settingsLabels[6], Strings.SettingLefty, SaveSystem.LeftyOn);
+            if (settingsLabels.Length > 7 && settingsLabels[7] != null)
             {
                 // A mode, not an on/off: the label names the value, and the
                 // row tint follows it like every other toggle.
-                settingsLabels[5].text = Strings.TextSizeLabel(
+                settingsLabels[7].text = Strings.TextSizeLabel(
                     SaveSystem.TextLargeOn);
-                Image img = settingsLabels[5].transform.parent.GetComponent<Image>();
+                Image img = settingsLabels[7].transform.parent.GetComponent<Image>();
                 if (img != null) img.color = SaveSystem.TextLargeOn ? onColor : offColor;
             }
-            if (settingsLabels.Length > 6)
-                ApplyLabel(settingsLabels[6], Strings.SettingFullscreen,
+            if (settingsLabels.Length > 8)
+                ApplyLabel(settingsLabels[8], Strings.SettingFullscreen,
                     SaveSystem.FullscreenOn);
             // Keep the focus highlight honest after the tint repaints (D5).
             for (int i = 0; i < settingsButtons.Length; i++)
@@ -1253,15 +1301,17 @@ namespace GemRush
         void ToggleSetting(int index)
         {
             if (index == 0) SaveSystem.SoundOn = !SaveSystem.SoundOn;
-            else if (index == 1) SaveSystem.ShakeOn = !SaveSystem.ShakeOn;
-            else if (index == 2) SaveSystem.HapticsOn = !SaveSystem.HapticsOn;
-            else if (index == 3)
+            else if (index == 1) SaveSystem.VoiceOn = !SaveSystem.VoiceOn;
+            else if (index == 2) SaveSystem.MissionTextOn = !SaveSystem.MissionTextOn;
+            else if (index == 3) SaveSystem.ShakeOn = !SaveSystem.ShakeOn;
+            else if (index == 4) SaveSystem.HapticsOn = !SaveSystem.HapticsOn;
+            else if (index == 5)
             {
                 SaveSystem.ShadowsOn = !SaveSystem.ShadowsOn;
                 QualitySettings.shadows = SaveSystem.ShadowsOn
                     ? ShadowQuality.All : ShadowQuality.Disable;
             }
-            else if (index == 4)
+            else if (index == 6)
             {
                 SaveSystem.LeftyOn = !SaveSystem.LeftyOn;
                 // Live-mirror the HUD: re-anchor the jump button now, no
@@ -1269,27 +1319,27 @@ namespace GemRush
                 // do not exist).
                 if (TouchControls.Instance != null) TouchControls.Instance.ApplySide();
             }
-            else if (index == 5)
+            else if (index == 7)
             {
                 SaveSystem.TextLargeOn = !SaveSystem.TextLargeOn;
                 ApplyTextSize();
             }
-            else if (index == 6)
+            else if (index == 8)
             {
                 SaveSystem.FullscreenOn = !SaveSystem.FullscreenOn;
                 Screen.fullScreenMode = SaveSystem.FullscreenOn
                     ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
             }
             // A flipped setting answers with its own blip: up when it
-            // turned on, down when it turned off. (Index 5 reads its state
-            // after ApplyTextSize, so the blip matches what is on screen.)
+            // turned on, down when it turned off. (Text Size reads its
+            // state after ApplyTextSize, so the blip matches the screen.)
             bool[] states =
             {
-                SaveSystem.SoundOn, SaveSystem.ShakeOn, SaveSystem.HapticsOn,
-                SaveSystem.ShadowsOn, SaveSystem.LeftyOn, SaveSystem.TextLargeOn,
-                SaveSystem.FullscreenOn
+                SaveSystem.SoundOn, SaveSystem.VoiceOn, SaveSystem.MissionTextOn,
+                SaveSystem.ShakeOn, SaveSystem.HapticsOn, SaveSystem.ShadowsOn,
+                SaveSystem.LeftyOn, SaveSystem.TextLargeOn, SaveSystem.FullscreenOn
             };
-            if (index >= 0 && index < settingsLabels.Length)
+            if (index >= 0 && index < states.Length)
                 AudioManager.Instance.PlayUIToggle(states[index]);
             RefreshSettings();
         }
@@ -1593,22 +1643,33 @@ namespace GemRush
             Application.OpenURL(photoFolder);
         }
 
-        /// Mission briefing shown for a few seconds when a level starts.
-        /// Non-blocking: its image never raycasts, so touch controls keep
-        /// working underneath.
+        /// Mission briefing band, shown at level start when Mission Text is
+        /// on. Opt-in: the briefing is narrated, so the default view stays
+        /// clear. Sits in the same bottom band as the checkpoint story
+        /// beats — never over the course, where the player is looking — and
+        /// never raycasts, so touch controls keep working underneath.
         void BuildIntro(Transform canvas)
         {
-            introPanel = MakePanel(canvas, "IntroPanel", new Color(0f, 0f, 0f, 0.45f));
+            introPanel = MakePanel(canvas, "IntroPanel", new Color(0f, 0f, 0f, 0.62f));
             introPanel.GetComponent<Image>().raycastTarget = false;
+            RectTransform band = introPanel.GetComponent<RectTransform>();
+            band.anchorMin = new Vector2(0.10f, 0.055f);
+            band.anchorMax = new Vector2(0.90f, 0.16f);
+            band.offsetMin = Vector2.zero;
+            band.offsetMax = Vector2.zero;
 
-            introTitle = MakeText(introPanel.transform, "IntroTitle", "", 56,
-                starGold, TextAnchor.MiddleCenter,
-                new Vector2(0f, 0.56f), new Vector2(1f, 0.70f), 0f, 0f, 0f, 0f);
+            // Title and mission share the band: name on line one in the
+            // reward gold, the briefing beneath it. Both wrap, so a long
+            // mission re-flows inside the bar instead of running off.
+            introTitle = MakeText(introPanel.transform, "IntroTitle", "", 26,
+                starGold, TextAnchor.LowerCenter,
+                new Vector2(0.02f, 0.42f), new Vector2(0.98f, 0.98f), 0f, 0f, 0f, 0f,
+                wrap: true);
             introTitle.fontStyle = FontStyle.Bold;
 
-            introMission = MakeText(introPanel.transform, "IntroMission", "", 30,
-                Color.white, TextAnchor.MiddleCenter,
-                new Vector2(0.1f, 0.40f), new Vector2(0.9f, 0.55f), 0f, 0f, 0f, 0f,
+            introMission = MakeText(introPanel.transform, "IntroMission", "", 20,
+                new Color(0.95f, 0.95f, 1f), TextAnchor.UpperCenter,
+                new Vector2(0.02f, 0.04f), new Vector2(0.98f, 0.44f), 0f, 0f, 0f, 0f,
                 wrap: true);
 
             introPanel.SetActive(false);
@@ -1629,16 +1690,27 @@ namespace GemRush
             }
             if (introMission != null)
                 introMission.text = def.Mission;
-            introTimer = 3.5f;
-            introPanel.SetActive(true);
+
+            // The narration always plays: it is the intended channel. The
+            // band is the opt-in extra (Settings > Mission Text).
             AudioManager.Instance.PlayIntro();
-            // The briefing is narrated; the card holds until the voice ends.
             if (VoiceOver.Instance != null && !string.IsNullOrEmpty(def.Mission))
             {
                 VoiceOver.Instance.Play(
                     VoiceIds.Mission(def.Name), def.Mission);
                 holdIntroForVoice = true;
             }
+
+            if (!SaveSystem.MissionTextOn)
+            {
+                // Voice-only: nothing on screen to dismiss.
+                introPanel.SetActive(false);
+                introAwaitInput = false;
+                return;
+            }
+            introTimer = BriefingBackstop;
+            introPanel.SetActive(true);
+            introAwaitInput = true;
         }
 
         /// Story beat band at the bottom of the screen, shown when a
@@ -1741,8 +1813,19 @@ namespace GemRush
 
         public void ShowPaused()
         {
+            HideBriefing(); // never sit behind the pause menu
             AnimateShow(pausePanel);
             Focus(pauseResumeButton);
+        }
+
+        /// Retires the level-start briefing band. ShowPaused does not call
+        /// HideAll (the HUD must survive a pause), so the briefing has to be
+        /// retired explicitly or it draws straight through the pause menu.
+        void HideBriefing()
+        {
+            if (introPanel != null) introPanel.SetActive(false);
+            introAwaitInput = false;
+            holdIntroForVoice = false;
         }
 
         public void HidePaused()
