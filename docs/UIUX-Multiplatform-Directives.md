@@ -657,3 +657,38 @@ the ≥8 dp guidance (the grid gaps exceed it comfortably in practice, but
 it is unmeasured); and the whole pass needs one real-device look, since a
 Device Simulator and the editor Game view do not reproduce a phone's
 aspect or safe area.
+
+### D.6 D15 — measured, and closed as unnecessary (2026-09-21)
+
+**The queue item's premise was wrong, and measuring first is what caught
+it.** D15 assumed each label's `Outline` was "a second material and a
+batching break", based on the general guidance to group siblings by
+material. It is not.
+
+`UnityEngine.UI.Outline` derives from `Shadow`, which implements
+`IMeshModifier`. Measured in-editor:
+
+- an outlined graphic has **exactly one `IMeshModifier`** and **no extra
+  material** — the effect is baked into the same vertex buffer, same font
+  atlas, same material as the text itself;
+- it costs **4 extra copies of each glyph's geometry** (the outline is four
+  offset duplicates), i.e. vertex/overdraw cost, not draw-call cost.
+
+So there is no batching break to fix. What the guidance about "grouping by
+material" targets — per-label material instances, multiple font assets,
+sprite-atlas breaks — does not apply here: the UI uses one procedural
+sprite material and one built-in font throughout.
+
+**Verdict: no change.** Recorded rather than actioned, because the value of
+the measurement is the negative result: it stops this item being re-raised.
+The real (small) cost of `Outline` is per-glyph vertices, which is a
+concern only if UI vertex counts ever show up in a profile — nothing
+currently suggests they do (97 graphics on the busiest panel).
+
+**Method note for future D15-style items:** the Frame Debugger is the right
+instrument for draw-call questions, but it needs the game paused and the
+editor focused, and the MCP path for it proved unreliable here. For
+*material/call-count* questions specifically, inspecting `IMeshModifier`
+membership and material identity is decisive and cheap; reserve the Frame
+Debugger for counting real submitted batches, and treat "this component
+probably breaks batching" as a hypothesis to verify, never a finding.
