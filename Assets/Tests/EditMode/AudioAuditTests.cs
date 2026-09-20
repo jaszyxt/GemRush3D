@@ -51,6 +51,26 @@ namespace GemRush.Tests
                 "portal hum rose back over the music bed");
         }
 
+        // The portal hum is the game's only long-range wayfinding cue, so its
+        // REACH matters as much as its level: at the old 28-unit radius it
+        // read exactly zero for most of every course (levels run 76-171 units
+        // spawn-to-portal), making it a final-approach cue rather than a
+        // beacon. D18 widened it.
+        [Test]
+        public void PortalCue_ReachesAcrossTheCourse()
+        {
+            float range = (float)StaticField(typeof(GoalPortal), "CueRange");
+            Assert.GreaterOrEqual(range, 90f,
+                "portal cue range shrank back to a final-approach-only radius");
+
+            // The shortest full courses are ~76 units; the cue must be
+            // audible well before the last quarter of those.
+            float shortestCourse = 76f;
+            float audibleAtHalf = Mathf.Clamp01(1f - (shortestCourse * 0.5f) / range);
+            Assert.Greater(audibleAtHalf * audibleAtHalf, 0.01f,
+                "cue is still silent at the midpoint of the shortest course");
+        }
+
         [Test]
         public void GustAntiStackWindowPresent()
         {

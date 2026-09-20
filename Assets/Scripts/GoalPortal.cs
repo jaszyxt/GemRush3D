@@ -51,6 +51,21 @@ namespace GemRush
             goal.fillColor = new Color(0.2f, 0.9f, 0.95f, 0.45f);
         }
 
+        /// Distance over which the hum fades in, in world units.
+        ///
+        /// This was 28, which made the portal a final-approach cue only:
+        /// courses run 76-171 units spawn-to-portal, so the hum read exactly
+        /// ZERO for most of every level (it also has to clear the audio
+        /// manager's 0.005 play threshold before it is audible at all,
+        /// pushing the real onset even closer). Widening the reach gives the
+        /// player a continuous bearing on the goal from much further out.
+        ///
+        /// Deliberately NOT raised by scaling the peak volume: proximity maps
+        /// linearly onto hum volume, so a longer ramp is automatically
+        /// quieter at distance while leaving the near-field exactly as
+        /// calibrated (the hum is mixed to sit UNDER the music bed).
+        const float CueRange = 120f;
+
         void Update()
         {
             if (fillMaterial != null)
@@ -70,7 +85,12 @@ namespace GemRush
             {
                 float d = Vector3.Distance(GameBootstrap.Player.transform.position,
                     transform.position);
-                proximity = Mathf.Clamp01(1f - d / 28f);
+                // Ease-in rather than a straight line: the hum stays a
+                // whisper for the first stretch of the course and rises
+                // convincingly over the last third, so "getting close" still
+                // reads as an event rather than a constant drone.
+                float t = Mathf.Clamp01(1f - d / CueRange);
+                proximity = t * t;
             }
             if (AudioManager.Instance != null)
                 AudioManager.Instance.SetPortalProximity(proximity);
