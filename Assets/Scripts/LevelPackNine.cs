@@ -174,7 +174,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 3f, 36f, 9f, 1f, 9f));     // guardian arena
             l.Platforms.Add(new PlatformSpec(0f, 3f, 42f, 4f, 1f, 4f));     // bell pedestal
             l.Platforms.Add(new PlatformSpec(0f, 3f, 57f, 6f, 1f, 6f));     // echo landing
-            l.Platforms.Add(new PlatformSpec(3f, 4f, 79f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(3f, 3f, 79f, 6f, 1f, 6f));     // gust landing (level with the takeoff — the wind is the ride, not a climb)
             l.Platforms.Add(new PlatformSpec(-2f, 5f, 87f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 6f, 95f, 7f, 1f, 7f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 6f, 101f, 4f, 1f, 4f));    // bell pedestal
@@ -184,16 +184,18 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 11f, 151f, 12f, 1f, 12f)); // The Silent Spire
 
             // The lane spans from the echo landing (z 54-60) all the way
-            // OVER the far platform (z 77-81) and lifts as it blows — the
+            // OVER the far platform (z 76-82) and lifts as it blows — the
             // ride has to land you, not drop you at its edge (this lane
             // used to end at z 68 and dump Pip 9 units short of the next
             // platform, mid-air with no lift: an impossible crossing).
-            // It also blows CONTINUOUSLY (active time == period): this is
-            // the Bell Towers, not Storm Chasers — waiting on a baby
-            // cloud's laugh here was timing-frustration with a death
-            // penalty. Walk in, get carried, done.
+            // It blows CONTINUOUSLY (active == period) — the Bell Towers
+            // are not Storm Chasers; waiting on a baby cloud's laugh here
+            // was timing-frustration with a death penalty — and the lift
+            // is the Festival Finale's proven 3: enough to beat gravity
+            // (the wind's real hold-up is lift − g/4; anything under ~2.5
+            // still sinks) so even walking in carries you onto the deck.
             l.Gusts.Add(new GustSpec(0f, 3.5f, 68f, new Vector3(5f, 4f, 20f),
-                new Vector3(0f, 0f, 1f), 4.4f, 4.4f, 8f, 1.2f));
+                new Vector3(0f, 0f, 1f), 4.4f, 4.4f, 8f, 3f));
 
             l.Bells.Add(new BellSpec(0f, 3.5f, 42f, 6f, 0));
             l.Bells.Add(new BellSpec(0f, 6.5f, 101f, 7f, 1));

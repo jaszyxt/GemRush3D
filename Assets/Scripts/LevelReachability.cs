@@ -557,7 +557,13 @@ namespace GemRush
                 Vector3 dir = gust.Direction.normalized;
                 bool alongX = Mathf.Abs(dir.x) > Mathf.Abs(dir.z);
                 float sign = alongX ? Mathf.Sign(dir.x) : Mathf.Sign(dir.z);
-                float exitVy = 0.8f * gust.Lift; // damping never fully settles
+                // The wind's REAL vertical hold-up: the entry blend fights
+                // gravity continuously, so the ride settles at lift − g/4
+                // (PlayerController lerps vel.y toward gustLift at 4/s
+                // while useGravity pulls at 9.81). A lift under ~2.5 still
+                // sinks the rider — lift 1.2 was how the Silent Spire lane
+                // kept killing people on a "helpful" wind.
+                float exitVy = gust.Lift - Gravity / 4f;
                 // The exit plane is the box's far face across the blow.
                 float exitPlane = alongX
                     ? gust.Center.x + sign * gust.Size.x * 0.5f
