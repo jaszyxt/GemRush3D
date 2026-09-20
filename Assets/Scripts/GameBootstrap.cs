@@ -152,6 +152,13 @@ namespace GemRush
             CameraRig.target = Player.transform;
             CameraRig.SnapToTarget();
 
+            // The Rest: once a level is won the camera is free to drift,
+            // so the player can stay a while and watch the world instead
+            // of being shuffled onward. Attached here (not in the win UI)
+            // so it is a world system, and it stands the follow rig down
+            // only while it is actually resting.
+            RestBeat.Attach(CameraRig);
+
             Backdrop.Create(cameraGo.transform, level.SkyColor);
 
             // The mood layer: bloom, vignette, per-realm colour grading.
