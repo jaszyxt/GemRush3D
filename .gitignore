@@ -16,6 +16,11 @@
 sysinfo.txt
 mono_crash.*
 
+# Local verification artifacts (editor probes / play-mode smoke shots).
+# Evidence, not source: regenerate with the GemRush/*Probe menus or the
+# MCP screenshot path. Keeping them out of the repo keeps diffs about code.
+/Screenshots/
+
 # IDE
 .vs/
 .idea/
