@@ -161,6 +161,25 @@ namespace GemRush.Tests
                 Assert.AreEqual(22, instructions.fontSize,
                     "default size restored from the registered base");
 
+                // Prose wraps inside its band (the mission card used to run
+                // off both screen edges); labels and HUD numbers must not
+                // re-flow.
+                Text mission = go.GetComponent<UIManager>()
+                    .transform.Find("UICanvas/SafeRoot/IntroPanel/IntroMission")
+                    .GetComponent<Text>();
+                Assert.AreEqual(HorizontalWrapMode.Wrap, mission.horizontalOverflow,
+                    "mission prose wraps");
+                Text quote = go.GetComponent<UIManager>()
+                    .transform.Find("UICanvas/SafeRoot/MenuPanel/MenuQuote")
+                    .GetComponent<Text>();
+                Assert.AreEqual(HorizontalWrapMode.Wrap, quote.horizontalOverflow,
+                    "menu quote wraps");
+                Text hud = go.GetComponent<UIManager>()
+                    .transform.Find("UICanvas/SafeRoot/HudPanel/HudDynamic/Gems")
+                    .GetComponent<Text>();
+                Assert.AreEqual(HorizontalWrapMode.Overflow, hud.horizontalOverflow,
+                    "HUD numbers never re-flow");
+
                 SaveSystem.TextLargeOn = true;
                 InvokePrivate(go.GetComponent<UIManager>(), "ApplyTextSize");
                 Assert.AreEqual(

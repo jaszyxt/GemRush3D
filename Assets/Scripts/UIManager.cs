@@ -453,12 +453,14 @@ namespace GemRush
 
             menuQuote = MakeText(menuPanel.transform, "MenuQuote", "", 22,
                 new Color(0.72f, 0.78f, 0.88f), TextAnchor.LowerRight,
-                new Vector2(0.52f, 0.01f), new Vector2(0.97f, 0.085f), 0f, 0f, 0f, 0f);
+                new Vector2(0.52f, 0.01f), new Vector2(0.97f, 0.085f), 0f, 0f, 0f, 0f,
+                wrap: true);
             menuQuote.fontStyle = FontStyle.Italic;
 
             visitRecap = MakeText(menuPanel.transform, "VisitRecap", "", 22,
                 starGold, TextAnchor.UpperLeft,
-                new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f);
+                new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f,
+                wrap: true);
 
             WireMenuNav();
         }
@@ -706,7 +708,8 @@ namespace GemRush
 
             winStory = MakeText(winPanel.transform, "Story", "", 26,
                 new Color(0.75f, 0.82f, 0.95f), TextAnchor.UpperCenter,
-                new Vector2(0.08f, 0.30f), new Vector2(0.92f, 0.38f), 0f, 0f, 0f, 0f);
+                new Vector2(0.08f, 0.30f), new Vector2(0.92f, 0.38f), 0f, 0f, 0f, 0f,
+                wrap: true);
             winStory.fontStyle = FontStyle.Italic;
 
             // Atlas stamp: the last level of a pack carries a milestone
@@ -788,7 +791,8 @@ namespace GemRush
             // Epilogue: story pages shown before the stats, advanced with NEXT.
             completeStory = MakeText(completePanel.transform, "Epilogue", "", 26,
                 Color.white, TextAnchor.MiddleCenter,
-                new Vector2(0.08f, 0.24f), new Vector2(0.92f, 0.56f), 0f, 0f, 0f, 0f);
+                new Vector2(0.08f, 0.24f), new Vector2(0.92f, 0.56f), 0f, 0f, 0f, 0f,
+                wrap: true);
             completeNext = MakeButton(completePanel.transform, Strings.Next,
                 new Vector2(0.79f, 0.18f), new Vector2(0f, 0f),
                 new Vector2(240f, 78f), delegate { AdvanceEpilogue(); });
@@ -1604,7 +1608,8 @@ namespace GemRush
 
             introMission = MakeText(introPanel.transform, "IntroMission", "", 30,
                 Color.white, TextAnchor.MiddleCenter,
-                new Vector2(0.1f, 0.40f), new Vector2(0.9f, 0.55f), 0f, 0f, 0f, 0f);
+                new Vector2(0.1f, 0.40f), new Vector2(0.9f, 0.55f), 0f, 0f, 0f, 0f,
+                wrap: true);
 
             introPanel.SetActive(false);
         }
@@ -1650,7 +1655,7 @@ namespace GemRush
 
             storyToastText = MakeText(storyToastPanel.transform, "Beat", "", 24,
                 new Color(0.95f, 0.95f, 1f), TextAnchor.MiddleCenter,
-                Vector2.zero, Vector2.one, 14f, 4f, 14f, 4f);
+                Vector2.zero, Vector2.one, 14f, 4f, 14f, 4f, wrap: true);
             storyToastText.fontStyle = FontStyle.Italic;
 
             storyToastPanel.SetActive(false);
@@ -2133,7 +2138,7 @@ namespace GemRush
 
         Text MakeText(Transform parent, string name, string content, int size, Color color,
             TextAnchor align, Vector2 anchorMin, Vector2 anchorMax,
-            float padL, float padB, float padR, float padT)
+            float padL, float padB, float padR, float padT, bool wrap = false)
         {
             GameObject go = new GameObject(name);
             go.transform.SetParent(parent, false);
@@ -2143,7 +2148,12 @@ namespace GemRush
             text.fontSize = size;
             text.color = color;
             text.alignment = align;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            // Prose texts opt into wrapping: with Overflow a sentence
+            // longer than its band draws straight off the screen (the
+            // mission card used to run past both edges). Labels, HUD
+            // numbers and titles keep overflow so they never re-flow.
+            text.horizontalOverflow = wrap
+                ? HorizontalWrapMode.Wrap : HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;
             text.raycastTarget = false;
             RectTransform rt = text.rectTransform;
