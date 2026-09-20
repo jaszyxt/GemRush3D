@@ -536,33 +536,85 @@ namespace GemRush
             }
         }
 
-        /// A gust's swept corridor: its box carried `Size.z + 10` along the
-        /// blow direction. Surfaces inside the corridor are mutually
-        /// linked — the gust is the ride between them.
+        /// A gust delivers one surface to another only if the ride
+        /// actually lands: jump in from the takeoff (rise ~2.2 units
+        /// before the wind damps the jump), get carried at gust strength
+        /// while the box holds you near its lift, then fall ballistically
+        /// once the box ends. The delivery is real only if the arc is
+        /// still above the target's top when it reaches the target's near
+        /// edge — a lane that lets go short dumps Pip into the void (the
+        /// Silent Spire gap; this model is what keeps that class of bug
+        /// out of the library).
         static void AddGustEdges(LevelDefinition l, List<Top> tops,
             List<List<int>> adj)
         {
+            const float entryRise = 2.2f; // jump into the lane: rise before damping
+            const float carrySpeed = 8f;  // gust strength IS the ride speed
+
             for (int g = 0; g < l.Gusts.Count; g++)
             {
                 GustSpec gust = l.Gusts[g];
                 Vector3 dir = gust.Direction.normalized;
-                Vector3 exit = gust.Center + dir * (gust.Size.z * 0.5f + 10f);
-                Vector3 lo = Vector3.Min(gust.Center, exit)
-                    - gust.Size * 0.5f - new Vector3(2.5f, 4f, 2.5f);
-                Vector3 hi = Vector3.Max(gust.Center, exit)
-                    + gust.Size * 0.5f + new Vector3(2.5f, 8f, 2.5f);
+                bool alongX = Mathf.Abs(dir.x) > Mathf.Abs(dir.z);
+                float sign = alongX ? Mathf.Sign(dir.x) : Mathf.Sign(dir.z);
+                float exitVy = 0.8f * gust.Lift; // damping never fully settles
+                // The exit plane is the box's far face across the blow.
+                float exitPlane = alongX
+                    ? gust.Center.x + sign * gust.Size.x * 0.5f
+                    : gust.Center.z + sign * gust.Size.z * 0.5f;
+
                 List<int> members = new List<int>();
                 for (int i = 0; i < tops.Count; i++)
                 {
                     Top t = tops[i];
-                    if (t.TopY < lo.y || t.TopY > hi.y) continue;
-                    if (t.Center.x + t.Half.x < lo.x ||
-                        t.Center.x - t.Half.x > hi.x) continue;
-                    if (t.Center.z + t.Half.y < lo.z ||
-                        t.Center.z - t.Half.y > hi.z) continue;
+                    if (t.TopY < gust.Center.y - gust.Size.y * 0.5f - 4f ||
+                        t.TopY > gust.Center.y + gust.Size.y * 0.5f + 8f)
+                        continue;
+                    if (RectDistXz(t.Center, t.Half, gust.Center,
+                            new Vector2(gust.Size.x * 0.5f + 2.5f,
+                                gust.Size.z * 0.5f + 2.5f)) > 0.01f)
+                        continue;
                     members.Add(i);
                 }
-                ConnectClique(members, adj);
+
+                Vector2 boxHalf = new Vector2(gust.Size.x * 0.5f,
+                    gust.Size.z * 0.5f);
+
+                // Directed: the wind only blows one way. Any surface can be
+                // the target — the delivery arc itself is the gate, so a
+                // lane that ends short of the next platform is a FAIL, and
+                // a long lift-boosted glide that genuinely reaches is not.
+                for (int a = 0; a < members.Count; a++)
+                {
+                    for (int b = 0; b < tops.Count; b++)
+                    {
+                        if (members[a] == b) continue;
+                        Top from = tops[members[a]];
+                        Top to = tops[b];
+                        bool insideBox = RectDistXz(to.Center, to.Half,
+                            gust.Center, boxHalf) <= 0.01f;
+                        // Distance from the exit plane to the target's
+                        // near edge along the blow (0 = carried over it).
+                        float near, raw;
+                        if (alongX)
+                        {
+                            near = to.Center.x - sign * to.Half.x;
+                            raw = (near - exitPlane) * sign;
+                        }
+                        else
+                        {
+                            near = to.Center.z - sign * to.Half.y;
+                            raw = (near - exitPlane) * sign;
+                        }
+                        if (raw < 0f && !insideBox) continue; // upwind
+                        float d = Mathf.Max(0f, raw);
+                        float t = d / carrySpeed;
+                        float y = from.TopY + entryRise + exitVy * t
+                            - 0.5f * Gravity * t * t;
+                        if (y >= to.TopY - 0.5f)
+                            adj[members[a]].Add(b);
+                    }
+                }
             }
         }
 

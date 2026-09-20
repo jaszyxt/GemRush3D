@@ -183,8 +183,13 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 10f, 135f, 4f, 1f, 4f));   // bell pedestal
             l.Platforms.Add(new PlatformSpec(0f, 11f, 151f, 12f, 1f, 12f)); // The Silent Spire
 
-            l.Gusts.Add(new GustSpec(0f, 3.5f, 63f, new Vector3(5f, 4f, 10f),
-                new Vector3(0f, 0f, 1f), 4.4f, 2.2f, 8f));
+            // The lane spans from the echo landing (z 54-60) all the way
+            // OVER the far platform (z 77-81) and lifts as it blows — the
+            // ride has to land you, not drop you at its edge (this lane
+            // used to end at z 68 and dump Pip 9 units short of the next
+            // platform, mid-air with no lift: an impossible crossing).
+            l.Gusts.Add(new GustSpec(0f, 3.5f, 68f, new Vector3(5f, 4f, 20f),
+                new Vector3(0f, 0f, 1f), 4.4f, 2.2f, 8f, 1.2f));
 
             l.Bells.Add(new BellSpec(0f, 3.5f, 42f, 6f, 0));
             l.Bells.Add(new BellSpec(0f, 6.5f, 101f, 7f, 1));
