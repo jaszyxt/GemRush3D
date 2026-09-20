@@ -118,9 +118,12 @@ namespace GemRush
                 else if (State == GameState.Paused) ResumeGame();
             }
 
-            // The touch-style level list pages with the pad's shoulders;
-            // the on-screen arrows stay touch/mouse targets.
-            if (State == GameState.Menu && !ui.SettingsOpen && !ui.QuitOpen)
+            // The level list pages with the pad's shoulders; the on-screen
+            // arrows stay pointer targets. Only while the bare menu shows —
+            // overlays holding the menu must not flip pages underneath
+            // themselves.
+            if (State == GameState.Menu && !ui.SettingsOpen && !ui.QuitOpen &&
+                !ui.AtlasOpen && !ui.PhotoModeOpen)
             {
                 if (GamepadInput.PageLeftPressed)
                 {

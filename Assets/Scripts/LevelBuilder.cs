@@ -362,6 +362,9 @@ namespace GemRush
             sign.anchor = TextAnchor.MiddleCenter;
             sign.alignment = TextAlignment.Center;
             sign.color = new Color(1f, 0.97f, 0.9f);
+            // Diegetic in play, visual noise on the menu: fade while the
+            // main menu shows over the boot world (WorldSign).
+            signGo.AddComponent<WorldSign>();
         }
 
         /// A puffy cloud built from overlapping spheres — soft cumulus

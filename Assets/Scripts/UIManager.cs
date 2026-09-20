@@ -382,99 +382,49 @@ namespace GemRush
                 new Vector2(0.5f, playY), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.PlayContinue(); });
 
-            // Fifteen levels fit a 5x3 grid; smaller counts use 3 per row.
+            // Every platform pages the level grid (5x2). The old desktop
+            // dense grid derived row spacing from the level count, which
+            // overlapped the moment the packs outgrew four rows — 40 levels
+            // stacked 8 rows 33 units apart under 50-unit buttons. The page
+            // band below is fixed, so it cannot overlap at any count; touch
+            // additionally gets its 100-unit floor via TouchTarget.
             int count = LevelLibrary.Levels.Length;
             levelButtons = new Button[count];
             levelButtonTexts = new Text[count];
-            int perRow;
-            int rows;
-            float gridTop, gridBottom, rowStep, buttonHeight;
-            Vector2 levelSize;
-            int levelLabelSize;
-            if (touch)
-            {
-                // Paged 5x2: two fixed rows of 100-unit buttons in the band
-                // between PLAY and the instructions, arrows at the band's
-                // vertical middle. Page-flipping is in FlipPage/RefreshMenu.
-                perRow = 5;
-                rows = 2;
-                buttonHeight = 100f;
-                levelSize = new Vector2(240f, buttonHeight);
-                levelLabelSize = 24;
-                gridTop = 0.32f;
-                gridBottom = 0.165f;
-                rowStep = gridTop - gridBottom;
-            }
-            else
-            {
-                perRow = count <= 4 ? count : (count > 12 ? 5 : 3);
-                rows = (count + perRow - 1) / perRow;
-                // The grid must fit between PLAY (y≈0.46) and the
-                // instructions band (top y≈0.085) however many levels
-                // exist. Spacing is derived from the row count so the last
-                // row never collides with it.
-                gridTop = 0.395f;
-                gridBottom = 0.135f;
-                rowStep = rows > 1
-                    ? Mathf.Min(0.075f, (gridTop - gridBottom) / (rows - 1))
-                    : 0f;
-                buttonHeight = Mathf.Min(60f, 46f + rowStep * 120f);
-                levelSize = new Vector2(200f, buttonHeight);
-                levelLabelSize = rowStep < 0.06f ? 20 : 21;
-            }
-            menuPerRow = perRow;
+            menuPerRow = 5;
             for (int i = 0; i < count; i++)
             {
                 int index = i; // capture for the delegate
-                int row, col, inRow;
-                float x, y;
-                if (touch)
-                {
-                    // Position within the page: row 0 is this page's first
-                    // five levels, row 1 its second five.
-                    row = (i / perRow) % 2;
-                    col = i % perRow;
-                    inRow = perRow;
-                    // Step 0.17 keeps the outer columns clear of the page
-                    // arrows flanking the grid (240-wide buttons end at
-                    // x 0.085 / begin at 0.915; the arrows end at 0.073 /
-                    // begin at 0.927).
-                    x = 0.5f - (2 - col) * 0.17f;
-                    y = row == 0 ? gridTop : gridBottom;
-                }
-                else
-                {
-                    row = i / perRow;
-                    // Center whichever buttons actually landed on the last row.
-                    inRow = (row == rows - 1) ? (count - row * perRow) : perRow;
-                    col = i - row * perRow;
-                    x = 0.5f - ((inRow - 1) / 2f - col) * 0.185f;
-                    y = gridTop - row * rowStep;
-                }
+                int row = (i / menuPerRow) % 2; // row within the page
+                int col = i % menuPerRow;
+                // Step 0.17 keeps the outer columns clear of the page
+                // arrows flanking the grid (240-wide buttons end at
+                // x 0.085 / begin at 0.915; the arrows end at 0.073 /
+                // begin at 0.927).
+                float x = 0.5f - (2 - col) * 0.17f;
+                float y = row == 0 ? 0.32f : 0.165f;
                 Button b = MakeButton(menuPanel.transform, Strings.LevelLabel(i + 1),
-                    new Vector2(x, y), new Vector2(0f, 0f), levelSize,
+                    new Vector2(x, y), new Vector2(0f, 0f),
+                    touch ? new Vector2(240f, 100f) : new Vector2(240f, 60f),
                     delegate { GameManager.Instance.PlayLevel(index); },
-                    levelLabelSize);
+                    touch ? 24 : 21);
                 levelButtons[i] = b;
                 levelButtonTexts[i] = b.GetComponentInChildren<Text>();
             }
 
-            if (touch)
-            {
-                // Page flipper: arrows flank the grid; the "n / N" readout
-                // sits in the bottom-center gap between the instructions
-                // band (left) and the flavor quotes (right).
-                pagePrev = MakeButton(menuPanel.transform, "‹",
-                    new Vector2(0.045f, 0.2425f), new Vector2(0f, 0f),
-                    new Vector2(90f, 100f), delegate { FlipPage(-1); }, 44);
-                pageNext = MakeButton(menuPanel.transform, "›",
-                    new Vector2(0.955f, 0.2425f), new Vector2(0f, 0f),
-                    new Vector2(90f, 100f), delegate { FlipPage(1); }, 44);
-                pageLabel = MakeText(menuPanel.transform, "PageLabel", "", 20,
-                    new Color(0.85f, 0.87f, 0.92f), TextAnchor.MiddleCenter,
-                    new Vector2(0.455f, 0.005f), new Vector2(0.545f, 0.05f),
-                    0f, 0f, 0f, 0f);
-            }
+            // Page flipper: arrows flank the grid; the "n / N" readout sits
+            // in the bottom-center gap between the instructions band (left)
+            // and the flavor quotes (right).
+            pagePrev = MakeButton(menuPanel.transform, "‹",
+                new Vector2(0.045f, 0.2425f), new Vector2(0f, 0f),
+                new Vector2(90f, 100f), delegate { FlipPage(-1); }, 44);
+            pageNext = MakeButton(menuPanel.transform, "›",
+                new Vector2(0.955f, 0.2425f), new Vector2(0f, 0f),
+                new Vector2(90f, 100f), delegate { FlipPage(1); }, 44);
+            pageLabel = MakeText(menuPanel.transform, "PageLabel", "", 20,
+                new Color(0.85f, 0.87f, 0.92f), TextAnchor.MiddleCenter,
+                new Vector2(0.455f, 0.005f), new Vector2(0.545f, 0.05f),
+                0f, 0f, 0f, 0f);
 
             // The floor-enlarged touch SETTINGS (220x100) would poke past
             // the top and right edges at the keyboard/mouse anchor, so
@@ -510,32 +460,22 @@ namespace GemRush
                 starGold, TextAnchor.UpperLeft,
                 new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f);
 
-            WireMenuNav(touch);
+            WireMenuNav();
         }
 
         /// Explicit gamepad navigation for the menu (D5): PLAY anchors
-        /// everything, the grid wraps per row, SETTINGS hangs off PLAY's
-        /// right with ATLAS beside it — both drop into the grid's top-right
-        /// cell. The paged touch grid wires only its visible page, so
-        /// rewire after every flip.
-        void WireMenuNav(bool touch)
+        /// everything, the visible page wraps per row, SETTINGS and ATLAS
+        /// hang off PLAY's right and drop into the grid's top-right cell,
+        /// and the page arrows flank the grid inside the graph — reachable
+        /// by focus, with the grid's outer cells stepping out to them.
+        /// Rewired after every flip: only visible buttons may hold focus.
+        void WireMenuNav()
         {
             if (playButton == null || menuSettingsButton == null ||
                 levelButtons == null || levelButtons.Length == 0) return;
-            if (!touch)
-            {
-                MenuNav.Grid(levelButtons, menuPerRow, playButton);
-                MenuNav.Set(playButton, null, levelButtons[0], null,
-                    menuSettingsButton);
-                MenuNav.Set(menuSettingsButton, null,
-                    levelButtons[menuPerRow - 1], playButton, atlasMenuButton);
-                if (atlasMenuButton != null)
-                    MenuNav.Set(atlasMenuButton, null,
-                        levelButtons[menuPerRow - 1], menuSettingsButton, null);
-                return;
-            }
             int pages = PageCount();
-            int first = Mathf.Clamp(levelPage, 0, pages - 1) * PageSize;
+            levelPage = Mathf.Clamp(levelPage, 0, pages - 1);
+            int first = levelPage * PageSize;
             int inPage = Mathf.Min(PageSize, levelButtons.Length - first);
             Button[] page = new Button[inPage];
             for (int i = 0; i < inPage; i++) page[i] = levelButtons[first + i];
@@ -547,6 +487,34 @@ namespace GemRush
             if (atlasMenuButton != null)
                 MenuNav.Set(atlasMenuButton, null, topRight,
                     menuSettingsButton, null);
+            if (pagePrev != null)
+            {
+                MenuNav.Set(pagePrev, playButton, null, null, page[0]);
+                for (int r = 0; r < 2; r++)
+                {
+                    int idx = r * menuPerRow;
+                    if (idx < inPage)
+                    {
+                        Navigation nav = page[idx].navigation;
+                        nav.selectOnLeft = pagePrev;
+                        page[idx].navigation = nav;
+                    }
+                }
+            }
+            if (pageNext != null)
+            {
+                MenuNav.Set(pageNext, playButton, null, topRight, null);
+                for (int r = 0; r < 2; r++)
+                {
+                    int idx = r * menuPerRow + (menuPerRow - 1);
+                    if (idx < inPage)
+                    {
+                        Navigation nav = page[idx].navigation;
+                        nav.selectOnRight = pageNext;
+                        page[idx].navigation = nav;
+                    }
+                }
+            }
         }
 
         /// Which device the menu hint line should describe right now:
@@ -582,23 +550,19 @@ namespace GemRush
             int count = levelButtons.Length;
             int dailyIndex = DailyGem.TodayIndex();
             bool giftTaken = DailyGem.GiftAlreadyCollectedToday();
-            int first = 0;
-            int last = count;
-            if (Input.touchSupported)
-            {
-                int pages = PageCount();
-                levelPage = Mathf.Clamp(levelPage, 0, pages - 1);
-                first = levelPage * PageSize;
-                last = Mathf.Min(first + PageSize, count);
-                if (pageLabel != null)
-                    pageLabel.text = (levelPage + 1) + " / " + pages;
-                if (pagePrev != null) pagePrev.interactable = levelPage > 0;
-                if (pageNext != null) pageNext.interactable = levelPage < pages - 1;
-            }
+            // Paging is universal (every platform): only the visible page's
+            // buttons stay active — no stray raycasts, no golden daily glow
+            // leaking through from another page.
+            int pages = PageCount();
+            levelPage = Mathf.Clamp(levelPage, 0, pages - 1);
+            int first = levelPage * PageSize;
+            int last = Mathf.Min(first + PageSize, count);
+            if (pageLabel != null)
+                pageLabel.text = (levelPage + 1) + " / " + pages;
+            if (pagePrev != null) pagePrev.interactable = levelPage > 0;
+            if (pageNext != null) pageNext.interactable = levelPage < pages - 1;
             for (int i = 0; i < count; i++)
             {
-                // Off-page buttons deactivate entirely — no stray raycasts,
-                // no golden daily glow leaking through from another page.
                 bool onPage = i >= first && i < last;
                 if (levelButtons[i].gameObject.activeSelf != onPage)
                     levelButtons[i].gameObject.SetActive(onPage);
@@ -661,7 +625,7 @@ namespace GemRush
         {
             levelPage = Mathf.Clamp(levelPage + dir, 0, PageCount() - 1);
             RefreshMenu();
-            WireMenuNav(Input.touchSupported);
+            WireMenuNav();
         }
 
         void BuildHUD(Transform canvas)
@@ -1709,10 +1673,9 @@ namespace GemRush
         public void ShowMenu()
         {
             HideAll();
-            // Touch paging opens on the page holding the next unplayed
-            // level, so "continue" is where the eyes land first.
-            if (Input.touchSupported && levelButtons != null &&
-                levelButtons.Length > 0)
+            // Paging opens on the page holding the next unplayed level, so
+            // "continue" is where the eyes land first.
+            if (levelButtons != null && levelButtons.Length > 0)
             {
                 int frontier = Mathf.Clamp(SaveSystem.UnlockedLevel,
                     0, levelButtons.Length - 1);

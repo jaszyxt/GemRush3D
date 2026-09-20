@@ -108,6 +108,32 @@ namespace GemRush.Tests
                 Assert.AreEqual(LevelLibrary.Levels.Length, levelButtons.Length,
                     "one button per library level");
 
+                // Paging is universal: after ShowMenu, off-page buttons are
+                // inactive, and the two page rows cannot overlap (the
+                // 40-level desktop overlap regression — rows 33 units apart
+                // under 50-unit buttons).
+                int perRow = (int)GetPrivate(
+                    go.GetComponent<UIManager>(), "menuPerRow");
+                Assert.GreaterOrEqual(levelButtons.Length, 2 * perRow,
+                    "enough levels to exercise paging");
+                RectTransform topRow = levelButtons[0].GetComponent<RectTransform>();
+                RectTransform bottomRow =
+                    levelButtons[perRow].GetComponent<RectTransform>();
+                Assert.AreEqual(0.32f, topRow.anchorMin.y, 0.001f,
+                    "page row 0 anchor");
+                Assert.AreEqual(0.165f, bottomRow.anchorMin.y, 0.001f,
+                    "page row 1 anchor");
+                float rowGapUnits = 0.155f * 900f; // row anchors, ref units
+                float halfSum = (topRow.sizeDelta.y + bottomRow.sizeDelta.y) * 0.5f;
+                Assert.LessOrEqual(halfSum, rowGapUnits,
+                    "grid rows can never overlap");
+
+                ((UIManager)go.GetComponent<UIManager>()).ShowMenu();
+                Assert.IsFalse(levelButtons[2 * perRow].gameObject.activeSelf,
+                    "off-page buttons are inactive once the menu shows");
+                Assert.IsTrue(levelButtons[0].gameObject.activeSelf,
+                    "page 0 buttons are visible");
+
                 Assert.IsFalse(((UIManager)go.GetComponent<UIManager>()).SettingsOpen,
                     "settings closed after build");
             }
