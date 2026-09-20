@@ -692,3 +692,49 @@ editor focused, and the MCP path for it proved unreliable here. For
 membership and material identity is decisive and cheap; reserve the Frame
 Debugger for counting real submitted batches, and treat "this component
 probably breaks batching" as a hypothesis to verify, never a finding.
+
+### D.7 D14 + D18 implementation (2026-09-21)
+
+**D14 — pause button reserved slot** (`2402e5d`). Measured before touching
+it, and the audit's estimate was close but under: at the raised touch floor
+the button overlapped the **clock by 20 units and the lives counter by 4**
+(it had been estimated at ~10). Root cause is that it was placed *by eye*
+into a gap that closed when targets grew to 120.
+
+Fixed structurally rather than by nudging: the top band is now **split** —
+the clock ends at 0.60, the lives counter starts at 0.78, and the button
+owns the segment between them, sized from `TouchFloorUnits` and clamped to
+its segment. Raising the floor again cannot push it into a neighbour.
+
+Also routed `TouchControls.Create` through the shared layout seam. It gated
+on raw `Input.touchSupported`, so the joystick and jump button were as
+untestable as everything else was before D13 — a HUD-layout test literally
+could not see them.
+
+*Test:* `Hud_PauseButton_FitsTheTopBand` (both layouts) — no overlap with
+any of the four readouts, exact target size, on-screen containment. It
+caught the button poking 10.5 units above the top edge on its first run.
+
+**D18 — portal cue reach** (`12889c6`). The audit quantified the gap: `1 −
+d/28` meant the hum read **exactly zero for most of every level** (courses
+are 76–171 units spawn-to-portal), and the audio manager's 0.005 play
+threshold pushed the real onset closer still. As the only long-range
+wayfinding cue in the game, it was not doing that job.
+
+Cue range is now **120 units with an ease-in (t²)**, so the hum stays a
+whisper early and rises over the last third — "getting close" still reads
+as an event rather than a drone. The **peak volume is deliberately
+unchanged**: proximity maps linearly to volume, so a longer ramp is
+automatically quieter at distance while the near-field mixing (hum sits
+under the music bed at `HumMaxVolume = 0.08`) stays exactly as calibrated.
+
+*Test:* `PortalCue_ReachesAcrossTheCourse` — asserts the range and that the
+cue is audible at the midpoint of the shortest course. It pins the
+*property* that regressed, not the literal constant, so a future retune is
+free as long as the cue still reaches.
+
+**Queue status after this pass:** D13, D14, D15 (measured, not needed),
+D17 (deferred by decision), D18 all closed. **D16 (settings grouping) is
+the only open item**, and it is P2 cosmetic — the settings panel is
+functional, tested, and fits; grouping it into Audio/Display/Controls is a
+readability improvement, not a defect fix.
