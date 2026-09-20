@@ -67,25 +67,42 @@ Built and shipped — do not rebuild, extend instead:
 | Gloomfang giggle-raindrop bloom (10 s cooldown) | `Gloomfang`, `Fx` |
 | Golden-gem signal (mote trail, breathing glimmer, found outline, canon note) | `GoldenSignal`, `GoldenGem`, `Strings.GoldenNote` |
 | The Rest (slow win-drift, unrewarded, ShakeOn-gated) | `RestBeat` |
+| Perches (a bench on each level's calmest landing, derived not authored) | `Perch` |
 
 ## Future queue (researched, ranked, mine to green-light)
 
 Shipped from this queue: photo mode + share cards, ghost runs, Pip's shelf,
-parameterized music intensity, golden-gem remix gate, the golden signal, and
-The Rest. What remains:
+parameterized music intensity, golden-gem remix gate, the golden signal,
+The Rest, and perches. What remains:
 
 1. **Secrets with a taught signal, applied beyond the golden** — the signal
    law now has a working implementation (`GoldenSignal`); the next use is
    teaching the *wonder* beats (prism gates, if the content door reopens) the
    same way. Diegetic cue first, no UI marker, never missable-in-a-punishing
    sense.
-2. **More micro-rest** — The Rest covers the win moment. Research (Slowdowns /
-   Stasis / Stillness) also favours **in-level** calm: an optional perch off
-   the route where the camera eases and the ambient mix opens. Zero reward
-   attached, or it stops being rest.
-3. **The guardian Games (Pack 14)** — see-saws exist (The Homecoming shipped
+2. **The guardian Games (Pack 14)** — see-saws exist (The Homecoming shipped
    them); the carousel set-piece + level content are canonical in
    `docs/Movement-Two-Story.md`. Shelved with the rest of the content pause.
+
+## Placement heuristics learned the hard way (reuse these)
+
+Two of them came from *looking at a captured frame* rather than from reasoning,
+which is the lesson worth carrying:
+
+- **This game's levels are linear staircases along Z.** Every platform sits
+  within a couple of units of the spawn→portal line, so "distance from the
+  route" is a useless selector here (it picked 36 of 39 spots *on* the line).
+- **Roominess is the real signal for "this spot is calm"** — wide landings are
+  where a course breathes; 5×5 tiles are mid-hop.
+- **Guardians reach 6 units** (their arm is 9 units end to end). Anything the
+  player is meant to linger at must be checked against `level.Spinners`; the
+  first perch version put a bench under a sweep, which only a screenshot
+  revealed.
+- **Gems define the trail.** A decorative placement within ~2.5 units of a gem
+  reads as clutter on a collectible. `level.Gems` is the field to check.
+- Deriving placements from level data (rather than adding a spec type) keeps
+  the blast radius to one or two files and means no future pack can forget to
+  author them — and the level audits never need new rules.
 
 ## Rejected (do not re-litigate)
 
