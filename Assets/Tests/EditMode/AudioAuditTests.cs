@@ -124,6 +124,9 @@ namespace GemRush.Tests
                 SfxSynth.PauseBlip("audit", true), SfxSynth.PanelSwoosh("audit", false),
                 SfxSynth.IntroSwoosh("audit"), SfxSynth.PageTurn("audit"),
                 SfxSynth.NoiseSwell("audit", 2.2f, 0.22f),
+                SfxSynth.Skid("audit"), SfxSynth.SeeSawCreak("audit"),
+                SfxSynth.SeeSawSpring("audit"), SfxSynth.TrophyChime("audit"),
+                SfxSynth.TrailTierSting("audit"), SfxSynth.LevelUnlock("audit"),
                 MusicSynth.MoodLoop("audit_mood", SoundMood.Day, 0.13f, true),
                 MusicSynth.WindLoop("audit_wind", 0.3f, 500f, 0.25f, 77),
                 MusicSynth.RumbleLoop("audit_rumble", 0.2f),
@@ -166,6 +169,38 @@ namespace GemRush.Tests
         // ------------------------------------------------------------------
 
         [Test]
+        public void EveryVoice_SitsInTheAudibleWorldBand()
+        {
+            // The gap-fill pass shipped one cue that was numerically correct
+            // and perceptually gone (a heavily low-passed creak measured
+            // 13 dB under every other world sound). This catches that class
+            // of defect: loud additions are caught by the mix hierarchy
+            // test, hopelessly quiet ones by this one.
+            var voices = new (string name, AudioClip clip)[]
+            {
+                ("seeSawCreak", SfxSynth.SeeSawCreak("audit")),
+                ("seeSawSpring", SfxSynth.SeeSawSpring("audit")),
+                ("skid", SfxSynth.Skid("audit")),
+                ("land", SfxSynth.Land("audit", 1f)),
+                ("jump", SfxSynth.Jump("audit", 1f)),
+                ("uIClick", SfxSynth.UIClick("audit")),
+                ("gemPickup", SfxSynth.GemPickup("audit", 880f)),
+                ("trophy", SfxSynth.TrophyChime("audit")),
+                ("trailTier", SfxSynth.TrailTierSting("audit")),
+                ("levelUnlock", SfxSynth.LevelUnlock("audit")),
+                ("guardianWake", SfxSynth.GuardianWake("audit")),
+                ("gustSwell", SfxSynth.NoiseSwell("audit", 2.2f, 0.22f)),
+            };
+            foreach (var (name, clip) in voices)
+            {
+                float rms = Rms(clip);
+                float db = 20f * Mathf.Log10(Mathf.Max(1e-6f, rms));
+                Assert.Greater(db, -35f, name + " is effectively silent at "
+                    + db.ToString("F1") + " dBFS — nobody will ever hear it");
+            }
+        }
+
+        [Test]
         public void RepeatedSounds_HaveBakedVariation()
         {
             // Land fires on every landing: the variant pitch set must offer
@@ -176,6 +211,31 @@ namespace GemRush.Tests
                 "JumpPitches");
             Assert.GreaterOrEqual(landPitches.Length, 2, "land has no variation");
             Assert.GreaterOrEqual(jumpPitches.Length, 2, "jump has no variation");
+        }
+
+        [Test]
+        public void GapPass_Voices_AreReachableFromTheirMoments()
+        {
+            // Source-level lock for the gap-fill pass: each silent moment
+            // found by the audit must actually fire its cue. A method that
+            // quietly loses its audio line is a regression this catches.
+            string scripts = Application.dataPath + "/Scripts/";
+            var expected = new (string file, string call)[]
+            {
+                ("SeeSaw.cs", "PlaySeeSaw"),
+                ("PlayerController.cs", "PlaySkid"),
+                ("Shelf.cs", "PlayTrophy"),
+                ("StarTrail.cs", "PlayTrailTier"),
+                ("AudioManager.cs", "PlayLevelUnlock"),
+                ("UIManager.cs", "PlayPageTurn"),
+            };
+            foreach (var (file, call) in expected)
+            {
+                string text = System.IO.File.ReadAllText(scripts + file);
+                Assert.IsTrue(text.Contains(call),
+                    file + " no longer reaches " + call +
+                    " — the moment went silent again");
+            }
         }
 
         [Test]

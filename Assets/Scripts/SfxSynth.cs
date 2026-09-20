@@ -206,6 +206,19 @@ namespace GemRush
             return MakeClip(name, data);
         }
 
+        /// A skid: the scrape of a hard reversal at speed — a short, bright
+        /// noise rub, faster and sharper the harder Pip was moving.
+        public static AudioClip Skid(string name)
+        {
+            float dur = 0.2f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            NoiseVoice(data, 0f, 0.16f, 0.30f, 2200f, 700f, 0.004f, 0.09f, 707, 1.5f);
+            // A faint low rub under the scrape so it reads as friction.
+            Voice(data, 90f, 0f, 0.14f, 0.1f,
+                new float[] { 1f }, new float[] { 1f }, new float[] { 1f }, 0.004f, 2f);
+            return MakeClip(name, data);
+        }
+
         // ------------------------------------------------------------------
         // Collecting
         // ------------------------------------------------------------------
@@ -395,6 +408,49 @@ namespace GemRush
             float[] pitches = { 1046.5f, 1318.5f, 1567.98f };
             return Chime(name, pitches[Mathf.Clamp(step, 0, pitches.Length - 1)],
                 0.6f, 0.42f);
+        }
+
+        /// A shelf trophy appearing: a small glassy arpeggio, brighter and
+        /// shorter than a star ding — a keepsake, not a celebration.
+        public static AudioClip TrophyChime(string name)
+        {
+            float[] notes = { 783.99f, 1046.5f, 1318.5f };
+            float dur = 0.85f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            for (int i = 0; i < notes.Length; i++)
+                Voice(data, notes[i], i * 0.055f, 0.5f, 0.26f,
+                    ChimePartials, ChimeWeights, ChimeDecays, 0.003f, 2.1f);
+            return MakeClip(name, data);
+        }
+
+        /// Crossing a star-trail mastery tier: a rising three-note figure
+        /// that reads as "you have gotten better at this".
+        public static AudioClip TrailTierSting(string name)
+        {
+            float[] notes = { 659.25f, 880f, 1174.66f };
+            float dur = 1.1f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            for (int i = 0; i < notes.Length; i++)
+                Voice(data, notes[i], i * 0.11f, 0.65f, 0.28f,
+                    BoxPartials, BoxWeights, BoxDecays, 0.005f, 1.9f);
+            // A soft crown note on top, arriving last.
+            Voice(data, 1567.98f, 0.34f, 0.7f, 0.16f,
+                ChimePartials, ChimeWeights, ChimeDecays, 0.004f, 2.2f);
+            return MakeClip(name, data);
+        }
+
+        /// A level unlocking: two bright notes that open outward — the
+        /// sound of a door you cannot see.
+        public static AudioClip LevelUnlock(string name)
+        {
+            float dur = 0.9f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            Voice(data, 523.25f, 0f, 0.45f, 0.28f,
+                ChimePartials, ChimeWeights, ChimeDecays, 0.004f, 1.9f);
+            Voice(data, 1046.5f, 0.13f, 0.7f, 0.26f,
+                ChimePartials, ChimeWeights, ChimeDecays, 0.005f, 2f);
+            NoiseVoice(data, 0f, 0.3f, 0.035f, 2400f, 3400f, 0.06f, 0.2f, 814);
+            return MakeClip(name, data);
         }
 
         /// New best time: a quick bright flourish.
@@ -605,6 +661,39 @@ namespace GemRush
             for (int i = 0; i < notes.Length; i++)
                 Voice(data, notes[i], i * 0.06f, 0.28f, 0.14f,
                     ChimePartials, ChimeWeights, ChimeDecays, 0.004f, 2.2f);
+            return MakeClip(name, data);
+        }
+
+        // ------------------------------------------------------------------
+        // SeeSaw: the Homecoming's plank (tip creak + spring-back settle)
+        // ------------------------------------------------------------------
+
+        /// A plank taking Pip's weight: a low wooden groan — filtered noise
+        /// sinking in pitch as the load settles on it.
+        public static AudioClip SeeSawCreak(string name)
+        {
+            float dur = 0.4f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            // Two stacked low noises: the groan itself, and a dry rub on
+            // top. Gains are high because a two-pole low-pass at ~120-300 Hz
+            // throws almost all of the noise energy away (measured: the
+            // first version sat 13 dB under the rest of the world sounds).
+            NoiseVoice(data, 0f, 0.36f, 0.95f, 300f, 120f, 0.05f, 0.14f, 811, 1.1f);
+            NoiseVoice(data, 0.02f, 0.22f, 0.28f, 900f, 420f, 0.04f, 0.12f, 812, 1.3f);
+            return MakeClip(name, data);
+        }
+
+        /// The plank springing back level: a quick upward settle — the
+        /// sound of weight leaving wood.
+        public static AudioClip SeeSawSpring(string name)
+        {
+            float dur = 0.34f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            NoiseVoice(data, 0f, 0.26f, 0.24f, 180f, 620f, 0.01f, 0.16f, 813, 1.4f);
+            // A soft wooden knock at the end, where it meets the stops.
+            Voice(data, 150f, 0.16f, 0.16f, 0.26f,
+                new float[] { 1f, 0.5f }, new float[] { 1f, 0.4f },
+                new float[] { 1f, 0.8f }, 0.002f, 1.9f);
             return MakeClip(name, data);
         }
 

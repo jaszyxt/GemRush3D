@@ -70,6 +70,7 @@ namespace GemRush
         {
             if (tier <= SaveSystem.TrailTierAnnounced) return;
             SaveSystem.TrailTierAnnounced = tier;
+            AudioManager.Instance.PlayTrailTier();
             if (UIManager.Instance != null)
                 UIManager.Instance.ShowStoryToast(Strings.TrailTierLine(tier));
         }

@@ -242,6 +242,7 @@ namespace GemRush
         int starsDinged;
         float starDingTimer;
         float recordFlourishTimer; // >0 counts down to the new-record chime
+        float levelUnlockTimer;    // >0 counts down to the unlock sting
 
         // Voice keep-alive: while a mission card's or story toast's line is
         // being narrated, its timer refills, so the text stays up until the
@@ -348,6 +349,15 @@ namespace GemRush
                 recordFlourishTimer -= Time.unscaledDeltaTime;
                 if (recordFlourishTimer <= 0f)
                     AudioManager.Instance.PlayNewRecord();
+            }
+            // The unlock sting waits its turn: it is placed on the win
+            // screen by ShowWin and fires once the celebration has thinned,
+            // so it reads as its own beat instead of stacking on the fanfare.
+            if (levelUnlockTimer > 0f)
+            {
+                levelUnlockTimer -= Time.unscaledDeltaTime;
+                if (levelUnlockTimer <= 0f)
+                    AudioManager.Instance.PlayLevelUnlock();
             }
 
             UpdateHeartGlow();
@@ -671,7 +681,9 @@ namespace GemRush
         /// GameManager (D6); the on-screen arrows remain pointer targets.
         public void FlipPage(int dir)
         {
-            levelPage = Mathf.Clamp(levelPage + dir, 0, PageCount() - 1);
+            int next = Mathf.Clamp(levelPage + dir, 0, PageCount() - 1);
+            if (next != levelPage) AudioManager.Instance.PlayPageTurn();
+            levelPage = next;
             RefreshMenu();
             WireMenuNav();
         }
@@ -1086,6 +1098,7 @@ namespace GemRush
             int count = LevelLibrary.Regions.Length;
             // Wrap-around: the atlas is a loop, like the festival.
             atlasRegion = (atlasRegion + dir + count) % count;
+            AudioManager.Instance.PlayPageTurn();
             RefreshAtlas();
             WireAtlasNav();
         }
@@ -1866,6 +1879,12 @@ namespace GemRush
             starsDinged = 0;
             starDingTimer = 0.55f;
             recordFlourishTimer = newRecord ? 0.01f : 0f;
+            // A new level opening is a real progression beat that used to
+            // pass silently. Queued behind the star cluster; skipped on the
+            // final level, where nothing opened.
+            levelUnlockTimer = level + 1 < LevelLibrary.Levels.Length
+                ? 0.55f + 0.34f * Mathf.Max(1, stars) + 1.3f
+                : 0f;
             if (winStats != null)
             {
                 string bestText;

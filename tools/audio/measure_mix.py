@@ -155,6 +155,12 @@ def build_clips():
     C["gust_swell"] = ("world", _noise_swell())
     C["mirror"] = ("world", _mirror())
 
+    C["skid"] = ("movement", _skid())
+    C["seesaw_creak"] = ("world", _seesaw_creak())
+    C["seesaw_spring"] = ("world", _seesaw_spring())
+    C["trophy"] = ("collect", _trophy())
+    C["trail_tier"] = ("collect", _trail_tier())
+    C["level_unlock"] = ("win", _level_unlock())
     C["ui_click"] = ("ui", _ui_click())
     C["ui_toggle"] = ("ui", _ui_toggle())
     C["pause"] = ("ui", _pause_blip())
@@ -401,6 +407,51 @@ def _mirror():
         voice(d, n, 0, 0.18, 0.08, [1], [1], [1], 0.03, 1.2)
     noise_voice(d, 0.05, 0.34, 0.4, 800, 2200, 0.08, 0.18, 121, 0.8)
     voice(d, 100.0, 0.36, 0.22, 0.3, [1, 0.5], [1, 0.4], [1, 0.8], 0.002, 1.8)
+    return finalize(d)
+
+
+
+def _skid():
+    d = [0.0] * (int(0.2 * SR) + 1)
+    noise_voice(d, 0, 0.16, 0.30, 2200, 700, 0.004, 0.09, 707, 1.5)
+    voice(d, 90.0, 0, 0.14, 0.1, [1], [1], [1], 0.004, 2.0)
+    return finalize(d)
+
+
+def _seesaw_creak():
+    d = [0.0] * (int(0.4 * SR) + 1)
+    noise_voice(d, 0, 0.36, 0.95, 300, 120, 0.05, 0.14, 811, 1.1)
+    noise_voice(d, 0.02, 0.22, 0.28, 900, 420, 0.04, 0.12, 812, 1.3)
+    return finalize(d)
+
+
+def _seesaw_spring():
+    d = [0.0] * (int(0.34 * SR) + 1)
+    noise_voice(d, 0, 0.26, 0.24, 180, 620, 0.01, 0.16, 813, 1.4)
+    voice(d, 150.0, 0.16, 0.16, 0.26, [1, 0.5], [1, 0.4], [1, 0.8], 0.002, 1.9)
+    return finalize(d)
+
+
+def _trophy():
+    d = [0.0] * (int(0.85 * SR) + 1)
+    for i, n in enumerate([783.99, 1046.5, 1318.5]):
+        voice(d, n, i * 0.055, 0.5, 0.26, *CHIME, 0.003, 2.1)
+    return finalize(d)
+
+
+def _trail_tier():
+    d = [0.0] * (int(1.1 * SR) + 1)
+    for i, n in enumerate([659.25, 880.0, 1174.66]):
+        voice(d, n, i * 0.11, 0.65, 0.28, *BOX, 0.005, 1.9)
+    voice(d, 1567.98, 0.34, 0.7, 0.16, *CHIME, 0.004, 2.2)
+    return finalize(d)
+
+
+def _level_unlock():
+    d = [0.0] * (int(0.9 * SR) + 1)
+    voice(d, 523.25, 0, 0.45, 0.28, *CHIME, 0.004, 1.9)
+    voice(d, 1046.5, 0.13, 0.7, 0.26, *CHIME, 0.005, 2.0)
+    noise_voice(d, 0, 0.3, 0.035, 2400, 3400, 0.06, 0.2, 814)
     return finalize(d)
 
 

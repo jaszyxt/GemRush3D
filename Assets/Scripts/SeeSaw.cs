@@ -19,6 +19,11 @@ namespace GemRush
         Rigidbody rb;
         Quaternion restRotation;
         float currentAngle;
+        bool tipping; // edge state for the creak / spring-back cues
+
+        /// Below this the plank reads as level; crossing it is the "starts
+        /// tipping" / "springs back" edge that owns the two sounds.
+        const float TipEpsilon = 0.6f;
 
         public static SeeSaw Create(Transform parent, SeeSawSpec spec)
         {
@@ -92,6 +97,16 @@ namespace GemRush
 
             currentAngle = Mathf.MoveTowards(currentAngle, target,
                 40f * Time.fixedDeltaTime);
+
+            // Two edge-triggered cues, never per-frame: a low wooden groan
+            // the moment the plank takes Pip's weight, and a settle when it
+            // returns to level. Distance-faded like other world sounds.
+            bool nowTipping = Mathf.Abs(currentAngle) > TipEpsilon;
+            if (nowTipping != tipping)
+            {
+                tipping = nowTipping;
+                AudioManager.Instance.PlaySeeSaw(transform.position, tipping);
+            }
             // Player's end sinks: positive X rotation raises the +Z end,
             // so both cases tip away from the sign of the offset.
             Quaternion rotation = axis == "x"

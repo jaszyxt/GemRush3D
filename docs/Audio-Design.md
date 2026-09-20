@@ -165,6 +165,38 @@ audio owner must know:
   Qwen3-TTS are Apache-2.0, Chatterbox MIT. CC0 voice libraries cannot
   voice custom prose.
 
+## 8b. Gap pass (2026-09-24) — sounds that were missing entirely
+
+An audit swept every interactive moment against its audio (the inverse of
+the calibration pass, which fixed sounds that existed). Eleven silences
+were found; six were judged worth filling, all reusing existing DSP
+voices — no new pipelines, no size growth:
+
+| Moment | Was | Now |
+|---|---|---|
+| **SeeSaw** (Homecoming's signature object) | completely silent | low wooden groan as Pip's weight tips it, lighter settle as it springs level — both edge-triggered, distance-faded |
+| **Player skid** | dust puff, no sound | scrape under the puff; the 0.25 s cooldown and 6 u/s gate were already built |
+| **Level unlock** | `SaveSystem.UnlockLevel` fired silently | two bright notes placed *after* the star cluster, via the UI's existing delayed-timer pattern |
+| **Menu / Atlas page flips** | navigated silently | reuse the existing `PlayPageTurn` clip (previously used only by the epilogue) |
+| **Shelf trophy** | visual twinkle only | one keepsake chime per arrival (not per trophy) |
+| **Star-trail tier** | written announcement, no sting | rising three-note figure, one-shot per tier |
+
+**Deliberately still silent** (recorded so they are decisions, not
+oversights): running footsteps (a step loop at 8 u/s would dominate the
+mix), wall bumps, jump-cut on release, the idle-ladder rungs (the ladder
+is authored wordless), the Aurora Ribbon ride (it is a mover, and movers
+are silent by convention), and — most notably — **Winter's ambience
+bed**: `SoundMood.Winter` has no bed while every other realm does. The
+code documents it as "the quietest pack", so the silence under the pad
+is intent; a snow bed would contradict it. Left as-is.
+
+**Defect caught by measurement:** the first SeeSaw creak was numerically
+correct and perceptually gone — a two-pole low-pass at ~120–300 Hz throws
+away almost all noise energy, landing it 13 dB under every other world
+sound. Gains raised; `EveryVoice_SitsInTheAudibleWorldBand` now fails any
+cue measuring below −35 dBFS, so a future silent-by-accident voice is a
+test failure rather than a shipped absence.
+
 ## 8. Audit log
 
 **Audit v1 — 2026-09-19 (post-generation, against v1.22.0)**

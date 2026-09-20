@@ -682,6 +682,10 @@ namespace GemRush
             if (Vector3.Dot(flat / speed, wishDir) > -0.6f) return;
             lastSkidTime = Time.time;
             Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 6);
+            // The scrape that belongs with the dust: cooldown and speed gate
+            // are already handled above, so this cannot machine-gun.
+            AudioManager.Instance.PlaySkid(
+                Mathf.InverseLerp(SkidMinSpeed, moveSpeed, speed));
         }
 
         /// While any wind carries Pip this physics frame (gust push or

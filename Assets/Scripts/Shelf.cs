@@ -108,6 +108,9 @@ namespace GemRush
                 for (int i = 0; i < placedFlags.Count; i++)
                     if ((fresh & placedFlags[i]) != 0)
                         Fx.Burst(placedPositions[i], ArtLib.Gold * 1.4f, 14);
+                // One keepsake chime for the whole arrival, not per trophy:
+                // a shelf filling up should sound like one small ceremony.
+                AudioManager.Instance.PlayTrophy();
                 PlayerPrefs.SetInt(SeenKey, mask);
                 PlayerPrefs.Save();
                 CloudSaveMirror.Snapshot();

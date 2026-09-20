@@ -213,6 +213,7 @@ namespace UnityEngine
         public static Quaternion identity { get { return new Quaternion(); } }
         public static Quaternion Euler(float x, float y, float z) { return new Quaternion(); }
         public static Quaternion LookRotation(Vector3 forward) { return new Quaternion(); }
+        public static Quaternion Slerp(Quaternion a, Quaternion b, float t) { return a; }
         public static Quaternion operator *(Quaternion a, Quaternion b) { return a; }
     }
 
@@ -240,6 +241,8 @@ namespace UnityEngine
         public static int Abs(int value) { return 0; }
         public static float Exp(float f) { return 0f; }
         public static float Lerp(float a, float b, float t) { return 0f; }
+        public static float InverseLerp(float a, float b, float value) { return 0f; }
+        public static float Atan2(float y, float x) { return 0f; }
         public static float Sign(float f) { return 1f; }
         public static float Clamp01(float value) { return 0f; }
         public static bool Approximately(float a, float b) { return false; }

@@ -45,6 +45,9 @@ namespace GemRush
         AudioClip bridgeOn;
         AudioClip bridgeOff;
         AudioClip guardianWake;
+        AudioClip seesawCreak;
+        AudioClip seesawSpring;
+        AudioClip skid;
         AudioClip giggle;
         AudioClip softGiggle;
         AudioClip raindropBloom;
@@ -132,6 +135,9 @@ namespace GemRush
             bridgeOn = SfxSynth.BridgeOn("sfx_bridge_on");
             bridgeOff = SfxSynth.BridgeOff("sfx_bridge_off");
             guardianWake = SfxSynth.GuardianWake("sfx_guardian_wake");
+            seesawCreak = SfxSynth.SeeSawCreak("sfx_seesaw_creak");
+            seesawSpring = SfxSynth.SeeSawSpring("sfx_seesaw_spring");
+            skid = SfxSynth.Skid("sfx_skid");
             giggle = SfxSynth.Giggle("sfx_giggle");
             softGiggle = SfxSynth.SoftGiggle("sfx_gloomfang_giggle");
             raindropBloom = SfxSynth.RaindropBloom("sfx_raindrop");
@@ -662,6 +668,42 @@ namespace GemRush
             source.PlayOneShot(clip);
         }
 
+        /// A shelf trophy appearing: a small glassy keepsake chime.
+        public void PlayTrophy()
+        {
+            if (!SaveSystem.SoundOn) return;
+            if (!noteCache.TryGetValue(9600, out AudioClip clip))
+            {
+                clip = SfxSynth.TrophyChime("sfx_trophy");
+                noteCache[9600] = clip;
+            }
+            source.PlayOneShot(clip);
+        }
+
+        /// Crossing a star-trail mastery tier.
+        public void PlayTrailTier()
+        {
+            if (!SaveSystem.SoundOn) return;
+            if (!noteCache.TryGetValue(9700, out AudioClip clip))
+            {
+                clip = SfxSynth.TrailTierSting("sfx_trail_tier");
+                noteCache[9700] = clip;
+            }
+            source.PlayOneShot(clip);
+        }
+
+        /// A new level opening up: two bright notes that fan outward.
+        public void PlayLevelUnlock()
+        {
+            if (!SaveSystem.SoundOn) return;
+            if (!noteCache.TryGetValue(9800, out AudioClip clip))
+            {
+                clip = SfxSynth.LevelUnlock("sfx_level_unlock");
+                noteCache[9800] = clip;
+            }
+            source.PlayOneShot(clip);
+        }
+
         /// Sky Garden: the bloom wave as a rising music-box run.
         public void PlayBloom()
         {
@@ -796,6 +838,25 @@ namespace GemRush
             PlayGustSwell(GameBootstrap.Player != null
                 ? GameBootstrap.Player.transform.position
                 : Vector3.zero);
+        }
+
+        /// The Homecoming's see-saw: a low wooden groan as Pip's weight
+        /// tips the plank, a lighter settle as it springs back level.
+        /// Distance-faded like every other world sound, so a plank across
+        /// the island stays quiet.
+        public void PlaySeeSaw(Vector3 origin, bool tipping)
+        {
+            float volume = Falloff(origin, 22f);
+            if (volume < 0.03f) return;
+            PlayIfOn(tipping ? seesawCreak : seesawSpring, volume);
+        }
+
+        /// A hard reversal at speed: a scrape under the dust puff. Strength
+        /// (0..1, from how fast Pip was moving) scales the volume.
+        public void PlaySkid(float strength)
+        {
+            PlayIfOn(skid, (0.5f + 0.5f * Mathf.Clamp01(strength))
+                * Jitter(0.92f, 1.08f));
         }
 
         /// Nim's giggle just before a gust blows — the invitation to step
