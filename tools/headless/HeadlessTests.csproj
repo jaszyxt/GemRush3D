@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    CI compile+run target for the headless test pass.
+
+    Why this exists instead of reusing the mcs path in run-tests-headless.sh:
+    Ubuntu's mono-devel ships a C# 7.0 compiler, but the game uses newer
+    syntax (local functions inside methods, default literals). Unity's own
+    csc handles it and so does the .NET SDK, which is already installed on
+    the runner for tools/Check.csproj. Compiling here also means the tests
+    get a modern runtime, and no Unity install is needed.
+
+    The Unity assemblies come from the committed refs directory (see
+    tools/refresh-headless-refs.sh) — UnityEngine types are managed math
+    and resolve fine off-Unity.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <NoWarn>$(NoWarn);CS0618;CS0169;CS0649;CS0414;CS0219;CS0067</NoWarn>
+    <AssemblyName>HeadlessTests</AssemblyName>
+    <RootNamespace>GemRush</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <StartupObject>HeadlessTestRunner</StartupObject>
+    <OutDir>$(MSBuildThisFileDirectory)../.headless-test-dotnet/</OutDir>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)../.headless-test-dotnet/</BaseOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Unity reference assemblies (committed; see refresh script). -->
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.CoreModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.PhysicsModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.AudioModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.ParticleSystemModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.InputLegacyModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.IMGUIModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.JSONSerializeModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.TextRenderingModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.UIModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.AndroidJNIModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.ScreenCaptureModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.AnimationModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.UnityWebRequestModule.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/UnityEngine.UI.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/Unity.InputSystem.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/Unity.RenderPipelines.Core.Runtime.dll" />
+    <Reference Include="$(MSBuildThisFileDirectory)refs/Unity.RenderPipelines.Universal.Runtime.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)../headless/HeadlessTestRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../../Assets/Scripts/**/*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../../Assets/Tests/EditMode/LevelAuditTests.cs" />
+  </ItemGroup>
+</Project>

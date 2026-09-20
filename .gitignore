@@ -29,6 +29,7 @@ mono_crash.*
 *.user
 # ...except the CI compile-check project (deliberately tracked)
 !tools/Check.csproj
+!tools/headless/HeadlessTests.csproj
 
 # Unity test-runner scenes
 InitTestScene*.unity*
