@@ -1615,7 +1615,13 @@ namespace GemRush
             LevelDefinition def = LevelLibrary.Levels[
                 Mathf.Clamp(levelIndex, 0, LevelLibrary.Levels.Length - 1)];
             if (introTitle != null)
-                introTitle.text = Strings.IntroTitle(levelIndex, def.Name);
+            {
+                // 1-based everywhere: the HUD, menu, atlas and win screen
+                // all number from one; the intro card was the lone site
+                // passing the raw 0-based index (level 1 announced itself
+                // as LEVEL 0, the 25th as LEVEL 24).
+                introTitle.text = Strings.IntroTitle(levelIndex + 1, def.Name);
+            }
             if (introMission != null)
                 introMission.text = def.Mission;
             introTimer = 3.5f;
