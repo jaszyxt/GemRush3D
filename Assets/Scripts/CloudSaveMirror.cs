@@ -66,11 +66,11 @@ namespace GemRush
 
         public static void Snapshot()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             return; // probes manage PlayerPrefs directly; never fight them
-            #else
+#else
             WriteSnapshotFile();
-            #endif
+#endif
         }
 
         /// The snapshot core, unguarded so the MirrorProbe can verify the
@@ -144,9 +144,9 @@ namespace GemRush
 
         public static void Restore()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             return;
-            #else
+#else
             try
             {
                 string path = PathFor();
@@ -172,7 +172,7 @@ namespace GemRush
             {
                 // A torn or foreign file is ignored; the registry rules.
             }
-            #endif
+#endif
         }
 
         static long ReadSeq(string json)

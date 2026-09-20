@@ -335,7 +335,7 @@ namespace GemRush
         // and flags it done. Player builds only; harmless elsewhere.
         public static void MigrateCompanyHive()
         {
-            #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
             if (PlayerPrefs.GetInt(Prefix + "hivemigrated", 0) == 1) return;
             try
             {
@@ -395,7 +395,7 @@ namespace GemRush
             {
                 // Migration is best-effort; never block boot.
             }
-            #endif
+#endif
         }
     }
 }
