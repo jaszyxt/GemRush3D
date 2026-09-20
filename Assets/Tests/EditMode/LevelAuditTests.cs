@@ -539,6 +539,28 @@ namespace GemRush.Tests
             }
         }
 
+        [Test]
+        public void EveryGem_IsPhysicallyCollectable()
+        {
+            // The older gem check is a generous proximity test; this one is
+            // the player-facing contract: every gem must sit within jump
+            // reach of a surface the spawn can actually reach, at a height
+            // above the deck a jump can pass through. The Long Fall's two
+            // gems sat 8.1 units UNDER their decks — inside the solid slab,
+            // uncollectable, silently capping the level at 2 stars — and
+            // this is the assertion that keeps that class of bug out.
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.BonusFlight) { i++; continue; }
+                LevelReachability.Report r = LevelReachability.Analyze(l);
+                foreach (string w in r.Warnings)
+                    if (w.Contains("beyond jump reach"))
+                        Assert.Fail(Label(i, l) + ": " + w);
+                i++;
+            }
+        }
+
         // ------------------------------------------------------------------
         // The Long Winter (pack 11): the lantern/ice-gate contract
         // ------------------------------------------------------------------

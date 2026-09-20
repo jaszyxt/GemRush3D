@@ -61,8 +61,12 @@ namespace GemRush
             l.Gems.Add(new Vector3(-2f, -3.4f, 26f));
             l.Gems.Add(new Vector3(0f, -5.4f, 35f));
             l.Gems.Add(new Vector3(-2.5f, -10.4f, 41f));    // beside the big drop
-            l.Gems.Add(new Vector3(0f, -13.4f, 53f));
-            l.Gems.Add(new Vector3(4f, -15.4f, 62f));
+            // Both of these sat 8.1 units UNDER their platform's deck (the
+            // pack's other gems sit +1.1 above it) — inside the solid slab
+            // with no approach from any side: impossible to collect, and a
+            // silent cap at 2 stars. Restored to the house grab height.
+            l.Gems.Add(new Vector3(0f, -12.4f, 53f));
+            l.Gems.Add(new Vector3(4f, -14.4f, 62f));
             l.Gems.Add(new Vector3(0f, -18.9f, 71f));
             l.Gems.Add(new Vector3(0f, -17.9f, 80f));       // over the crossing
             l.Gems.Add(new Vector3(0f, -19.4f, 90f));
