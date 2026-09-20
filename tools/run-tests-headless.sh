@@ -197,7 +197,7 @@ fi
 # status come from grep, and set -e would then treat a clean compile as
 # a failure (or, worse, hide a real error).
 set +e
-"${COMPILER[@]}" -nologo -target:library \
+"${COMPILER[@]}" -nologo -langversion:latest -target:library \
   -out:"$(winpath "$OUT_DIR/tests.dll")" \
   "${BASE_REFS[@]}" \
   @"$(winpath "$RSP")" \
@@ -220,7 +220,7 @@ echo "compiled cleanly ($(grep -cE 'warning CS' "$COMPILE_LOG" || true) warnings
 echo "== building the runner =="
 rm -f "$OUT_DIR/runner.exe"
 set +e
-"${COMPILER[@]}" -nologo -target:exe -out:"$(winpath "$OUT_DIR/runner.exe")" \
+"${COMPILER[@]}" -nologo -langversion:latest -target:exe -out:"$(winpath "$OUT_DIR/runner.exe")" \
   "${BASE_REFS[@]}" -r:"$(winpath "$NUNIT")" \
   "$(winpath "$ROOT/tools/headless/HeadlessTestRunner.cs")" > "$OUT_DIR/runner.log" 2>&1
 set -e
