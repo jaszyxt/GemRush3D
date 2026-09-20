@@ -1,13 +1,18 @@
-name: probe
-on: workflow_dispatch
+name: probe-csc
+on: [push, workflow_dispatch]
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
       - run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq mono-devel
-          echo "--- which mono ---"; which mono
-          echo "--- mono --version ---"; mono --version | head -2
-          echo "--- find csc/mcs ---"; find /usr/lib/mono -maxdepth 3 -name "csc*" -o -maxdepth 3 -name "mcs*" 2>/dev/null | head -10
-          echo "--- pkg-config mono dir ---"; ls /usr/lib/mono/ 2>/dev/null | head
-          echo "--- mscorlib location ---"; find /usr/lib/mono -name mscorlib.dll 2>/dev/null | head -3
+          echo "=== which mono/csc/mcs ==="
+          which mono csc mcs 2>&1
+          echo "=== mono version ==="
+          mono --version 2>&1 | head -2
+          echo "=== /usr/lib/mono contents ==="
+          ls /usr/lib/mono/ 2>&1 | head
+          echo "=== csc/mcs anywhere ==="
+          find /usr/lib/mono /usr/bin -name "csc*" -o -name "mcs*" 2>/dev/null | head -10
+          echo "=== mscorlib ==="
+          find /usr/lib/mono -name "mscorlib.dll" 2>/dev/null | head -3
