@@ -1,0 +1,72 @@
+# Editor/analyzer conventions for GemRush3D.
+#
+# Scope, deliberately narrow: this file configures the .NET SDK tooling
+# used by CI (tools/Check.csproj and tools/headless/HeadlessTests.csproj).
+# Unity does not read .editorconfig for its own compilation, so nothing
+# here changes how the game builds — it is a consistency gate on the
+# source, not a runtime behavior change.
+#
+# The rules enabled below are the ones that catch real defects in this
+# codebase. Rules that fight Unity idioms are explicitly off: Unity code
+# legitimately catches broad exceptions around optional engine calls
+# (haptics, vibration), and treats many "unused" fields as inspector
+# state that the compiler cannot see.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# --- Naming ---------------------------------------------------------
+# Unity message methods and inspector fields use camelCase without
+# underscores; enforcing the .NET defaults would fight the whole project.
+dotnet_naming_rule.private_fields_should_be_camel.severity = none
+dotnet_naming_rule.locals_should_be_camel.severity = none
+dotnet_naming_rule.parameters_should_be_camel.severity = none
+
+# --- Style: only where it prevents a bug or a real inconsistency -----
+# Braces on all control blocks: a missing brace after an edit is the
+# classic source of the "unreachable statement" class of bug.
+csharp_prefer_braces = true:silent
+
+# 'var' is used throughout the project for locals whose type is obvious
+# from the right-hand side; leave that alone.
+csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_when_type_is_apparent = true:silent
+
+# Prefer the modern forms the project already uses.
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_prefer_switch_expression = true:silent
+csharp_style_prefer_pattern_matching = true:silent
+
+# --- Analyzer severities --------------------------------------------
+# Unused private fields are usually inspector state or work-in-progress
+# in this project (e.g. cached components awaiting a feature), so they
+# stay informational rather than failing the build.
+dotnet_diagnostic.CS0169.severity = none
+dotnet_diagnostic.CS0414.severity = none
+dotnet_diagnostic.CS0649.severity = none
+
+# Unity's deprecated-but-working APIs (FindObjectOfType and friends) are
+# used deliberately for clarity in a handful of places; a warning is
+# noise, not a defect, on this engine version.
+dotnet_diagnostic.CS0618.severity = none
+
+# Neither of these adds value here: the project has no async code, and
+# every public entry point is called by Unity via reflection.
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1062.severity = none
+
+# Catching broad exceptions is correct for optional engine features
+# (vibration, screenshot capture) — the alternative is a crash.
+dotnet_diagnostic.CA1031.severity = none
+
+[*.{md,json,yml,yaml}]
+indent_size = 2

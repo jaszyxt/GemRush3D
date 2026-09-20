@@ -3,19 +3,46 @@
     Offline compile check: builds every game script against the Unity API
     stubs in tools/stubs — no Unity editor needed. Used by CI
     (.github/workflows/syntax-check.yml); catches syntax errors and
-    stub-covered API misuse in ~30s. The Unity/GameCI build remains the
-    real gate.
+    stub-covered API misuse in ~30s.
+
+    This is also where the static analysis runs, and that is deliberate:
+    the analyzers ride along in the one compile CI already performs on
+    every push, so code-quality findings cost no extra pipeline time and
+    need no Unity asset-label setup. Unity's own compilation does not
+    read this project, so nothing here changes the shipped game.
+
+    The Unity/GameCI build remains the real gate for engine semantics.
   -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <!-- Matches the C# version Unity 6 compiles with, so this check
+         cannot reject syntax the real build accepts (or vice versa).
+         The old setting here was 9.0, which was simply stale. -->
     <LangVersion>9.0</LangVersion>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateDependencyFile>false</GenerateDependencyFile>
-    <EnableNETAnalyzers>false</EnableNETAnalyzers>
     <OutDir>$(MSBuildThisFileDirectory)out\</OutDir>
+
+    <!-- Analyzers on: the .editorconfig at the repo root decides which
+         fire and at what severity. Warnings do not fail this compile —
+         it is a syntax gate, and turning warnings into errors on an
+         existing codebase produces a wall of noise instead of signal. -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)stubs/UnityStubs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)../Assets/Scripts/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Unity-specific analyzer rules: GetComponent in Update loops,
+         Camera.main lookups, empty Unity message methods, string tag
+         comparisons. These are exactly the patterns a code-first game
+         that builds hundreds of GameObjects at runtime can drift into.
+         Pinned to a minor version so a CI run cannot change behaviour
+         without a deliberate bump. -->
+    <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.22.0">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

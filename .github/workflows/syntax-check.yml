@@ -11,6 +11,12 @@ jobs:
         run: dotnet build tools/Check.csproj
       - name: Version drift check (VERSION vs docs)
         run: sh tools/check-version.sh
+      - name: Format check (see .editorconfig)
+        # Fails if any file would be reformatted. Whitespace and brace
+        # style only — it cannot change behaviour, and the rules are in
+        # .editorconfig so the fix is always the same command locally:
+        #   dotnet format tools/Check.csproj
+        run: dotnet format tools/Check.csproj --verify-no-changes --no-restore
 
   level-tests:
     # Runs the level-geometry test suite without Unity or a license.
