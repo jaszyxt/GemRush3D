@@ -706,6 +706,48 @@ namespace GemRush.Tests
             }
         }
 
+        [Test]
+        public void Retrace_IsShortEnoughToForgiveADeath()
+        {
+            // The cost of a mistake: how far back a death sends you. The
+            // difficulty pass measured jump margins and the death penalty
+            // but not the walk back, and retraversal is what a child
+            // actually pays per failure. Respawn points are the spawn,
+            // every checkpoint and the portal; the longest stretch between
+            // consecutive ones is the worst single death.
+            //
+            // Design guidance puts the ceiling around 30-45 seconds of
+            // retraversal. The shipped library's worst is ~10 s of
+            // straight-line travel (The Festival Finale), and real
+            // traversal is slower than the straight-line estimate, so the
+            // bound below is deliberately generous: it exists to stop a
+            // future level from dropping a checkpoint and turning a death
+            // into a long walk, not to demand the whole library be dense.
+            const float RunSpeed = 8f;
+            const float BoundSeconds = 45f;
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                List<float> stops = new List<float>();
+                stops.Add(l.Spawn.z);
+                foreach (Vector3 c in l.Checkpoints) stops.Add(c.z);
+                stops.Add(l.Portal.z);
+                stops.Sort();
+                float worst = 0f;
+                for (int k = 1; k < stops.Count; k++)
+                    worst = Mathf.Max(worst, stops[k] - stops[k - 1]);
+                float seconds = worst / RunSpeed;
+                Assert.LessOrEqual(seconds, BoundSeconds,
+                    Label(i, l) + ": a death can send the player " +
+                    worst.ToString("F0") + " units back (" +
+                    seconds.ToString("F0") + "s at run speed, bound " +
+                    BoundSeconds + "s) — add a checkpoint inside that " +
+                    "stretch, at its start rather than before its hardest " +
+                    "jump.");
+                i++;
+            }
+        }
+
         // ------------------------------------------------------------------
         // The Long Winter (pack 11): the lantern/ice-gate contract
         // ------------------------------------------------------------------

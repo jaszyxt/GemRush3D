@@ -3,6 +3,7 @@
 // (the level data is pure C#, so the analysis needs no editor).
 // Usage: audit.exe [--detail N]  (N = zero-based level index)
 using System;
+using System.Collections.Generic;
 using GemRush;
 
 namespace GemRush.Tools
@@ -33,22 +34,75 @@ namespace GemRush.Tools
         }
     }
 
+    // Retrace distance: how far back a death can send you. The difficulty
+    // pass measured jump margins and the death penalty but never the WALK
+    // BACK, which is where the worst numbers in the game actually are —
+    // retraversal is the cost a child pays per mistake. Respawn points are
+    // the spawn, each checkpoint and the portal; the figure reported is the
+    // longest stretch between consecutive ones, in course units and in
+    // seconds at run speed (research cites 30-45 s as the upper bound).
+    const float RunSpeed = 8f;
+    const float RetraceSecondsBound = 45f;
+
+    static void RetraceReport(LevelDefinition[] levels)
+    {
+        Console.WriteLine("=== retrace (longest walk back after a death) ===");
+        Console.WriteLine("  bound: " + RetraceSecondsBound.ToString("F0") +
+            "s (" + (RetraceSecondsBound * RunSpeed).ToString("F0") +
+            " units at run speed)");
+        int over = 0;
+        float worstAll = 0f;
+        string worstName = "";
+        for (int i = 0; i < levels.Length; i++)
+        {
+            LevelDefinition l = levels[i];
+            List<float> stops = new List<float>();
+            stops.Add(l.Spawn.z);
+            foreach (UnityEngine.Vector3 c in l.Checkpoints) stops.Add(c.z);
+            stops.Add(l.Portal.z);
+            stops.Sort();
+            float worst = 0f;
+            for (int k = 1; k < stops.Count; k++)
+                worst = Math.Max(worst, stops[k] - stops[k - 1]);
+            float seconds = worst / RunSpeed;
+            bool bad = seconds > RetraceSecondsBound;
+            if (bad) over++;
+            if (worst > worstAll) { worstAll = worst; worstName = l.Name; }
+            Console.WriteLine((bad ? "  OVER " : "  ok   ") +
+                " L" + (i + 1).ToString().PadLeft(2) + " " +
+                l.Name.PadRight(26) +
+                " stops " + stops.Count +
+                "  worst " + worst.ToString("F0").PadLeft(3) + "u" +
+                "  " + seconds.ToString("F0").PadLeft(3) + "s");
+        }
+        Console.WriteLine();
+        Console.WriteLine("worst in game: " + worstAll.ToString("F0") +
+            "u at " + worstName + "; " + over + " level(s) over the bound");
+    }
+
     static int Main(string[] args)
     {
         int detail = -1;
         bool margins = false;
         bool curve = false;
+        bool retrace = false;
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "--detail" && i + 1 < args.Length)
                 int.TryParse(args[i + 1], out detail);
             if (args[i] == "--margins") margins = true;
             if (args[i] == "--curve") curve = true;
+            if (args[i] == "--retrace") retrace = true;
         }
 
         if (curve)
         {
             CurveReport(LevelLibrary.Levels);
+            return 0;
+        }
+        if (retrace)
+        {
+            RetraceReport(LevelLibrary.Levels);
             return 0;
         }
 

@@ -12,6 +12,12 @@ namespace GemRush
         public float wakeRadius = 0f;   // 0 = always fully awake
         public float sleepSpeed = 12f;
 
+        // Presence cue for always-awake guardians: how close the player
+        // must be, and the floor on how often it may repeat.
+        const float PresenceRadius = 11f;
+        const float PresenceCooldown = 2.4f;
+        float presenceTimer;
+
         float currentSpeed;
         Transform player;
         Material armMat;
@@ -51,13 +57,45 @@ namespace GemRush
                     AudioManager.Falloff(transform.position, 24f) * 0.9f);
             }
 
+            // Always-awake guardians (wakeRadius 0 — the majority of them)
+            // never emit that growl, so a child watching Pip gets no
+            // audible cue that an arm is sweeping toward them. Give them a
+            // slow repeating presence cue instead: a quiet, distance-faded
+            // pulse while the player is close, rate-limited so a spinner
+            // can never machine-gun the sound, and silent once they move
+            // away. It marks the hazard without nagging.
+            if (wakeRadius <= 0f)
+            {
+                if (player == null)
+                {
+                    PlayerController pc = FindObjectOfType<PlayerController>();
+                    if (pc != null) player = pc.transform;
+                }
+                if (player != null)
+                {
+                    float d = Vector3.Distance(player.position,
+                        transform.position);
+                    if (d <= PresenceRadius)
+                    {
+                        presenceTimer -= Time.deltaTime;
+                        if (presenceTimer <= 0f)
+                        {
+                            presenceTimer = PresenceCooldown;
+                            AudioManager.Instance.PlayGuardianWake(
+                                AudioManager.Falloff(transform.position,
+                                    24f) * 0.55f);
+                        }
+                    }
+                    else presenceTimer = 0f; // ready the moment they return
+                }
+            }
+
             // The arm literally brightens as it wakes.
             if (armMat != null)
             {
                 float awake = wakeRadius > 0f
                     ? Mathf.Clamp01(currentSpeed / Mathf.Max(1f, degreesPerSecond))
-                    : 1f;
-                armMat.SetColor("_EmissionColor",
+                    : 1f;                armMat.SetColor("_EmissionColor",
                     armBase * (0.25f + awake * 0.75f));
             }
         }

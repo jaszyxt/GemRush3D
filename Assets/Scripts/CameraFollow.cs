@@ -13,12 +13,24 @@ namespace GemRush
         public float positionSmooth = 5f;
         public float lookSmooth = 9f;
 
+        /// Forward look-ahead: the look point leads Pip's horizontal motion
+        /// so the player can read the next jump before committing to it.
+        /// Without it the camera only ever shows where Pip already IS, and
+        /// an upcoming gap is invisible until it is underfoot — one of the
+        /// few places this camera departed from the usual platformer
+        /// framing. Deliberately modest: the lead is the player's own speed
+        /// times this many seconds, capped, and only the XZ axes lead (the
+        /// vertical hold below is a deliberate framing choice and stays).
+        const float LookAheadSeconds = 0.35f;
+        const float LookAheadMax = 3.0f;
+
         /// The aspect the framing was tuned on. Wider than this = phone as
         /// designed (scale 1); narrower = camera scales back, up to +50%.
         const float ReferenceAspect = 2.1f;
 
         Vector3 offset;
         Vector3 lookPoint;
+        Vector3 lookLead;      // smoothed forward lead, XZ only
         float followY; // soft-zone height the camera actually holds
         float shakeTimer;
         float shakeMagnitude;
@@ -61,6 +73,7 @@ namespace GemRush
             if (target == null) return;
             transform.position = target.position + offset;
             lookPoint = target.position;
+            lookLead = Vector3.zero;
             followY = target.position.y;
             // A respawn or level change is a hard cut: any lens motion that
             // was mid-flight belongs to the moment we just left.
@@ -142,7 +155,26 @@ namespace GemRush
             Vector3 goal = target.position + offset;
             goal.y = followY + offset.y;
             transform.position = Vector3.Lerp(transform.position, goal, posBlend);
-            lookPoint = Vector3.Lerp(lookPoint, target.position, lookBlend);
+
+            // Forward lead: chase a point ahead of Pip along his own
+            // horizontal motion, so the next platform is on screen before
+            // he has to commit to it. Smoothed on the same curve as the
+            // rest of the rig so it eases in and out of a run instead of
+            // snapping, and clamped so a bounce-pad launch cannot fling
+            // the framing across the level.
+            Vector3 lead = Vector3.zero;
+            Rigidbody leadBody = target.GetComponent<Rigidbody>();
+            if (leadBody != null)
+            {
+                Vector3 v = leadBody.linearVelocity;
+                lead = new Vector3(v.x, 0f, v.z) * LookAheadSeconds;
+                if (lead.sqrMagnitude > LookAheadMax * LookAheadMax)
+                    lead = lead.normalized * LookAheadMax;
+            }
+            lookLead = Vector3.Lerp(lookLead, lead, posBlend);
+
+            lookPoint = Vector3.Lerp(lookPoint,
+                target.position + lookLead, lookBlend);
 
             if (shakeTimer > 0f)
             {
