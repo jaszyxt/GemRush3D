@@ -1111,7 +1111,8 @@ namespace UnityEngine.InputSystem
         public void SetMotorSpeeds(float lowMotor, float highMotor) { }
     }
 }
-    // ---------- Editor (validated locally; CI checks only game scripts) ----------
+    // ---------- Editor ----------
+    // Editor APIs are validated locally only; CI compiles game scripts.
 
 namespace UnityEditor
 {
