@@ -97,8 +97,8 @@ namespace GemRush.EditorTools
             // would orphan their saves. Pin it explicitly.
             PlayerSettings.SetApplicationIdentifier(
                 BuildTargetGroup.Android, "com.DefaultCompany.GemRush3D");
-            PlayerSettings.bundleVersion = "1.26.2";
-            PlayerSettings.Android.bundleVersionCode = 37;
+            PlayerSettings.bundleVersion = "1.26.3";
+            PlayerSettings.Android.bundleVersionCode = 38;
 
             // Desktop window UX (D8): a resizable borderless-fullscreen
             // window at the UI's native reference size that keeps running
