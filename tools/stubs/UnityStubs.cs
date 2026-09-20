@@ -110,8 +110,7 @@ namespace UnityEngine
         public void Rotate(float xAngle, float yAngle, float zAngle) { }
         public void Rotate(Vector3 axis, float angle) { }
         public void Rotate(Vector3 axis, float angle, Space relativeTo) { }
-        public void Rotate(float xAngle, float yAngle, float zAngle,
-            Space relativeTo) { }
+        public void Rotate(float xAngle, float yAngle, float zAngle, Space relativeTo) { }
         public void Translate(Vector3 translation) { }
         public Vector3 InverseTransformDirection(Vector3 worldDirection) { return new Vector3(); }
     }
@@ -190,8 +189,7 @@ namespace UnityEngine
         public static Vector3 Scale(Vector3 a, Vector3 b) { return a; }
         public static Vector3 Min(Vector3 a, Vector3 b) { return a; }
         public static Vector3 Max(Vector3 a, Vector3 b) { return a; }
-        public static Vector3 MoveTowards(Vector3 current, Vector3 target,
-            float maxDelta) { return current; }
+        public static Vector3 MoveTowards(Vector3 current, Vector3 target, float maxDelta) { return current; }
         public static float Distance(Vector3 a, Vector3 b) { return 0f; }
         public static float Dot(Vector3 a, Vector3 b) { return 0f; }
         public void Normalize() { }
@@ -256,8 +254,7 @@ namespace UnityEngine
         public static int RoundToInt(float f) { return 0; }
         public static float Repeat(float t, float length) { return 0f; }
         public static float Pow(float f, float p) { return 0f; }
-        public static float MoveTowards(float current, float target,
-            float maxDelta) { return 0f; }
+        public static float MoveTowards(float current, float target, float maxDelta) { return 0f; }
     }
 
     public static class PlayerPrefs
@@ -280,8 +277,7 @@ namespace UnityEngine
     {
         public AnimationCurve() { }
         public AnimationCurve(params Keyframe[] keys) { }
-        public static AnimationCurve Linear(float timeStart, float valueStart,
-            float timeEnd, float valueEnd) { return new AnimationCurve(); }
+        public static AnimationCurve Linear(float timeStart, float valueStart, float timeEnd, float valueEnd) { return new AnimationCurve(); }
         public void AddKey(float time, float value) { }
     }
 
@@ -766,8 +762,7 @@ namespace UnityEngine
 
     public class Sprite : Object
     {
-        public static Sprite Create(Texture2D texture, Rect rect,
-            Vector2 pivot, float pixelsPerUnit) { return null; }
+        public static Sprite Create(Texture2D texture, Rect rect, Vector2 pivot, float pixelsPerUnit) { return null; }
         public static Sprite Create(Texture2D texture, Rect rect, Vector2 pivot,
             float pixelsPerUnit, uint extrude, SpriteMeshType meshType, Vector4 border)
         { return null; }
@@ -779,8 +774,7 @@ namespace UnityEngine
 
     public class AudioClip : Object
     {
-        public static AudioClip Create(string name, int lengthSamples, int channels,
-            int frequency, bool stream) { return null; }
+        public static AudioClip Create(string name, int lengthSamples, int channels, int frequency, bool stream) { return null; }
         public void SetData(float[] data, int offsetSamples) { }
     }
 
