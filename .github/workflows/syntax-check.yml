@@ -21,9 +21,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Mono
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq mono-devel
       - name: Run level-audit tests headlessly
-        run: bash tools/run-tests-headless.sh
+        run: dotnet run --project tools/headless/HeadlessTests.csproj
