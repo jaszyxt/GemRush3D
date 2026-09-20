@@ -27,7 +27,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Festival Lights";
-            l.Mission = "With the last region charted, the Sky-Keeper has declared a festival — and the aurora itself has come down to join it. The lights lay themselves across the gaps like ribbons off a parcel. Step on when the glow reaches your shore. The realm has been carrying you all game; tonight, it carries you again, for fun.";
+            l.Mission = "The Sky-Keeper has declared a festival, and the aurora itself has come down to join it. The lights lay themselves across the gaps like ribbons off a parcel. Step on when the glow reaches your shore. Tonight the realm carries you again, for fun.";
             l.WinLine = "Festival Lights, charted! The ribbons sway in time with the bells. Nobody taught them. Auroras, it turns out, have excellent taste.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
@@ -77,7 +77,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Ribbon Dance";
-            l.Mission = "The aurora practiced. Tonight's ribbons swing as they flow — an honest-to-goodness dance across the sky — and one of them climbs while it crosses, which the charts describe as 'showing off.' A guardian has fallen asleep in the meadow below with one arm over the music. Step softly, ride high.";
+            l.Mission = "The aurora practiced. Tonight's ribbons swing as they flow — an honest-to-goodness dance — and one of them climbs while it crosses, which the charts call 'showing off.' A guardian sleeps in the meadow below, one arm over the music. Step softly, ride high.";
             l.WinLine = "Ribbon Dance, charted! The guardian slept through the whole finale. In the morning it will insist it heard everything. Let it.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
@@ -137,7 +137,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "The Festival Finale";
-            l.Mission = "The last night of the festival, and the realm has built the concert out of everything you ever charted: movers keeping the beat, a guardian on percussion (asleep, but on tempo), wind from the storm chasers, a bell from the towers, a door from the mirror — even the winter sent its lantern-light along. The ribbons are the melody. Walk the whole atlas in one night, Pip. The last note is yours.";
+            l.Mission = "The last night of the festival, and the concert is built from everything you ever charted: movers keeping the beat, a guardian on percussion, wind, bells, a mirror door. Walk the whole atlas in one night, Pip. The last note is yours.";
             l.WinLine = "The Festival Finale, played! The last note rang out across every charted region at once — and high above the Sky-Keeper's hall, the sky glowed, and decided to stay that way.";
             l.Milestone = "REGION CHARTED: THE AURORA FESTIVAL. The last note is still ringing — and the sky learned to glow.";
 

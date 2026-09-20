@@ -208,8 +208,8 @@ namespace GemRush.Tests
         public void LevelCount_IsSubstantial()
         {
             Assert.GreaterOrEqual(LevelLibrary.Levels.Length, 24,
-                "The shipped game includes all ten packs; a smaller library " +
-                "means a pack file stopped being concatenated in " +
+                "The shipped level library is missing content; a smaller " +
+                "library means a pack file stopped being concatenated in " +
                 "BuildAllLevels.");
         }
 

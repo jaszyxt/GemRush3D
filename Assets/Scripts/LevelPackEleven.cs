@@ -27,7 +27,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "First Snow";
-            l.Mission = "Past the mirror meadows the wind simply stopped: the Far Isles' quiet corner has fallen asleep under snow that never melts — Gloomfang's oldest winter, the charts call it. An old sunstone lantern waits on the shore, still warm underneath. Wake it, walk with its light, and let the ice remember it is water.";
+            l.Mission = "Past the mirror meadows the wind simply stopped: the Far Isles' quiet corner is asleep under snow that never melts. An old sunstone lantern waits on the shore, still warm underneath. Wake it, walk with its light, and let the ice remember it is water.";
             l.WinLine = "First Snow, charted! The lantern hums a lullaby it learned from a glacier. Gloomfang, professional rain carrier, takes notes.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start + lantern
@@ -78,7 +78,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Frozen Fountains";
-            l.Mission = "The old fountains of the winter isles still try to sing — you can hear them humming under the ice. Ride the columns, walk with the lantern, and melt whatever stands in the way. One frozen door sits right in the ferry's path: stand on the moving ice as it carries you through, and let the light do the rest.";
+            l.Mission = "The old fountains still try to sing beneath the ice. Walk with the lantern, ride the columns, melt whatever stands in the way. One frozen door blocks the ferry: stand on the moving ice, and let the light do the rest.";
             l.WinLine = "Frozen Fountains, charted! The columns sing again, a little off-key. The lantern hums along. It is possibly the worst choir in the sky realm, and Pip applauds anyway.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start + lantern
@@ -137,7 +137,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "The Crystal Summit";
-            l.Mission = "One last climb, to the winter's rooftop. The charts say something odd happens up there: every path the lantern's light opened is supposed to refreeze at once — into a map of everywhere you walked. A guardian naps in the meadow on the way up. Step lightly. Or don't; he sleeps like weather.";
+            l.Mission = "One last climb, to the winter's rooftop: every path the lantern opened is supposed to refreeze at once, into a map of everywhere you walked. A guardian naps in the meadow on the way up. Step lightly. Or don't; he sleeps like weather.";
             l.WinLine = "The Crystal Summit, charted! The refreeze settles into one enormous crystal map, and there in the middle, tiny and unmistakable: a small orange shape, walking. Pip frames it in his hands and refuses to move until everyone has looked.";
             l.Milestone = "REGION CHARTED: THE LONG WINTER. The atlas shines a little warmer now.";
 

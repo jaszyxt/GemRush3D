@@ -8,7 +8,8 @@ namespace GemRush
     /// weight — tip an end down and the treats on the shelves beneath come
     /// up to meet you; cross one and it becomes a living ramp. At the end
     /// of the road is home, and Gloomfang's badge stops saying
-    /// "probationary". Content era closes at forty levels.
+    /// "probationary" — the review that Movement Two was built around
+    /// concludes here. See docs/Movement-Two-Story.md.
     public static class LevelPackThirteen
     {
         public static LevelDefinition[] Levels = new LevelDefinition[]
@@ -27,7 +28,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "The Long Way Home";
-            l.Mission = "The atlas is full — every region charted, every portal lit — and the Sky-Keeper has one last errand: walk home the long way, the scenic way, past the see-saw meadows the old keepers built for exactly this kind of stroll. Tip a plank and see what tips back. Home isn't going anywhere.";
+            l.Mission = "The atlas is full, and the Sky-Keeper has one last errand: walk home the long way, past the see-saw meadows the old keepers built for exactly this kind of stroll. Tip a plank and see what tips back. Home isn't going anywhere.";
             l.WinLine = "The Long Way Home, walked! The see-saws kept tipping long after Pip left, greeting nobody. The old keepers would have called that the whole point.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
@@ -73,7 +74,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Tipping Points";
-            l.Mission = "The long way home runs through the old testing grounds, where the keepers built see-saws in every size and temperament: one long enough to sunbathe on, one that tips sideways just to be contrarian. A guardian lies in the meadow between them, complaining about the creaking in its sleep. Mind the tipping points.";
+            l.Mission = "The old testing grounds, where the keepers built see-saws in every size and temperament: one long enough to sunbathe on, one that tips sideways just to be contrarian. A guardian lies between them, complaining about the creaking in its sleep. Mind the tipping points.";
             l.WinLine = "Tipping Points, charted! The contrarian see-saw tipped sideways out of pure spite and dropped a gem in Pip's hands. Nobody can prove it meant to.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
@@ -126,7 +127,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Coming Home";
-            l.Mission = "The last stretch of the long way home, walked at sunset. Movers and wind and one very sleepy guardian — old friends, all of them — and the see-saws creaking their welcome. At the end of this road there is a small island, a shelf with one open spot, and a storm who has been practicing saying 'welcome home' without crying. Mostly without crying.";
+            l.Mission = "The last stretch of the long way home, walked at sunset. Movers, wind, one very sleepy guardian — old friends. At the end of this road: a small island, a shelf with one open spot, and a storm practicing 'welcome home' without crying.";
             l.WinLine = "Home. Gloomfang said it without crying, right up until Pip put the last gem on the shelf, and then he cried a little, and that was fine. The Sky-Keeper, watching from the hall, took out a pen and crossed out one word on a badge.";
             l.Milestone = "REGION CHARTED: THE HOMECOMING. Gloomfang's badge is official — the word 'probationary' is gone.";
 

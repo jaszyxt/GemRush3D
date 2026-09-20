@@ -25,10 +25,12 @@ namespace GemRush
             "Somewhere far below, a very large storm was learning to hum — and " +
             "somewhere above the garden, a very small one was perfecting the snore.",
 
-            "The Far Isles chart now hangs in the Sky-Keeper's hall — every island " +
-            "named in Pip's small, determined handwriting, and one line in the " +
-            "legend: 'weather support (probationary): Gloomfang.' He has requested " +
-            "the word 'probationary' be removed. Request pending.\n\n" +
+            "The Far Isles chart hangs in the Sky-Keeper's hall — every island " +
+            "named in Pip's small, determined handwriting. Then came the quiet " +
+            "week, when the realm froze still and Pip carried the lantern " +
+            "through it; and the festival, when the sky said thank you in " +
+            "lights; and the long walk home, past the see-saws, back to the " +
+            "little island where all of this started.\n\n" +
             "THE END — every ending here is just a portal to the next adventure."
         };
 
@@ -43,7 +45,7 @@ namespace GemRush
             "The guardians spin because nobody ever asked them to stop. Ask nicely.",
             "The Two Suns playground: no storm, no pressure, all bounce.",
             "The Far Isles: where the wind does the climbing.",
-            "Gloomfang's job title, officially: weather support (probationary).",
+            "Gloomfang's job title, officially: weather support. The probation got rained out.",
             "Nim's first word was a gust. There was weather everywhere. Gloomfang has never been prouder.",
             "The bell towers once sang storms home. Now they ring one in to work.",
             "Red Nine still dreams of being a carousel. On weekends, he practices.",

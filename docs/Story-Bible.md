@@ -46,7 +46,7 @@ feeling, it is not in the game yet — send it back until it is one.
 | Character | Canon | How to write them | Never |
 |---|---|---|---|
 | **Pip** (he) | The hero. Very small, very determined. The Sky-Keeper's helper. "Small, determined, excellent at falling upward." Falls with style. Brings snacks. | Address Pip directly in missions ("Climb, Pip."). Pip notices things, decides things, is 90% sure of things. Pip's courage is quiet, not loud. | Pip never fights, never boasts, never speaks dialogue — Pip acts and the narrator tells us. |
-| **Gloomfang** (he) | A very large storm. Once stole the light because he feared the dark ("abandonment issues" is the level-1 joke). Redeemed end of pack 3; employed as **weather support (probationary)**; rains on Tuesdays; learning to hum; cries at sunsets; built Nim's crib out of mist and refuses to discuss it. | Enormous, gentle, embarrassed by his own feelings. His thunder whispers when it matters. He is a person who happens to be weather. | Never re-villainize him. Never play his loneliness for mockery. No "evil storm" regressions. |
+| **Gloomfang** (he) | A very large storm. Once stole the light because he feared the dark ("abandonment issues" is the level-1 joke). Redeemed end of pack 3. Worked as **weather support (probationary)**; **the badge is now official** (the review concluded at level 40). Rains on Tuesdays; learning to hum; cries at sunsets; built Nim's crib out of mist and refuses to discuss it. | Enormous, gentle, embarrassed by his own feelings. His thunder whispers when it matters. He is a person who happens to be weather. | Never re-villainize him. Never play his loneliness for mockery. No "evil storm" regressions. Never call him probationary — that gag paid off and is retired. |
 | **The Sky-Keeper** (she) | The realm's mapmaker and caretaker. Gave Gloomfang his badge. Wrote one word — *"more."* — in the corner of the finished map. | Warm bureaucracy. She processes feelings as paperwork and means every word of it. Her forms are affection. | She is never cold, never an obstacle, never a quest-giver who withholds. |
 | **Nim** (he) | A baby cloud, "the size of a pillow with the volume of a parade." Giggles become tailwind gusts. First word was a gust. Gloomfang's apprentice; the family's smallest member. Snoring is "rehearsing." | Pure joy with no timing at all. Nim is the punchline that hugs back. | Nim is never a burden or a fetch-plot; he leads, Pip follows, everyone's day improves. |
 | **Guardians** (they) | Big, red, round, committed. Once the stormcell elite; now friendly — they dance, charge admission, sleep in gardens, dream. Sleeping Guardians wake only while you linger. | Give them dignity in their silliness. Their dreams leak into gameplay (Red Nine hums Pip's theme). | They are never enemies again after the pack-3 reveal. No guardian is ever punished for doing its job. |
@@ -80,6 +80,8 @@ Recipes that work (all shipped; imitate these shapes):
   of." / "Request pending."
 - **Recurrence, not repetition.** Gags return changed: Tuesday rain
   becomes a job becomes a day off; "probationary" becomes a request
+  becomes, at the end of Movement Two, a badge with the word simply gone.
+  (That arc is complete — see §5 amendments.)
   becomes (someday) a ceremony. Never paste the same gag twice.
 
 **Banned forever:** cruelty, cynicism, sarcasm aimed at the player, FOMO
@@ -146,13 +148,44 @@ One line per pack; future packs must not contradict these:
     side of the glass, a reflection-Gloomfang copies Pip, half a second
     late, then ahead, learning to be a reflection. "Both of you are
     almost ready."
+11. **The B-Sides** — nightfall remixes of earlier regions (Gust Alley,
+    the dreaming garden, the beacon route climbed the way the first
+    keepers did). Not new story: the same places, after dark.
+12. **The Long Winter** — the quiet week. Gloomfang asked the realm for
+    stillness; stillness froze the Far Isles' sleepy corner. Pip wakes an
+    old **sunstone lantern** and walks with its light. At the summit the
+    melted paths refreeze into a crystal map of the whole walk. The
+    atlas "shines a little warmer now."
+13. **The Aurora Festival** — the realm's thank-you, thrown because the
+    atlas is charted. The aurora comes down and lays itself across the
+    gaps as **ribbons**; the finale is a concert built from every mechanic
+    in the game. The last note lights a permanent aurora overhead.
+14. **The Homecoming** — the road home the long way, past the **see-saw
+    meadows** the old keepers built. It ends at the little island, the
+    shelf with one open spot, and a storm practicing "welcome home"
+    without crying. **The badge review concludes here:** the Sky-Keeper
+    crosses one word off the badge. See the amendment below.
+
+### Canon amendments (these supersede earlier lines)
+
+- **The badge is no longer "(probationary)."** The review that Movement
+  Two was built around concluded at level 40 (The Homecoming). The badge
+  is official. *Any text treating Gloomfang's employment as probationary
+  is now wrong.* The old running gag — "requested removed; request
+  pending" — **retired on completion, not on repetition**: the joke paid
+  off, which is how gags should end. Do not resurrect it; do not replace
+  it with a hat request (that idea is retired and unbuilt).
+- The **crystal map** (pack 12) and the **festival aurora** (pack 13) are
+  both permanent world-state: the atlas remembers the winter walk, and
+  the festival sky stays lit.
 
 **Running gag registry** (advance, never repeat verbatim):
 
 - **Tuesdays** — rain delivery day; the day off; the calendar's gentle
   heartbeat. Lives in mission text and is allowed to touch real dates.
-- **The badge / "(probationary)"** — requested removed; request pending.
-  Its arc is the spine of Movement Two (below).
+- **The badge** — *retired at the end of Movement Two.* Once "requested
+  removed; request pending," it is now simply official (see Canon
+  amendments). The gag ended by paying off. Do not restart it.
 - **The lullaby** — see cast section.
 - **The shelf** — always has room for one more. That's the point; it is
   an emotional capacity, never "full."
@@ -181,79 +214,38 @@ fifth.
 
 ## 8. The roadmap — direction, dictated
 
-**The shape of the game:** the story moves in **movements**. Movement One
-(packs 1–10) told the rescue: a storm took the light, a small hero
-brought him home. Every movement ends with a rewritten epilogue and one
-permanent change to the menu screen. The last pack of a movement is a
-celebration lap — no new danger, the story is the content.
+**The shape of the game:** the story moves in **movements**. A movement
+ends with a rewritten epilogue and one permanent change to the world. Its
+last pack is a celebration — no new danger, the story is the content.
 
-**Movement One theme (done):** *fear → friendship.*
-**Movement Two theme (packs 11–16, dictated now):** ***The Probation
-Season*** — *can a storm become a citizen?* The Sky-Keeper schedules
-Gloomfang's badge review; every region the crew charts is evidence;
-the verdict lands on the finale. Feelings ladder: **calm → joy → wonder
-→ play → teaching → pride.**
+**Movement One (done):** *fear → friendship.* Packs 1–10 plus the
+B-Sides: a storm took the light, a small hero brought him home.
 
-Full level-by-level story scripts for all of Movement Two (packs 11–16)
-are written and canonical in **docs/Movement-Two-Story.md** — copy story
-text from there verbatim. Pack 16's script includes the Movement Two
-epilogue rewrite (Renewal Law) ready for `Story.cs`.
+**Movement Two (SHIPPED, complete):** *stillness → celebration → home.*
+Packs 11–13, levels 32–40. Gloomfang asked the realm for one quiet week;
+the realm answered with a festival and then walked him home. **The badge
+review — the question of whether a storm can become a citizen — is
+answered.** The full record is in **docs/Movement-Two-Story.md**, which
+also carries the craft checklist the next pack must pass.
 
-### Pack 11 — The Long Winter (NEXT TO BUILD) · feeling: calm
-
-The quietest pack. Gloomfang requests one week of stillness to practice
-for the review; the crew accompanies him to the snow-soft isles where
-weather goes to rest. **New obstacle: the sunstone lantern** — carry its
-light to melt ice paths as you pass, opening the route. No new danger;
-hearts are generous; the music is slow. Signature moment: at the summit
-the melted paths refreeze into one giant crystal map of everywhere you
-walked. Story beat to plant: the Sky-Keeper's memo arrives — one word:
-*"soon."*
-
-### Pack 12 — The Aurora Festival · feeling: joy
-
-The realm's thanks, mid-movement. Every mechanic in the game appears as
-an instrument; **aurora ribbons** — ridable moving light-bridges — carry
-Pip through the concert. The festival is where the mirror door finally
-opens and **Mirror-Gloomfang steps through as a guest** — payoff of
-"almost ready"; nobody fights, everybody dances. Signature moment: the
-last note lights a **permanent aurora over the menu screen** (one-way
-menu change, movement milestone).
-
-### Pack 13 — The First Rainbow · feeling: wonder
-
-Two suns plus Tuesday rain produce the realm's first rainbow, and the
-crew goes to find where it lands. **Prism gates:** light-bridges that
-exist only where Pip stands inside the colored ring — color-keyed doors
-as a feeling, not a puzzle grind. Signature: the rainbow keeps an end
-somewhere nobody expected (the Undercloud).
-
-### Pack 14 — The Guardian Games · feeling: play
-
-The guardians, inspired by dancers and carousels, request a sport.
-**See-saw platforms** ridden as team events with guardian teammates;
-taking turns is the win condition. Red Nine's carousel dream comes true
-— he is the centerpiece, gloriously, for exactly one level. Signature:
-the medal ceremony where every participant place is first.
-
-### Pack 15 — The Little Apprentice · feeling: teaching
-
-Pip is given a smallest helper of his own: a flickering spark who copies
-Pip's last jump to reach plates Pip can't — the player teaches by
-playing normally. Mirror of pack 8 inverted: Pip was the found one once.
-Signature: the spark copies Pip's victory pose, badly, proudly.
-
-### Pack 16 — The Badge Ceremony (movement finale) · feeling: pride
-
-A celebration lap, no new hazard. The review lands: "probationary" comes
-off; the badge now reads **weather support (senior)** — and Gloomfang
-requests a hat. Request pending. (The bureaucratic gag survives by
-evolving; it never dies.) Epilogue is rewritten to include packs 11–16.
-Movement Three is teased in one line.
-
-### Movement Three seeds (packs 17+, not scheduled)
+**Movement Three (next, not yet scheduled):** *renewal.* The seeds:
 
 - **The Deep Bloom** — what grows in the old dark now that the Undercloud
+  is lit. Feeling: renewal.
+- **The Migration** — weather develops seasons; the realm learns
+  goodbye-and-hello. Feeling: belonging.
+- **The Sky Library** — the hall where every run ever flown is a book;
+  ghost-Pips are its readers. Feeling: being remembered. (Natural home
+  for the ghost-run feature when it is built.)
+- **The First Rainbow** — two suns plus Tuesday rain; prism gates that
+  hold only while Pip stands in the colored ring. The rainbow's end lands
+  in the Undercloud, where the light was kept. Feeling: wonder. *(Written
+  before the packs shipped; unbuilt, and still good.)*
+
+**Before building any Movement Three pack:** the epilogue in `Story.cs`
+must be rewritten to include packs 11–13 (Renewal Law — it currently stops
+at the Mirror Skies and is out of date). Then write the new pack's script
+against the §3 checklist in Movement-Two-Story.md.
   is lit. Feeling: renewal.
 - **The Migration** — weather develops seasons; the realm learns
   goodbye-and-hello. Feeling: belonging.
@@ -288,8 +280,11 @@ Movement Three is teased in one line.
 | Epilogue, menu quotes | `Assets/Scripts/Story.cs` |
 | Mission / WinLine / StoryBeats / Milestone per level | the `LevelPack*.cs` files and `LevelLibrary.cs` |
 | The Milestone field | `LevelDefinition.Milestone` (win-screen banner) |
-| Win banner, game-over line, recap, gift copy | `Assets/Scripts/UIManager.cs`, `Assets/Scripts/DailyGem.cs` |
+| **All other UI strings** (menu, HUD, atlas, prompts, golden notes, completion) | `Assets/Scripts/Strings.cs` — the sanctioned home; never put English literals in layout code |
+| Region names + atlas grouping | `LevelLibrary.Regions` |
+| Gift copy | `Assets/Scripts/DailyGem.cs` |
 | Geometry/metadata audit (the other half of the QA gate) | `Assets/Tests/EditMode/LevelAuditTests.cs` |
+| Movement Two canon + craft checklist | `docs/Movement-Two-Story.md` |
 
 *Story is the delivery vehicle for the whole expansion contract. When in
 doubt, build the feeling, and the obstacle will introduce itself.*

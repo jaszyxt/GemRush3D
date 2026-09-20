@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace GemRush
 {
-    /// Gloomfang, weather support (probationary). After the befriending he
-    /// tags along on Pip's post-story adventures.
+    /// Gloomfang, weather support (badge official since the homecoming).
+    /// After the befriending he tags along on Pip's post-story adventures.
     ///
     /// View contract (player-reported, non-negotiable): he is anchored to
     /// the CAMERA's right edge, never between the camera and Pip, and his
