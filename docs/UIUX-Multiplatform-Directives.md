@@ -604,3 +604,56 @@ existing `UIAuditTests` pattern; the suite must stay green.
 - [UGUI draw-call reduction and batching failure analysis](https://dev.to/gameoptim/ugui-drawcall-reduction-atlas-packing-and-batching-failure-analysis-1gaa)
 - [TextMeshPro breaking canvas batching](https://bugnet.io/blog/fix-unity-textmeshpro-canvas-batching-broken)
 - [Adapting Causa for mobile (Unity)](https://unity.com/cn/blog/adapting-causa-into-the-dusk-for-mobile)
+
+### D.5 D13 implementation notes (2026-09-21)
+
+**Shipped in two commits** (`0929354`, `e5e50f4`), in the order planned:
+fix the latent collisions, then raise the floor.
+
+**The floor is now `UIManager.TouchFloorUnits = 120` ref units ≈ 54 dp**
+(mid-band for the 48–60 pt the research recommends for ages 6–8). It is a
+single constant — every layout that must clear a floored button reads it,
+so the number can move again without silently breaking a stack.
+
+**What the work actually turned up.** Raising the floor exposed that the
+layouts were already broken *at the old 100-unit floor*:
+
+| Defect | Size | How it surfaced |
+|---|---|---|
+| Settings grid ↔ BACK | **59.5 units of overlap** | Live, shipped, player-visible |
+| Pause PHOTO ↔ MENU | 1.0 unit | Already short of the targets |
+| Desktop settings column | **ran off-screen entirely** (rows to y=−444, BACK at −524) | Found only after the containment assertion was added |
+
+**Root cause of the blindness — the real deliverable.** The edit-mode
+suite runs in the editor, where `Input.touchSupported` is **always false**,
+so every touch layout in the game was unverifiable. The one settings test
+that existed compared *anchor* values (`0.215 > 0.17` passes) rather than
+rendered rects. Both are fixed:
+
+- `UIManager.ForceTouchLayoutForTests` + `IsTouchLayout()` — one seam the
+  layouts and `TouchTarget` share, so tests build either layout.
+- Rect-extent probes (`YBand`/`XBand`/`Band`) and `AssertNoOverlap`, which
+  fail with both spans quoted.
+- `Settings_TouchLayout_NoOverlap`, `Settings_DesktopLayout_NoOverlap`,
+  `Pause_TouchLayout_NoOverlap`, `ResultScreens_TouchLayout_NoOverlap`.
+- Containment assertions (on-screen, both ends) — their absence is what let
+  the off-screen desktop column through.
+
+Each test was **confirmed failing against the old code before the fix**, so
+they are proven to catch the real defect rather than passing vacuously.
+
+**Two design consequences worth recording:**
+1. **Settings is a 2-column grid on every platform now.** This was forced,
+   not cosmetic: nine rows of 120-unit targets plus BACK need ~1100 units
+   of a 900-unit screen, so a single column can only fit by shrinking rows
+   *below* the target size — which is precisely how the desktop column came
+   to run off the bottom edge.
+2. **BACK floors like any other button.** Its half-height is derived from
+   the same constant, and it is positioned from the *actual* last row, so
+   it cannot be pushed off-screen.
+
+**Still open from D13:** inter-target *spacing* is not yet asserted against
+the ≥8 dp guidance (the grid gaps exceed it comfortably in practice, but
+it is unmeasured); and the whole pass needs one real-device look, since a
+Device Simulator and the editor Game view do not reproduce a phone's
+aspect or safe area.
