@@ -20,8 +20,10 @@ namespace GemRush
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
         {
-            // Steam Cloud mirror: restore BEFORE anything reads
-            // PlayerPrefs (fullscreen, shadows, saves).
+            // Order matters: first the one-time Windows hive migration
+            // (companyName move), then the cloud mirror restore — both
+            // BEFORE anything reads PlayerPrefs.
+            SaveSystem.MigrateCompanyHive();
             CloudSaveMirror.Restore();
             // Guard against a double boot (e.g. play mode without domain reload).
             if (Object.FindObjectOfType<GameManager>() != null) return;

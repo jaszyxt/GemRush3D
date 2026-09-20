@@ -239,6 +239,10 @@ namespace GemRush
         {
             return "Saved to " + folder;
         }
+        public static string PhotoSaveFailed(string folder)
+        {
+            return "Could not save to " + folder;
+        }
 
         // ---------- Level intro ----------
 

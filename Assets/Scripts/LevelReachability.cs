@@ -46,6 +46,9 @@ namespace GemRush
             public Vector2 Half;
             public int Group;
             public string Kind;
+        /// Echo bridges: which bell solidifies them (only meaningful when
+        /// Kind is "echo bridge"; struct default 0 would alias bell 0).
+        public int BellIndex;
 
             public float TopY { get { return Center.y; } }
         }
@@ -151,31 +154,72 @@ namespace GemRush
                 return r;
             }
 
-            // ---- BFS ----
-            bool[] seen = new bool[tops.Count];
-            int[] prev = new int[tops.Count];
-            Queue<int> frontier = new Queue<int>();
-            foreach (int s in starts)
+            // ---- Echo lock ----
+            // A bridge exists only while its bell's tone rings, and a bell
+            // can only be rung by standing at it. Solve the fixed point:
+            // begin with every bridge intangible, ring whatever bells are
+            // reachable, allow those bridges, re-run, until nothing new
+            // lights up. A bell still outside the set at the fixed point is
+            // one nobody can ever reach — the route through it needs itself.
+            bool[] echoAllowed = new bool[tops.Count];
+            bool[] seen = Bfs(tops.Count, adj, starts, echoAllowed, tops);
+            while (true)
             {
-                seen[s] = true;
-                prev[s] = -1;
-                frontier.Enqueue(s);
-            }
-            bool won = false;
-            while (frontier.Count > 0 && !won)
-            {
-                int cur = frontier.Dequeue();
-                for (int k = 0; k < adj[cur].Count; k++)
+                bool changed = false;
+                for (int b = 0; b < level.Bells.Count; b++)
                 {
-                    int next = adj[cur][k];
-                    if (seen[next]) continue;
-                    seen[next] = true;
-                    prev[next] = cur;
-                    frontier.Enqueue(next);
+                    int bt = SnapTop(tops, level.Bells[b].PlatformTop,
+                        1f, -0.5f, 1.5f);
+                    if (bt < 0 || !seen[bt]) continue;
+                    for (int i = 0; i < tops.Count; i++)
+                        if (tops[i].Kind == "echo bridge" &&
+                            tops[i].BellIndex == level.Bells[b].Index &&
+                            !echoAllowed[i])
+                        {
+                            echoAllowed[i] = true;
+                            changed = true;
+                        }
                 }
-                for (int g = 0; g < goals.Count; g++)
-                    if (seen[goals[g]]) won = true;
+                if (!changed) break;
+                seen = Bfs(tops.Count, adj, starts, echoAllowed, tops);
             }
+            for (int b = 0; b < level.Bells.Count; b++)
+            {
+                int bt = SnapTop(tops, level.Bells[b].PlatformTop,
+                    1f, -0.5f, 1.5f);
+                if (bt < 0 || !seen[bt])
+                    r.Problems.Add("bell " + level.Bells[b].Index +
+                        " can never be rung — it is not reachable even with " +
+                        "every echo bridge whose bell is reachable made " +
+                        "solid (circular echo lock, or the bell floats).");
+            }
+
+            // The tone must outlast the crossing: ring to the far edge of
+            // each of its bridges at run speed, plus reaction time.
+            for (int b = 0; b < level.Bells.Count; b++)
+            {
+                BellSpec bell = level.Bells[b];
+                for (int e = 0; e < level.EchoBridges.Count; e++)
+                {
+                    EchoBridgeSpec br = level.EchoBridges[e];
+                    if (br.BellIndex != bell.Index) continue;
+                    float far = FarthestCornerXz(bell.PlatformTop, br.Center,
+                        new Vector2(br.Size.x * 0.5f, br.Size.z * 0.5f));
+                    float need = far / RunSpeed + 1.5f;
+                    if (bell.ToneSeconds < need)
+                        r.Problems.Add("bell " + bell.Index + "'s tone (" +
+                            bell.ToneSeconds + "s) expires before its echo " +
+                            "bridge at " + br.Center + " can be crossed " +
+                            "(~" + need.ToString("F1") + "s at run speed) — " +
+                            "the echo drops mid-crossing.");
+                }
+            }
+
+            // ---- Portal ----
+            bool won = false;
+            int reachedGoal = -1;
+            for (int g = 0; g < goals.Count; g++)
+                if (seen[goals[g]]) { won = true; reachedGoal = goals[g]; break; }
 
             r.ReachableCount = CountTrue(seen);
             r.PortalReachable = won;
@@ -193,9 +237,9 @@ namespace GemRush
             else
             {
                 // Reconstruct one path for debugging/reporting.
-                int goal = -1;
-                for (int g = 0; g < goals.Count; g++)
-                    if (seen[goals[g]]) { goal = goals[g]; break; }
+                int[] prev = new int[tops.Count];
+                Bfs(tops.Count, adj, starts, echoAllowed, tops, prev);
+                int goal = reachedGoal;
                 for (int at = goal; at >= 0; at = prev[at]) r.Path.Add(at);
                 r.Path.Reverse();
             }
@@ -257,7 +301,8 @@ namespace GemRush
                         b.Center.y + b.Size.y * 0.5f, b.Center.z),
                     Half = new Vector2(b.Size.x * 0.5f, b.Size.z * 0.5f),
                     Group = -1,
-                    Kind = "echo bridge"
+                    Kind = "echo bridge",
+                    BellIndex = b.BellIndex
                 });
             }
 
@@ -321,6 +366,54 @@ namespace GemRush
         // ------------------------------------------------------------------
         // Geometry + physics
         // ------------------------------------------------------------------
+
+        /// Breadth-first search over the surfaces. Echo bridges count only
+        /// while `echoAllowed` says their bell has rung; fills `prev` with
+        /// the BFS tree when non-null (−1 at the roots).
+        static bool[] Bfs(int n, List<List<int>> adj, List<int> starts,
+            bool[] echoAllowed, List<Top> tops, int[] prev = null)
+        {
+            bool[] seen = new bool[n];
+            Queue<int> frontier = new Queue<int>();
+            foreach (int s in starts)
+            {
+                if (seen[s]) continue;
+                seen[s] = true;
+                if (prev != null) prev[s] = -1;
+                frontier.Enqueue(s);
+            }
+            while (frontier.Count > 0)
+            {
+                int cur = frontier.Dequeue();
+                for (int k = 0; k < adj[cur].Count; k++)
+                {
+                    int next = adj[cur][k];
+                    if (seen[next]) continue;
+                    if (tops[next].Kind == "echo bridge" && !echoAllowed[next])
+                        continue;
+                    seen[next] = true;
+                    if (prev != null) prev[next] = cur;
+                    frontier.Enqueue(next);
+                }
+            }
+            return seen;
+        }
+
+        /// XZ distance from a point to the farthest corner of a rect — the
+        /// walk a bell tone must outlast.
+        static float FarthestCornerXz(Vector3 p, Vector3 c, Vector2 half)
+        {
+            float best = 0f;
+            for (int cx = -1; cx <= 1; cx += 2)
+                for (int cz = -1; cz <= 1; cz += 2)
+                {
+                    float dx = c.x + half.x * cx - p.x;
+                    float dz = c.z + half.y * cz - p.z;
+                    best = Mathf.Max(best,
+                        Mathf.Sqrt(dx * dx + dz * dz));
+                }
+            return best;
+        }
 
         /// XZ distance between two axis-aligned rects (0 when overlapping).
         static float RectDistXz(Vector3 cA, Vector2 hA, Vector3 cB, Vector2 hB)

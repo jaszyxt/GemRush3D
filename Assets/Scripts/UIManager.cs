@@ -1555,15 +1555,45 @@ namespace GemRush
             FillScorecard();
             photoPanel.SetActive(false);
             if (scorecard != null) scorecard.SetActive(true);
-            yield return null; // the framed frame; capture composites now
+            // End-of-frame is the documented moment to grab the composited
+            // frame; a plain yield resumes mid-Update, before the render.
+            yield return new WaitForEndOfFrame();
             Texture2D shot = ScreenCapture.CaptureScreenshotAsTexture();
             byte[] png = shot.EncodeToPNG();
             Destroy(shot);
             if (scorecard != null) scorecard.SetActive(false);
             photoPanel.SetActive(true);
-            photoStatus.text = Strings.PhotoSavedTo(path);
-            photoOpenFolder.gameObject.SetActive(true);
-            AudioManager.Instance.PlayStarDing(2);
+            // Write the PNG and say so honestly: the v1.21.0 share-card
+            // edit accidentally dropped the write, so CAPTURE encoded the
+            // shot into memory and reported success without saving a file.
+            if (TryWritePng(path, png))
+            {
+                photoStatus.text = Strings.PhotoSavedTo(path);
+                photoOpenFolder.gameObject.SetActive(true);
+                AudioManager.Instance.PlayStarDing(2);
+            }
+            else
+            {
+                photoStatus.text = Strings.PhotoSaveFailed(path);
+                AudioManager.Instance.PlayUIToggle(false);
+            }
+        }
+
+        /// Writes the captured PNG and confirms it landed on disk. Swallows
+        /// the exception into a false return instead of throwing mid-
+        /// coroutine, so a bad path can never kill the capture feedback —
+        /// the status line reports the failure instead.
+        static bool TryWritePng(string path, byte[] png)
+        {
+            try
+            {
+                System.IO.File.WriteAllBytes(path, png);
+                return System.IO.File.Exists(path);
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
         }
 
         /// Fills the share card from the level currently being played.

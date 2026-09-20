@@ -76,7 +76,16 @@ namespace GemRush
             col.size = spec.Size;
             col.enabled = false; // not solid until rung
 
-            MeshRenderer renderer = go.AddComponent<MeshRenderer>();
+            // The visible slab: a real mesh child (the renderer used to sit
+            // on a bare GameObject with no MeshFilter, so bridges rendered
+            // nothing at all — the crossing read as an impossible gap).
+            GameObject slab = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Object.Destroy(slab.GetComponent<BoxCollider>());
+            slab.transform.SetParent(go.transform, false);
+            slab.transform.localPosition = Vector3.zero;
+            slab.transform.localScale = spec.Size;
+
+            MeshRenderer renderer = slab.GetComponent<MeshRenderer>();
             // The builder passes a fresh URP/Lit material per bridge (each
             // fades on its own clock); fade it to a whisper of a hint even
             // while off. This used to build a Built-in "Standard" material

@@ -305,5 +305,45 @@ namespace GemRush
             PlayerPrefs.Save();
             CloudSaveMirror.Snapshot();
         }
+
+        // ---------- Windows hive migration (one-time) ----------
+
+        // v1.25.0 changed companyName DefaultCompany -> PipStudio for exe
+        // metadata, which silently MOVED PlayerPrefs' registry hive on
+        // Windows (HKCU/Software/<company>/<product>) — every pre-1.25
+        // install looked wiped. This one-time migration copies the old
+        // hive's values into the new one (old wins, the real progress)
+        // and flags it done. Player builds only; harmless elsewhere.
+        public static void MigrateCompanyHive()
+        {
+            #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+            if (PlayerPrefs.GetInt(Prefix + "hivemigrated", 0) == 1) return;
+            try
+            {
+                using (var old = Microsoft.Win32.Registry.CurrentUser
+                           .OpenSubKey(@"Software\DefaultCompany\Gem Rush 3D"))
+                using (var current = Microsoft.Win32.Registry.CurrentUser
+                           .CreateSubKey(@"Software\PipStudio\Gem Rush 3D"))
+                {
+                    if (old != null && current != null)
+                    {
+                        foreach (string name in old.GetValueNames())
+                        {
+                            if (string.IsNullOrEmpty(name)) continue;
+                            var kind = old.GetValueKind(name);
+                            var value = old.GetValue(name);
+                            current.SetValue(name, value, kind);
+                        }
+                    }
+                }
+                PlayerPrefs.SetInt(Prefix + "hivemigrated", 1);
+                Save();
+            }
+            catch (System.Exception)
+            {
+                // Migration is best-effort; never block boot.
+            }
+            #endif
+        }
     }
 }

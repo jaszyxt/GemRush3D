@@ -340,6 +340,28 @@ except D11**) → this file.
 - APK v1.26.0/35, legacy identity, release-signed; laptop auto-deployed
   byte-verified. Phone/tablet install on next USB.
 
+## v1.26.1 HOTFIX — the save-loss incident + permanent migration
+- **Root cause**: v1.25.0's `companyName = "PipStudio"` (Steam-prep) MOVED
+  PlayerPrefs' Windows registry hive from `HKCU\Software\DefaultCompany  Gem Rush 3D` to `HKCU\Software\PipStudio\Gem Rush 3D` — every
+  pre-1.25 Windows install looked wiped. The v1.25 session caught the
+  ANDROID identity dimension (package pinned) but missed the Windows
+  registry dimension. LESSON (now law): **companyName is a SAVE-KEY
+  SURFACE** — changing it moves registry hive AND persistentDataPath;
+  treat any change to it like a save-format migration.
+- **User's laptop repaired same day**: old hive (82 values) merged into
+  the live hive via type-perfect .reg import (old wins; Desktop holds
+  both raw backups: gemrush_backup_old hive.reg / gemrush_backup_new_
+  hive.reg). Verified restored: 67 stars, unlocked 25, 24 best times,
+  settings. (0 ghost keys in EITHER hive — none were ever recorded;
+  0 goldens — none found pre-loss. Nothing else was lost.)
+- **Permanent fix shipped**: `SaveSystem.MigrateCompanyHive()` — one-time
+  (flag `gemrush_v2_hivemigrated`), Windows-player-only, copies all old-
+  hive values into the new hive with registry kinds preserved, runs
+  FIRST in Boot() before the cloud mirror. Any machine updating from a
+  pre-1.25 build now self-heals.
+- Suite 43/43; v1.26.1/36, legacy Android identity, release-signed,
+  laptop auto-deployed.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).

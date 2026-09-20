@@ -209,5 +209,35 @@ namespace GemRush.Tests
                 SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
             }
         }
+
+        // The v1.21.0 share-card edit dropped the PNG write, so CAPTURE
+        // reported success without saving. These pin the write helper.
+        [Test]
+        public void TryWritePng_WritesBytes_AndReportsFailureHonestly()
+        {
+            string dir = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(), "gemrush-tests");
+            string path = System.IO.Path.Combine(dir, "probe.png");
+            try
+            {
+                System.IO.Directory.CreateDirectory(dir);
+                byte[] payload = { 1, 2, 3, 4 };
+                bool ok = (bool)InvokeStaticPrivate(typeof(UIManager),
+                    "TryWritePng", path, payload);
+                Assert.IsTrue(ok, "write to a valid path succeeds");
+                Assert.IsTrue(System.IO.File.Exists(path), "file lands on disk");
+
+                bool bad = (bool)InvokeStaticPrivate(typeof(UIManager),
+                    "TryWritePng",
+                    System.IO.Path.Combine(dir, "missing-dir", "x.png"), payload);
+                Assert.IsFalse(bad, "an unwritable path reports failure");
+            }
+            finally
+            {
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+                if (System.IO.Directory.Exists(dir))
+                    System.IO.Directory.Delete(dir);
+            }
+        }
     }
 }
