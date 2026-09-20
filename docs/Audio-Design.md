@@ -185,10 +185,24 @@ voices — no new pipelines, no size growth:
 oversights): running footsteps (a step loop at 8 u/s would dominate the
 mix), wall bumps, jump-cut on release, the idle-ladder rungs (the ladder
 is authored wordless), the Aurora Ribbon ride (it is a mover, and movers
-are silent by convention), and — most notably — **Winter's ambience
+are silent by convention), **`RestBeat`** (its whole design is "nothing
+is asked of them, nothing is timed" — sound would contradict the beat),
+**`GoldenSignal`'s hint layer**, and — most notably — **Winter's ambience
 bed**: `SoundMood.Winter` has no bed while every other realm does. The
 code documents it as "the quietest pack", so the silence under the pad
 is intent; a snow bed would contradict it. Left as-is.
+
+On `GoldenSignal` specifically (decided 2026-09-24): the golden gem's
+*pickup* plays `PlayGift`, so the discovery beat is voiced. The hint —
+the glimmer, trail and found-outline that lead you to it — stays
+wordless on purpose. A hidden objective should be *noticed*, not
+announced; attaching a cue to a persistent visual turns a diegetic clue
+into a UI marker with a bell on it. It is also the wrong shape for
+sound: unlike a trophy or a tier (one-shot progression beats), a hint
+loops for as long as you are near an undiscovered gem, so any cue would
+either become wallpaper or fire too rarely to help. If playtesting ever
+shows players genuinely missing the gems, the fix is a stronger
+*visual* (faster glimmer, brighter trail) before it is a chime.
 
 **Defect caught by measurement:** the first SeeSaw creak was numerically
 correct and perceptually gone — a two-pole low-pass at ~120–300 Hz throws
