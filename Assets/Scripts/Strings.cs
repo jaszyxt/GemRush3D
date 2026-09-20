@@ -230,6 +230,32 @@ namespace GemRush
             return "The golden gem! " + remixName + " awaits at night.";
         }
 
+        // A one-line, canon-voice note on why this golden was hiding
+        // where it was: narrative weight instead of filler (the secret-
+        // craft law — a found thing should have a story, not just a
+        // pickup). Evergreen law applies: no counts, no level numbers,
+        // no statuses; the narrator is fond of everyone, the gem included.
+        static readonly string[] GoldenNotes =
+        {
+            "Someone set this one down off the path and forgot to worry about it.",
+            "It waited here the whole time, perfectly patient, in no hurry at all.",
+            "Not lost. Just kept somewhere the trail doesn't bother to go.",
+            "A small gold thing that liked the quiet corner best.",
+            "Left here for whoever wandered. That turned out to be you.",
+            "It hid because hiding is a game — not because it didn't want finding."
+        };
+
+        /// Deterministic per level (name-seeded, the save-key lesson), so
+        /// a level's golden always carries the same note: a found thing
+        /// has a story, and the story doesn't change between visits.
+        public static string GoldenNote(string levelName)
+        {
+            if (string.IsNullOrEmpty(levelName)) return GoldenNotes[0];
+            int seed = 0;
+            for (int i = 0; i < levelName.Length; i++) seed += levelName[i];
+            return GoldenNotes[seed % GoldenNotes.Length];
+        }
+
         // ---------- Photo mode ----------
 
         public const string Photo = "PHOTO";

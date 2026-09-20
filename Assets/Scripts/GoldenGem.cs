@@ -79,11 +79,21 @@ namespace GemRush
         {
             int index = ActiveLevelIndex;
             if (!HidesGolden(index)) return;
-            if (SaveSystem.GoldenFound(index)) return;
+
+            // Found already: leave the gentle trace instead of a void.
+            // Odyssey's softness — a found thing keeps a faint outline so
+            // returning to the spot reads as "yours", never as "gone".
+            if (SaveSystem.GoldenFound(index))
+            {
+                GoldenSignal.FoundOutline(level, parent);
+                return;
+            }
+
+            Vector3 spot = PickSpot(level);
 
             GameObject golden = new GameObject("GoldenGem");
             golden.transform.SetParent(parent, false);
-            golden.transform.localPosition = PickSpot(level);
+            golden.transform.localPosition = spot;
 
             // The familiar gem shape in the reward gold, a touch grander.
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -92,14 +102,22 @@ namespace GemRush
             body.transform.SetParent(golden.transform, false);
             body.transform.localRotation = Quaternion.Euler(45f, 45f, 0f);
             body.transform.localScale = Vector3.one * 1.0f;
-            body.GetComponent<MeshRenderer>().sharedMaterial =
-                ArtLib.Solid(ArtLib.Gold, 2.2f);
+            Material bodyMat = ArtLib.Solid(ArtLib.Gold, 2.2f);
+            body.GetComponent<MeshRenderer>().sharedMaterial = bodyMat;
+
+            // The taught signal: a slow breathing glimmer on the gem, and
+            // a few drifting motes along the last stretch of the approach
+            // so a curious eye is *led* rather than told.
+            GoldenSignal.Glimmer(golden.transform, bodyMat);
+            GoldenSignal.Trail(level, spot, parent);
 
             BoxCollider trigger = golden.AddComponent<BoxCollider>();
             trigger.isTrigger = true;
             trigger.size = Vector3.one * 1.4f;
 
             golden.AddComponent<GoldenStar>().levelIndex = index;
+            golden.GetComponent<GoldenStar>().Note =
+                Strings.GoldenNote(level.Name);
         }
 
         /// The collectible itself: spin, bob, and on touch — the save
@@ -108,6 +126,10 @@ namespace GemRush
         class GoldenStar : MonoBehaviour
         {
             public int levelIndex;
+            /// The canon-voice line carried by this gem's spot (see
+            /// Strings.GoldenNote). Shown after the unlock line so the
+            /// find reads as a discovery with a story, not a pickup.
+            public string Note;
             Vector3 basePosition;
             bool taken;
 
@@ -133,6 +155,7 @@ namespace GemRush
 
                 SaveSystem.SetGoldenFound(levelIndex);
                 Fx.Burst(transform.position, ArtLib.Gold * 1.8f, 30);
+                Fx.Ring(transform.position, ArtLib.Gold);
                 if (UIManager.Instance != null)
                 {
                     int bside = -1;
@@ -142,10 +165,17 @@ namespace GemRush
                             bside = i;
                             break;
                         }
-                    UIManager.Instance.ShowStoryToast(bside >= 0
+                    // One toast, not two: the second call would simply
+                    // overwrite the first, so the story beat rides on the
+                    // same line as the unlock — the find and its meaning
+                    // arrive together.
+                    string line = bside >= 0
                         ? Strings.GoldenUnlocksRemix(
                             LevelLibrary.Levels[bside].Name)
-                        : Strings.GoldenFoundLine);
+                        : Strings.GoldenFoundLine;
+                    if (!string.IsNullOrEmpty(Note))
+                        line = line + "  " + Note;
+                    UIManager.Instance.ShowStoryToast(line);
                 }
                 AudioManager.Instance.PlayGift();
                 Destroy(gameObject);
