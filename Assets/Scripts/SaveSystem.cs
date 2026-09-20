@@ -320,22 +320,55 @@ namespace GemRush
             if (PlayerPrefs.GetInt(Prefix + "hivemigrated", 0) == 1) return;
             try
             {
-                using (var old = Microsoft.Win32.Registry.CurrentUser
-                           .OpenSubKey(@"Software\DefaultCompany\Gem Rush 3D"))
-                using (var current = Microsoft.Win32.Registry.CurrentUser
-                           .CreateSubKey(@"Software\PipStudio\Gem Rush 3D"))
+                // Microsoft.Win32.Registry is NOT in the netstandard 2.1
+                // player profile — the typed call broke every player build
+                // (CS1069). Mono's runtime keeps the API inside mscorlib on
+                // Windows, so resolve it by reflection; where stripping has
+                // removed it, the migration silently skips. Best-effort by
+                // design: never blocks boot.
+                System.Reflection.Assembly corlib = typeof(int).Assembly;
+                System.Type regT = corlib.GetType("Microsoft.Win32.Registry");
+                System.Type keyT =
+                    corlib.GetType("Microsoft.Win32.RegistryKey");
+                if (regT == null || keyT == null) return;
+                object currentUser =
+                    regT.GetField("CurrentUser").GetValue(null);
+                if (currentUser == null) return;
+                System.Reflection.MethodInfo open = keyT.GetMethod(
+                    "OpenSubKey", new[] { typeof(string) });
+                System.Reflection.MethodInfo create = keyT.GetMethod(
+                    "CreateSubKey", new[] { typeof(string) });
+                System.Reflection.MethodInfo names = keyT.GetMethod(
+                    "GetValueNames");
+                System.Reflection.MethodInfo kindOf = keyT.GetMethod(
+                    "GetValueKind", new[] { typeof(string) });
+                System.Reflection.MethodInfo read = keyT.GetMethod(
+                    "GetValue", new[] { typeof(string) });
+                System.Reflection.MethodInfo write = keyT.GetMethod(
+                    "SetValue", new[] { typeof(string), typeof(object),
+                        kindOf.ReturnType });
+                object old = open.Invoke(currentUser, new object[] {
+                    @"Software\DefaultCompany\Gem Rush 3D" });
+                object current = create.Invoke(currentUser, new object[] {
+                    @"Software\PipStudio\Gem Rush 3D" });
+                if (old != null && current != null)
                 {
-                    if (old != null && current != null)
+                    string[] valueNames = (string[])names.Invoke(old, null);
+                    foreach (string name in valueNames)
                     {
-                        foreach (string name in old.GetValueNames())
-                        {
-                            if (string.IsNullOrEmpty(name)) continue;
-                            var kind = old.GetValueKind(name);
-                            var value = old.GetValue(name);
-                            current.SetValue(name, value, kind);
-                        }
+                        if (string.IsNullOrEmpty(name)) continue;
+                        object kind = kindOf.Invoke(old,
+                            new object[] { name });
+                        object value = read.Invoke(old,
+                            new object[] { name });
+                        write.Invoke(current,
+                            new[] { name, value, kind });
                     }
                 }
+                if (old != null)
+                    keyT.GetMethod("Close").Invoke(old, null);
+                if (current != null)
+                    keyT.GetMethod("Close").Invoke(current, null);
                 PlayerPrefs.SetInt(Prefix + "hivemigrated", 1);
                 Save();
             }
