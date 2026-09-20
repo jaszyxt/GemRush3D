@@ -51,6 +51,7 @@ namespace GemRush
             SavePosition();
 #endif
             PlayerPrefs.Save();
+            CloudSaveMirror.Snapshot();
         }
 
 #if UNITY_STANDALONE_WIN

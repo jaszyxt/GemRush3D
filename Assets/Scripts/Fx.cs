@@ -38,6 +38,53 @@ namespace GemRush
             return cachedCircle;
         }
 
+        // Shared particle materials (fx pooling stage 1): Burst/PetalPuff/
+        // Celebration never tint their material — color lives in the
+        // particle startColor/gradient — so one cached white material per
+        // texture variant replaces a new-Material + Shader.Find on every
+        // effect call (~1000 orphaned materials per long level before).
+        // Ring stays per-call: it animates material color per frame.
+        static Shader particleShader;
+        static Material burstMaterial;
+        static Material petalMaterial;
+        static Material celebrationMaterial;
+
+        static Material SharedBurstMaterial()
+        {
+            if (particleShader == null)
+                particleShader = Shader.Find(
+                    "Universal Render Pipeline/Particles/Unlit");
+            if (burstMaterial == null && particleShader != null)
+                burstMaterial = new Material(particleShader);
+            return burstMaterial;
+        }
+
+        static Material SharedPetalMaterial()
+        {
+            if (petalMaterial == null && SharedBurstMaterial() != null)
+            {
+                petalMaterial = new Material(SharedBurstMaterial());
+                petalMaterial.mainTexture = DiscTexture();
+            }
+            return petalMaterial;
+        }
+
+        static Material SharedCelebrationMaterial(Texture2D texture)
+        {
+            // Untextured celebrations share one material; the one textured
+            // variant (petals) gets its own cached instance.
+            if (texture == null)
+            {
+                return SharedBurstMaterial();
+            }
+            if (celebrationMaterial == null && SharedBurstMaterial() != null)
+            {
+                celebrationMaterial = new Material(SharedBurstMaterial());
+                celebrationMaterial.mainTexture = texture;
+            }
+            return celebrationMaterial;
+        }
+
         static Font uiFont;
 
         /// A five-pointed star with a soft anti-aliased edge — the win
@@ -130,11 +177,12 @@ namespace GemRush
             Transform tr = go.transform;
             Tweener.Value(0f, 1f, 0.9f, delegate(float k)
             {
+                if (tr == null) return; // defensive, like Ring/SleepMote
                 tr.position = position + Vector3.up * (k * 1.7f);
                 Color c = color;
                 c.a = 1f - k;
                 tm.color = c;
-            }, delegate { Object.Destroy(go); });
+            }, delegate { if (go != null) Object.Destroy(go); });
         }
 
         /// The built-in UI font, resolved once (Popup and SleepMote share it).
@@ -228,8 +276,8 @@ namespace GemRush
             fade.color = new ParticleSystem.MinMaxGradient(gradient);
 
             ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
-            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader != null) renderer.sharedMaterial = new Material(shader);
+            Material shared = SharedBurstMaterial();
+            if (shared != null) renderer.sharedMaterial = shared;
 
             go.AddComponent<AutoDestroy>();
             ps.Play();
@@ -281,13 +329,8 @@ namespace GemRush
             fade.color = new ParticleSystem.MinMaxGradient(gradient);
 
             ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
-            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader != null)
-            {
-                Material mat = new Material(shader);
-                mat.mainTexture = DiscTexture();
-                renderer.sharedMaterial = mat;
-            }
+            Material sharedPetal = SharedPetalMaterial();
+            if (sharedPetal != null) renderer.sharedMaterial = sharedPetal;
 
             go.AddComponent<AutoDestroy>();
             ps.Play();
@@ -467,13 +510,9 @@ namespace GemRush
             fade.color = new ParticleSystem.MinMaxGradient(fadeOut);
 
             ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
-            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader != null)
-            {
-                Material mat = new Material(shader);
-                if (texture != null) mat.mainTexture = texture;
-                renderer.sharedMaterial = mat;
-            }
+            Material sharedCelebration = SharedCelebrationMaterial(texture);
+            if (sharedCelebration != null)
+                renderer.sharedMaterial = sharedCelebration;
 
             go.AddComponent<AutoDestroy>();
             ps.Play();

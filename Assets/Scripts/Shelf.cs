@@ -110,6 +110,7 @@ namespace GemRush
                         Fx.Burst(placedPositions[i], ArtLib.Gold * 1.4f, 14);
                 PlayerPrefs.SetInt(SeenKey, mask);
                 PlayerPrefs.Save();
+                CloudSaveMirror.Snapshot();
             }
         }
 

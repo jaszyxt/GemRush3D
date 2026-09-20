@@ -291,9 +291,19 @@ namespace GemRush
             }
         }
 
+        /// The normalized key for a level's name (the cloud mirror and
+        /// ghost store share these rules).
+        public static string KeyForLevel(int level)
+        {
+            MigrateIfNeeded();
+            int index = Mathf.Clamp(level, 0, LevelLibrary.Levels.Length - 1);
+            return Key(LevelLibrary.Levels[index].Name);
+        }
+
         static void Save()
         {
             PlayerPrefs.Save();
+            CloudSaveMirror.Snapshot();
         }
     }
 }

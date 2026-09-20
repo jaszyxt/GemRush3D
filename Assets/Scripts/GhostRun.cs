@@ -98,6 +98,7 @@ namespace GemRush
             if (string.IsNullOrEmpty(data)) return;
             PlayerPrefs.SetString(SaveKey(levelName), data);
             PlayerPrefs.Save();
+            CloudSaveMirror.Snapshot();
         }
     }
 

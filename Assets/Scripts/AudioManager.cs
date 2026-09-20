@@ -259,20 +259,25 @@ namespace GemRush
         const float MelodyFadeSeconds = 2f;
         float melodyFactor = 1f;
 
-        bool MelodyWanted
+        float MelodyTarget
         {
             get
             {
-                if (GameManager.Instance == null) return true;
+                if (GameManager.Instance == null) return 1f;
                 switch (GameManager.Instance.State)
                 {
                     case GameState.GameOver:
-                        return false;
+                        return 0f;
                     case GameState.Playing:
                     case GameState.Paused:
-                        return GameManager.Instance.Lives >= 2;
+                        // Graded thinning (RESEARCH near-death state): the
+                        // melody thins at two lives — the song starts
+                        // holding its breath before the last one.
+                        if (GameManager.Instance.Lives <= 1) return 0f;
+                        if (GameManager.Instance.Lives == 2) return 0.55f;
+                        return 1f;
                     default: // menu, won, complete: celebrate
-                        return true;
+                        return 1f;
                 }
             }
         }
@@ -289,8 +294,7 @@ namespace GemRush
                     1f - duckTimer / DuckRestoreSeconds);
                 duck = Mathf.Lerp(duckFraction, 1f, restore);
             }
-            float wanted = MelodyWanted ? 1f : 0f;
-            melodyFactor = Mathf.MoveTowards(melodyFactor, wanted,
+            melodyFactor = Mathf.MoveTowards(melodyFactor, MelodyTarget,
                 Time.unscaledDeltaTime / MelodyFadeSeconds);
             bedSource.volume = MusicVolume * duck;
             musicSource.volume = MusicVolume * duck * melodyFactor;

@@ -306,6 +306,40 @@ except D11**) → this file.
   laptop auto-deployed byte-verified. Phone was disconnected at deploy
   time — install v1.25.0 on next USB.
 
+## Shipped in v1.26.0 — Ship-readiness pass (this session)
+- **Fx material sharing (pooling stage 1)**: Burst/PetalPuff/Celebration
+  now share cached materials (they never tint the material — color lives
+  in particle state), replacing ~1000 orphaned Materials + Shader.Find
+  churn per long level. Ring stays per-call (animates material color).
+  Popup tween gained the defensive null guard. GameObject pooling:
+  consciously deferred until profiling complains (recorded decision).
+- **Steam Cloud save mirror** (`CloudSaveMirror.cs`): manifest-based
+  (PlayerPrefs has no key-list API) typed JSON snapshot to
+  persistentDataPath/gemrush_cloud.json on every save (all four save
+  choke points funneled; Application.quitting too) + boot restore
+  gated by a monotonic seq counter (never wall clocks; never restores
+  older over newer). Atomic tmp+replace writes. Editor-inert by
+  design. **MirrorProbe caught a real parser bug before it could ship**:
+  escaped quotes inside values truncated them (would have corrupted
+  ghost saves) — fixed with escape-aware scanning. NOTE: new key
+  families MUST register in the mirror's Manifest() or they will not
+  sync.
+- **Graded near-death music thinning**: MelodyTarget is now graded —
+  3+ lives full melody, 2 lives 0.55 (the song starts holding its
+  breath), 1 life / game over 0. Zero synthesis changes; audio-audit
+  tests untouched. Speed-following tempo: consciously deferred (would
+  break MusicLoopLength/gust-phase-lock/tonic-dominant math; deserves
+  a session with the Python loudness harness).
+- **Verified**: suite 43/43; MirrorProbe 5/5 (typed round-trips via
+  REAL manifest keys with backup/restore, escape round-trip, seq);
+  MusicProbe 8/8 (thinning converges 0.66→0.55 at two lives, drop at
+  one, return on hearts) — note for future probes: a synchronous loop
+  inside one Step() can never observe unscaled-time fades; poll across
+  phase entries. Probe volume thresholds recalibrated to the audio
+  session's MusicVolume=0.26.
+- APK v1.26.0/35, legacy identity, release-signed; laptop auto-deployed
+  byte-verified. Phone/tablet install on next USB.
+
 ## Open items (prioritized)
 1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
    superseded — laptop is primary).

@@ -20,6 +20,9 @@ namespace GemRush
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
         {
+            // Steam Cloud mirror: restore BEFORE anything reads
+            // PlayerPrefs (fullscreen, shadows, saves).
+            CloudSaveMirror.Restore();
             // Guard against a double boot (e.g. play mode without domain reload).
             if (Object.FindObjectOfType<GameManager>() != null) return;
 
@@ -50,6 +53,7 @@ namespace GemRush
             // the window; a no-op on mobile and in fullscreen.
             DesktopWindow.Restore();
             Application.quitting += DesktopWindow.Save;
+            Application.quitting += CloudSaveMirror.Snapshot;
 
             SetupRenderSettings();
             CreateManagers();

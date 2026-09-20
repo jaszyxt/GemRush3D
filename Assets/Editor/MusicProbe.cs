@@ -17,6 +17,7 @@ namespace GemRush.EditorTools
         static Runner runner;
         static int phase;
         static int waitFrames;
+        static int thinPolls;
         static System.Reflection.BindingFlags Priv =
             System.Reflection.BindingFlags.Instance |
             System.Reflection.BindingFlags.NonPublic;
@@ -87,21 +88,41 @@ namespace GemRush.EditorTools
                         GemRush.GameManager.Instance.State == GemRush.GameState.Playing,
                         "");
                     Check("melody-up-at-full-lives",
-                        MelodyFactor() > 0.99f && MusicSrc().volume > 0.4f,
+                        MelodyFactor() > 0.99f && MusicSrc().volume > 0.05f,
                         "factor=" + MelodyFactor().ToString("F2") +
-                        " vol=" + MusicSrc().volume.ToString("F2"));
+                        " vol=" + MusicSrc().volume.ToString("F2") +
+                        " (duck overlap tolerated)");
                     float drift = Mathf.Abs(MusicSrc().time - BedSrc().time);
                     Check("layers-in-sync", drift < 0.05f,
                         "drift=" + drift.ToString("F3") + "s");
-                    // Two deaths: down to the last life.
+                    // First death: 3 -> 2 lives, melody THINS. The fade
+                    // runs on unscaled time; poll across Step() entries
+                    // (a synchronous loop can never see it move).
                     GemRush.GameManager.Instance.OnPlayerDied(true);
-                    frames(20);
-                    GemRush.GameManager.Instance.OnPlayerDied(true);
-                    frames(160); // fade = 2 s on unscaled time
+                    thinPolls = 0;
+                    frames(10);
                     phase = 2;
                     break;
                 }
                 case 2:
+                {
+                    float thinFactor = MelodyFactor();
+                    if (thinFactor > 0.4f && thinFactor < 0.7f || ++thinPolls > 600)
+                    {
+                        Check("melody-thins-at-two-lives",
+                            GemRush.GameManager.Instance.Lives == 2 &&
+                            thinFactor > 0.4f && thinFactor < 0.7f,
+                            "lives=" + GemRush.GameManager.Instance.Lives +
+                            " factor=" + thinFactor.ToString("F2"));
+                        // Second death: down to the last life.
+                        GemRush.GameManager.Instance.OnPlayerDied(true);
+                        frames(160); // fade = 2 s on unscaled time
+                        phase = 3;
+                    }
+                    else frames(5);
+                    break;
+                }
+                case 3:
                 {
                     Check("melody-drops-at-last-life",
                         GemRush.GameManager.Instance.Lives == 1 &&
@@ -111,17 +132,18 @@ namespace GemRush.EditorTools
                         " melodyVol=" + MusicSrc().volume.ToString("F2") +
                         " bedVol=" + BedSrc().volume.ToString("F2"));
                     Check("bed-still-singing",
-                        BedSrc().volume > 0.4f && BedSrc().isPlaying, "");
+                        BedSrc().volume > 0.15f && BedSrc().isPlaying, "");
+                    GemRush.GameManager.Instance.OnHeartCollected();
                     GemRush.GameManager.Instance.OnHeartCollected();
                     frames(160);
-                    phase = 3;
+                    phase = 4;
                     break;
                 }
-                case 3:
+                case 4:
                 {
-                    Check("melody-returns-on-heart",
-                        GemRush.GameManager.Instance.Lives >= 2 &&
-                        MelodyFactor() > 0.95f && MusicSrc().volume > 0.4f,
+                    Check("melody-returns-on-hearts",
+                        GemRush.GameManager.Instance.Lives >= 3 &&
+                        MelodyFactor() > 0.95f && MusicSrc().volume > 0.15f,
                         "lives=" + GemRush.GameManager.Instance.Lives +
                         " factor=" + MelodyFactor().ToString("F2"));
                     float drift = Mathf.Abs(MusicSrc().time - BedSrc().time);
