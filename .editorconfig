@@ -16,7 +16,11 @@ root = true
 
 [*]
 charset = utf-8
-end_of_line = crlf
+# Line endings are deliberately NOT enforced. The repo is developed on
+# Windows (CRLF) and checked by CI on Linux (LF), and git normalizes on
+# checkout — so an end_of_line rule produces a wall of "Fix end of line
+# marker" errors that carry no defect information. Whitespace rules
+# below are the ones that actually help readability in diffs.
 insert_final_newline = true
 trim_trailing_whitespace = true
 
