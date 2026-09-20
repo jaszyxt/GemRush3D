@@ -35,6 +35,14 @@ namespace GemRush
         // machine owns it — see the Hit-stop region — so it can never
         // stack with the Escape pause or outlive a state transition.
         const float HitStopSeconds = 0.12f;
+
+        // Child-safe death (difficulty pass, research: ages 6-8 begin
+        // struggling from about a third into a progression, and failure
+        // that erases progress is the main source of quitting). Five
+        // lives, and running out REFILLS rather than ending the run: a
+        // death costs a few seconds at the last checkpoint, never the
+        // gems you already collected or the level you already climbed.
+        public const int StartingLives = 5;
         bool hitStopActive;
         float hitStopResumeRealtime;
 
@@ -45,7 +53,7 @@ namespace GemRush
             Instance = this;
             State = GameState.Menu;
             CurrentLevel = 0;
-            Lives = 3;
+            Lives = StartingLives;
             ui = GetComponent<UIManager>();
         }
 
@@ -240,7 +248,7 @@ namespace GemRush
             ui.CloseQuitConfirm(); // the dialog lives over the menu only
             CurrentLevel = Mathf.Clamp(index, 0, LevelLibrary.Levels.Length - 1);
             GemsCollected = 0;
-            Lives = 3;
+            Lives = StartingLives;
             Elapsed = 0f;
             State = GameState.Playing;
 
@@ -319,7 +327,9 @@ namespace GemRush
         public void OnHeartCollected()
         {
             if (State != GameState.Playing) return;
-            Lives = Mathf.Min(Lives + 1, 5);
+            // A heart tops you up above the starting five: the buffer is
+            // there to be spent, and collecting one should feel like it.
+            Lives = Mathf.Min(Lives + 1, StartingLives + 3);
             ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
         }
 
@@ -357,18 +367,23 @@ namespace GemRush
 
             if (Lives <= 0)
             {
-                State = GameState.GameOver;
-                AudioManager.Instance.PlayGameOver();
-                ui.ShowGameOver();
+                // Never end the run. Running out refills the buffer and
+                // puts Pip back at the checkpoint he already earned: for
+                // a young player the cost of dying is a few seconds, and
+                // the gems, the climb and the timer all survive. (This
+                // branch used to end the level and wipe the run; the
+                // GameOver screen remains for compatibility but play no
+                // longer reaches it.)
+                Lives = StartingLives;
+                ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal,
+                    Lives, Elapsed);
             }
-            else
-            {
-                if (Lives == 1) AudioManager.Instance.PlayLivesLow();
-                GameBootstrap.Player.TeleportTo(SpawnPoint);
-                GameBootstrap.CameraRig.SnapToTarget();
-                AudioManager.Instance.RestartMusicAtTonic();
-                ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
-            }
+            else if (Lives == 1) AudioManager.Instance.PlayLivesLow();
+
+            GameBootstrap.Player.TeleportTo(SpawnPoint);
+            GameBootstrap.CameraRig.SnapToTarget();
+            AudioManager.Instance.RestartMusicAtTonic();
+            ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
         }
 
         public void OnPlayerDied()

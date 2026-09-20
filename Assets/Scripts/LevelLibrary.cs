@@ -213,8 +213,14 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 3.5f, 19f, 6f, 1f, 6f));    // rest 1
             l.Platforms.Add(new PlatformSpec(4f, 7.5f, 35f, 5f, 1f, 5f));    // rest 2
             l.Platforms.Add(new PlatformSpec(-2f, 12.5f, 52f, 6f, 1f, 6f));  // rest 3
-            l.Platforms.Add(new PlatformSpec(3f, 13.5f, 60f, 4f, 1f, 4f));
-            l.Platforms.Add(new PlatformSpec(-3f, 14.5f, 68f, 4f, 1f, 4f));
+            // The two mid-climb islands were 4 wide with a 10.9 gap against
+            // an 11.0 maximum jump — a 1% margin, i.e. an exact-max jump
+            // with no room for a wobble (the difficulty pass measures route
+            // hops and these were the tightest in the game). Four more
+            // units of deck give a child a real landing without changing
+            // the climb, the movers or the pacing.
+            l.Platforms.Add(new PlatformSpec(3f, 13.5f, 60f, 6f, 1f, 6f));
+            l.Platforms.Add(new PlatformSpec(-3f, 14.5f, 68f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 15.5f, 80f, 10f, 1f, 10f)); // high arena
             l.Platforms.Add(new PlatformSpec(0f, 21.5f, 103f, 12f, 1f, 12f));// summit
 

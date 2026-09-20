@@ -46,11 +46,27 @@ namespace GemRush
             public Vector2 Half;
             public int Group;
             public string Kind;
-        /// Echo bridges: which bell solidifies them (only meaningful when
-        /// Kind is "echo bridge"; struct default 0 would alias bell 0).
-        public int BellIndex;
+            /// Echo bridges: which bell solidifies them (only meaningful
+            /// when Kind is "echo bridge"; struct default 0 would alias
+            /// bell 0).
+            public int BellIndex;
 
             public float TopY { get { return Center.y; } }
+        }
+
+        /// One platform-to-platform hop and how much room it leaves the
+        /// player. Margin = 1 − gap/range: 0.0 means the gap is exactly
+        /// Pip's maximum jump ("pixel-perfect" — the single most
+        /// frustrating construct in the platformer taxonomy), 0.5 means
+        /// the gap is half of what he can clear.
+        public struct Hop
+        {
+            public string From;
+            public string To;
+            public float Gap;
+            public float Range;
+            public float Rise;
+            public float Margin;
         }
 
         /// Outcome of one level's analysis. Problems block finishing
@@ -64,6 +80,14 @@ namespace GemRush
             public List<int> Path = new List<int>();
             public List<string> Problems = new List<string>();
             public List<string> Warnings = new List<string>();
+            /// Every jump edge between platform-like surfaces, with the
+            /// tightest first — the difficulty instrument.
+            public List<Hop> Hops = new List<Hop>();
+            /// Just the hops the completion route actually takes, in
+            /// order: the jumps a player is genuinely asked to make.
+            public List<Hop> RouteHops = new List<Hop>();
+            /// The tightest hop on the level (Margin nearest zero).
+            public float TightestMargin = 1f;
             public bool Bad
             {
                 get { return !PortalReachable || Problems.Count > 0; }
@@ -119,6 +143,9 @@ namespace GemRush
                     else
                         linked = JumpLinks(level, tops[i], tops[j]);
                     if (linked) { adj[i].Add(j); adj[j].Add(i); }
+                    // Measure the hop whether or not it is linked: the
+                    // margin is a difficulty fact, not a connectivity one.
+                    RecordHop(r, tops[i], tops[j]);
                 }
             }
             AddWindEdges(level, tops, adj);
@@ -242,6 +269,29 @@ namespace GemRush
                 int goal = reachedGoal;
                 for (int at = goal; at >= 0; at = prev[at]) r.Path.Add(at);
                 r.Path.Reverse();
+                // The jumps this route actually asks for — the only hops
+                // a difficulty band should be judged on.
+                for (int k = 1; k < r.Path.Count; k++)
+                {
+                    Top from = tops[r.Path[k - 1]];
+                    Top to = tops[r.Path[k]];
+                    if (!IsJumpSurface(from) || !IsJumpSurface(to)) continue;
+                    if (from.Group == to.Group && from.Group >= 0) continue;
+                    float rise = to.TopY - from.TopY;
+                    float range = JumpRange(JumpVelocity, rise);
+                    if (range <= 0f) continue;
+                    float gap = RectDistXz(from, to, TakeoffExpand, LandExpand);
+                    if (gap > range) continue; // crossed by a ride
+                    r.RouteHops.Add(new Hop
+                    {
+                        From = Describe(from),
+                        To = Describe(to),
+                        Gap = gap,
+                        Range = range,
+                        Rise = rise,
+                        Margin = 1f - gap / range
+                    });
+                }
             }
 
             CheckCheckpoints(level, tops, seen, r);
@@ -415,6 +465,41 @@ namespace GemRush
             return best;
         }
 
+        // ---- Difficulty bands (research-derived) ----
+        // A hop whose gap is near Pip's maximum is the "pixel-perfect
+        // jump" the platformer-design literature names as the single most
+        // frustrating construct: one solution, no error tolerance, and for
+        // a young player indistinguishable from an impossible gap. Two
+        // bands, measured as margin = 1 − gap/range:
+        //   < TightMargin       — frustrating at any age
+        //   < ChildMargin       — too tight in the teaching regions (I–VII)
+        // Regions VIII+ are allowed the tighter band so the last third of
+        // the game can still bite.
+        public const float TightMargin = 0.15f;
+        public const float ChildMargin = 0.25f;
+        public const int ChildRegionLevelCount = 19; // regions I-VII
+
+        /// Hops that fail the band for their level's region. Measured on
+        /// the ROUTE, not on every pair: with 40-100 surfaces per level a
+        /// pairwise sweep flags hundreds of diagonal non-jumps that no
+        /// player ever attempts, which drowns the real signal. The route
+        /// is the sequence of hops the shortest completion actually takes,
+        /// so that is what gets measured.
+        public static List<Hop> OffendingHops(LevelDefinition level, int index)
+        {
+            Report r = Analyze(level);
+            float floor = index < ChildRegionLevelCount
+                ? ChildMargin : TightMargin;
+            List<Hop> bad = new List<Hop>();
+            for (int i = 0; i < r.RouteHops.Count; i++)
+                if (r.RouteHops[i].Margin < floor) bad.Add(r.RouteHops[i]);
+            bad.Sort(delegate (Hop x, Hop y)
+            {
+                return x.Margin.CompareTo(y.Margin);
+            });
+            return bad;
+        }
+
         /// XZ distance between two axis-aligned rects (0 when overlapping).
         static float RectDistXz(Vector3 cA, Vector2 hA, Vector3 cB, Vector2 hB)
         {
@@ -423,6 +508,54 @@ namespace GemRush
             if (dx <= 0f && dz <= 0f) return 0f;
             return Mathf.Sqrt(Mathf.Max(dx, 0f) * Mathf.Max(dx, 0f)
                             + Mathf.Max(dz, 0f) * Mathf.Max(dz, 0f));
+        }
+
+        /// Measure one hop for the difficulty report. Only platform-like
+        /// surfaces (the green decks and the movers that ferry between
+        /// them) are measured: bridges, ribbons and see-saws are rides,
+        /// not jumps, and including them would flood the report with
+        /// near-zero gaps that no one has to jump.
+        static void RecordHop(Report r, Top a, Top b)
+        {
+            bool aJump = IsJumpSurface(a);
+            bool bJump = IsJumpSurface(b);
+            if (!aJump || !bJump) return;
+            if (a.Group == b.Group && a.Group >= 0) return; // one body
+
+            float rise = b.TopY - a.TopY;
+            float range = JumpRange(JumpVelocity, rise);
+            if (range <= 0f) return; // not a jump candidate at all
+            float gap = RectDistXz(a, b, TakeoffExpand, LandExpand);
+            if (gap > range) return; // not a crossing anyone would attempt
+            float margin = 1f - gap / range;
+            r.Hops.Add(new Hop
+            {
+                From = Describe(a),
+                To = Describe(b),
+                Gap = gap,
+                Range = range,
+                Rise = rise,
+                Margin = margin
+            });
+            if (margin < r.TightestMargin) r.TightestMargin = margin;
+        }
+
+        static bool IsJumpSurface(Top t)
+        {
+            return t.Kind == "platform" || t.Kind == "mover";
+        }
+
+        /// Tightest-first, for reporting.
+        public static List<Hop> TightestHops(Report r, int count)
+        {
+            List<Hop> sorted = new List<Hop>(r.Hops);
+            sorted.Sort(delegate (Hop x, Hop y)
+            {
+                return x.Margin.CompareTo(y.Margin);
+            });
+            if (sorted.Count > count) sorted.RemoveRange(count,
+                sorted.Count - count);
+            return sorted;
         }
 
         static float RectDistXz(Top a, Top b, float expandA, float expandB)
