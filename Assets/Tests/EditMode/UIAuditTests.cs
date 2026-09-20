@@ -143,42 +143,67 @@ namespace GemRush.Tests
             UIManager ui = BuildUI(true);
             try
             {
-                Button[] rows = GetPrivate(ui, "settingsButtons") as Button[];
-                Button back = GetPrivate(ui, "settingsBackButton") as Button;
-                Assert.IsNotNull(rows, "settings rows built");
-                Assert.IsNotNull(back, "settings BACK built");
-
-                for (int i = 0; i < rows.Length; i++)
-                {
-                    for (int j = i + 1; j < rows.Length; j++)
-                    {
-                        // Only same-column pairs can collide vertically.
-                        if (Mathf.Abs(XBand(rows[i]).Min - XBand(rows[j]).Min) < 1f)
-                            AssertNoOverlap(YBand(rows[i]), YBand(rows[j]),
-                                "settings row " + i + " vs row " + j);
-                    }
-                }
-
-                Band backBand = YBand(back);
-                for (int i = 0; i < rows.Length; i++)
-                {
-                    AssertNoOverlap(YBand(rows[i]), backBand,
-                        "settings row " + i + " vs BACK");
-                }
-
-                // And everything stays on screen.
-                for (int i = 0; i < rows.Length; i++)
-                {
-                    Band b = YBand(rows[i]);
-                    Assert.GreaterOrEqual(b.Min, 0f, "row " + i + " on screen");
-                    Assert.LessOrEqual(b.Max, 900f, "row " + i + " on screen");
-                }
-                Assert.GreaterOrEqual(YBand(back).Min, 0f, "BACK on screen");
+                AssertSettingsLayoutSane(ui, "touch");
             }
             finally
             {
                 TearDownUI(ui);
             }
+        }
+
+        // The DESKTOP column carries the extra Fullscreen row, so it is the
+        // longer list of the two. It was passing the overlap assertions while
+        // running off the bottom of the screen entirely.
+        [Test]
+        public void Settings_DesktopLayout_NoOverlap()
+        {
+            UIManager ui = BuildUI(false);
+            try
+            {
+                AssertSettingsLayoutSane(ui, "desktop");
+            }
+            finally
+            {
+                TearDownUI(ui);
+            }
+        }
+
+        static void AssertSettingsLayoutSane(UIManager ui, string label)
+        {
+            Button[] rows = GetPrivate(ui, "settingsButtons") as Button[];
+            Button back = GetPrivate(ui, "settingsBackButton") as Button;
+            Assert.IsNotNull(rows, label + ": settings rows built");
+            Assert.IsNotNull(back, label + ": settings BACK built");
+            Assert.GreaterOrEqual(rows.Length, 8, label + ": rows present");
+
+            for (int i = 0; i < rows.Length; i++)
+            {
+                for (int j = i + 1; j < rows.Length; j++)
+                {
+                    // Only same-column pairs can collide vertically.
+                    if (Mathf.Abs(XBand(rows[i]).Min - XBand(rows[j]).Min) < 1f)
+                        AssertNoOverlap(YBand(rows[i]), YBand(rows[j]),
+                            label + ": settings row " + i + " vs row " + j);
+                }
+            }
+
+            Band backBand = YBand(back);
+            for (int i = 0; i < rows.Length; i++)
+            {
+                AssertNoOverlap(YBand(rows[i]), backBand,
+                    label + ": settings row " + i + " vs BACK");
+            }
+
+            // On-screen containment, both ends. Its absence is what let a
+            // real off-screen desktop column ship.
+            for (int i = 0; i < rows.Length; i++)
+            {
+                Band b = YBand(rows[i]);
+                Assert.GreaterOrEqual(b.Min, 0f, label + ": row " + i + " on screen");
+                Assert.LessOrEqual(b.Max, 900f, label + ": row " + i + " on screen");
+            }
+            Assert.GreaterOrEqual(backBand.Min, 0f, label + ": BACK on screen");
+            Assert.LessOrEqual(backBand.Max, 900f, label + ": BACK on screen");
         }
 
         // The pause stack (RESUME / RESTART / PHOTO / MENU+SETTINGS) is the
