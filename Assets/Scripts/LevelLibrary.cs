@@ -209,9 +209,13 @@ namespace GemRush
             l.WinLine = "The summit is yours. Somewhere above, a very large storm quietly apologizes.";
             l.Milestone = "REGION CHARTED: THE STORM. The atlas has its first ink.";
 
-            l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));       // start
-            l.Platforms.Add(new PlatformSpec(0f, 3.5f, 19f, 6f, 1f, 6f));    // rest 1
-            l.Platforms.Add(new PlatformSpec(4f, 7.5f, 35f, 5f, 1f, 5f));    // rest 2
+            l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 10f, 1f, 10f));     // start
+            // Rest 1 is 8 wide, not 6: the jump from the start deck is
+            // 10.9 against an 11.0 maximum (a 1% margin — no wobble room),
+            // and a child who tries to skip the elevator deserves a landing
+            // rather than a fall. The mover still ferries the climb.
+            l.Platforms.Add(new PlatformSpec(0f, 3.5f, 19f, 8f, 1f, 8f));    // rest 1
+            l.Platforms.Add(new PlatformSpec(4f, 7.5f, 35f, 6f, 1f, 6f));    // rest 2
             l.Platforms.Add(new PlatformSpec(-2f, 12.5f, 52f, 6f, 1f, 6f));  // rest 3
             // The two mid-climb islands were 4 wide with a 10.9 gap against
             // an 11.0 maximum jump — a 1% margin, i.e. an exact-max jump

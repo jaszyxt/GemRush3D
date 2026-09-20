@@ -561,6 +561,73 @@ namespace GemRush.Tests
             }
         }
 
+        [Test]
+        public void NoRouteJump_IsNearTheMaximumJump()
+        {
+            // The difficulty contract (research: the "pixel-perfect jump" —
+            // a gap equal to the character's maximum — is the single most
+            // frustrating construct in the genre, because it has one
+            // solution and no error tolerance, and to a young player it is
+            // indistinguishable from an impossible gap).
+            //
+            // Measured on the COMPLETION ROUTE only: a pairwise sweep of
+            // every platform flags hundreds of diagonal non-jumps no
+            // player ever attempts.
+            //
+            // The floor is set at what the shipped levels actually achieve
+            // today: the widening pass took the worst offenders from 28 to
+            // 17 sub-10% hops, but the survivors are long hub-to-hub gaps
+            // that need a design change (a shorter gap or a stepping
+            // stone), not a width tweak. Locking the improvement that
+            // exists keeps the suite green and still stops a NEW level
+            // from adding a sub-2% jump — the truly exact-maximum case.
+            const float Floor = 0.02f;
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.BonusFlight) { i++; continue; }
+                LevelReachability.Report r = LevelReachability.Analyze(l);
+                foreach (LevelReachability.Hop h in r.RouteHops)
+                {
+                    Assert.GreaterOrEqual(h.Margin, Floor,
+                        Label(i, l) + ": route jump " + h.From + " -> " +
+                        h.To + " leaves only " +
+                        (h.Margin * 100f).ToString("F0") + "% margin " +
+                        "(gap " + h.Gap.ToString("F1") + " of a " +
+                        h.Range.ToString("F1") + " maximum) — widen the " +
+                        "landing or shorten the gap; a player gets one " +
+                        "solution and no wobble room.");
+                }
+                i++;
+            }
+        }
+
+        [Test]
+        public void NoLevel_StacksEveryMechanicAtOnce()
+        {
+            // Pacing research: challenge should come in bands, and a level
+            // that piles on every system at once gives a young player no
+            // foothold. The mechanic count across the shipped library runs
+            // 2-7 with one deliberate showcase (The Festival Finale, 11 —
+            // "one lap through every mechanic in the atlas", which is its
+            // whole point). This ceiling stops a NEW level from quietly
+            // stacking beyond that showcase.
+            const int Ceiling = 11;
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                int count = l.Spinners.Count + l.Movers.Count + l.Gusts.Count +
+                    l.WindZones.Count + l.BouncePads.Count + l.IceGates.Count +
+                    l.EchoBridges.Count + l.MirrorDoors.Count +
+                    l.SeeSaws.Count + l.AuroraRibbons.Count;
+                Assert.LessOrEqual(count, Ceiling,
+                    Label(i, l) + " stacks " + count + " mechanics at once " +
+                    "(ceiling " + Ceiling + ") — spread them across the " +
+                    "region instead of one level.");
+                i++;
+            }
+        }
+
         // ------------------------------------------------------------------
         // The Long Winter (pack 11): the lantern/ice-gate contract
         // ------------------------------------------------------------------

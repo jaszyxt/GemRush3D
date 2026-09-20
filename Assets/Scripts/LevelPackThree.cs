@@ -28,8 +28,8 @@ namespace GemRush
             l.Mission = "Gloomfang took the rematch badly — he dove straight through the cloud floor with the Master Sunstone, heading down where no Sky-Keeper has ever gone. Down is the only way left, Pip. Try to fall with style.";
             l.WinLine = "The bottom of the sky has a floor after all. It looks... nervous to see you.";
 
-            l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
-            l.Platforms.Add(new PlatformSpec(0f, 0f, 9f, 5f, 1f, 5f));
+            l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 10f, 1f, 10f));     // start
+            l.Platforms.Add(new PlatformSpec(0f, 0f, 9f, 7f, 1f, 7f));
             l.Platforms.Add(new PlatformSpec(3f, -3f, 17f, 5f, 1f, 5f));    // first drop
             l.Platforms.Add(new PlatformSpec(-2f, -5f, 26f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(0f, -7f, 35f, 7f, 1f, 7f));    // checkpoint isle
