@@ -186,6 +186,93 @@ namespace GemRush.Tests
             }
         }
 
+        // ---------- Perches (a place to sit) ----------
+
+        [Test]
+        public void Perch_PickSpot_IsDeterministicPerLevel()
+        {
+            foreach (LevelDefinition level in LevelLibrary.Levels)
+            {
+                Vector3 first = Perch.PickSpot(level);
+                Vector3 again = Perch.PickSpot(level);
+                Assert.Less(Vector3.Distance(first, again), 0.0001f,
+                    level.Name + ": the perch must not wander between runs");
+            }
+        }
+
+        [Test]
+        public void Perch_NeverLandsInsideAHazardOrOnACollectible()
+        {
+            // Both of these were REAL bugs caught by measuring and by
+            // looking at a captured frame:
+            //  - the first scoring pass put a bench directly under a
+            //    spinner's sweep (a "rest" inside a hazard arc);
+            //  - an earlier one put 23 of 27 within 1.5 units of a gem.
+            // A rest spot in danger is worse than no rest spot, so both
+            // are now invariants.
+            const float GuardianReach = 6f;   // arm is 9u end to end
+            const float GemClearance = 2.5f;
+            const float KillMargin = 2f;
+
+            foreach (LevelDefinition level in LevelLibrary.Levels)
+            {
+                if (level.BonusFlight) continue;
+                if (level.Platforms.Count < 2) continue;
+
+                Vector3 spot = Perch.PickSpot(level);
+
+                foreach (SpinnerSpec s in level.Spinners)
+                {
+                    float d = Vector2.Distance(
+                        new Vector2(spot.x, spot.z),
+                        new Vector2(s.PlatformTop.x, s.PlatformTop.z));
+                    Assert.GreaterOrEqual(d, GuardianReach,
+                        level.Name + ": a perch sits " + d.ToString("F1") +
+                        "u from a guardian hub — inside its sweep");
+                }
+
+                foreach (Vector3 gem in level.Gems)
+                {
+                    float d = Vector3.Distance(gem, spot);
+                    Assert.GreaterOrEqual(d, GemClearance,
+                        level.Name + ": a perch sits " + d.ToString("F1") +
+                        "u from a gem");
+                }
+
+                Assert.Greater(spot.y, level.KillY + KillMargin,
+                    level.Name + ": a perch must not hang below the kill plane");
+            }
+        }
+
+        [Test]
+        public void Perch_LandsOnARoomyPlatformNotAMidHopTile()
+        {
+            // The signal that identifies a restful spot in this game is
+            // roominess: the wide landings are where the course breathes.
+            // (Levels are linear staircases along Z, so "distance from the
+            // route" is meaningless — every tile sits on the line.)
+            foreach (LevelDefinition level in LevelLibrary.Levels)
+            {
+                if (level.BonusFlight) continue;
+                if (level.Platforms.Count < 2) continue;
+
+                Vector3 spot = Perch.PickSpot(level);
+                bool onBigPlatform = false;
+                foreach (PlatformSpec p in level.Platforms)
+                {
+                    Vector3 top = p.Center +
+                        new Vector3(0f, p.Size.y * 0.5f, 0f);
+                    float reach = Mathf.Max(p.Size.x, p.Size.z) * 0.6f;
+                    if (Vector3.Distance(
+                            new Vector3(spot.x, top.y, spot.z), top) < reach
+                        && Mathf.Min(p.Size.x, p.Size.z) >= 5f)
+                        onBigPlatform = true;
+                }
+                Assert.IsTrue(onBigPlatform,
+                    level.Name + ": the perch must stand on a roomy platform");
+            }
+        }
+
         // ---------- Particle budgets (the phone build) ----------
 
         [Test]

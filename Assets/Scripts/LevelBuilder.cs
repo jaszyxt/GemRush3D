@@ -143,6 +143,10 @@ namespace GemRush
 
             DailyGem.PlaceIfActive(level, parent);
             GoldenGem.PlaceIfHidden(level, parent);
+            // A bench on the level's calmest off-route platform. Derived
+            // from level data (nothing to author, no spec type), so it
+            // cannot be forgotten by a future pack or break the audits.
+            Perch.PlaceIfCalm(level, parent);
 
             float courseLength = level.Portal.z + 14f;
             for (int i = 0; i < level.Platforms.Count; i++)
