@@ -74,9 +74,14 @@ fi
 # Normalize the ".." so a concatenation cannot produce the doubled
 # ".../lib/mono/lib/mono/4.5" path, and so errors show a real path.
 CSC_DIR="$(cd "$CSC_DIR" 2>/dev/null && pwd || echo "$CSC_DIR")"
-CSC="$CSC_DIR/csc.exe"
-if [ ! -f "$CSC" ]; then
-  echo "FAIL: csc.exe not found at $CSC"
+# Mono names the compiler csc.exe on Windows and plain csc on Linux.
+if [ -f "$CSC_DIR/csc.exe" ]; then
+  CSC="$CSC_DIR/csc.exe"
+elif [ -f "$CSC_DIR/csc" ]; then
+  CSC="$CSC_DIR/csc"
+else
+  echo "FAIL: no csc compiler found in $CSC_DIR"
+  echo "      (install mono-devel, which provides it)"
   exit 1
 fi
 
