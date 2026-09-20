@@ -432,7 +432,7 @@ namespace GemRush
             // sizes. Both share PLAY's anchor: with paging (below) the
             // touch grid needs only two rows, so the desktop rhythm works
             // for touch too.
-            bool touch = Input.touchSupported;
+            bool touch = IsTouchLayout();
             float playY = 0.46f;
             playButton = MakeButton(menuPanel.transform, Strings.Play,
                 new Vector2(0.5f, playY), new Vector2(0f, 0f),
@@ -722,7 +722,7 @@ namespace GemRush
             // The floor-enlarged touch pause button (100 units) would poke
             // past the top edge at the keyboard/mouse anchor, so touch sits
             // it a little lower.
-            bool touch = Input.touchSupported;
+            bool touch = IsTouchLayout();
             Button pause = MakeButton(hudPanel.transform, "II",
                 new Vector2(0.645f, touch ? 0.93f : 0.965f), new Vector2(0f, 0f),
                 new Vector2(58f, 58f),
@@ -908,34 +908,70 @@ namespace GemRush
             // desktop only. Voice and Mission Text sit together because they
             // are the two halves of the same choice: how the briefing
             // reaches the player.
-            string[] names = IsDesktopPlatform()
+            //
+            // The row list and the sizing must branch on the SAME thing.
+            // They used to disagree (list on IsDesktopPlatform, sizes on
+            // touch capability), which produced a real overlap the moment
+            // the two differed: nine desktop rows laid out at the desktop
+            // step, but floored to touch-sized buttons.
+            bool touch = IsTouchLayout();
+            string[] names = touch
                 ? new string[] { Strings.SettingSound, Strings.SettingVoice,
                     Strings.SettingMissionText, Strings.SettingShake,
                     Strings.SettingHaptics, Strings.SettingShadows,
-                    Strings.SettingLefty, Strings.SettingTextSize,
-                    Strings.SettingFullscreen }
+                    Strings.SettingLefty, Strings.SettingTextSize }
                 : new string[] { Strings.SettingSound, Strings.SettingVoice,
                     Strings.SettingMissionText, Strings.SettingShake,
                     Strings.SettingHaptics, Strings.SettingShadows,
-                    Strings.SettingLefty, Strings.SettingTextSize };
+                    Strings.SettingLefty, Strings.SettingTextSize,
+                    Strings.SettingFullscreen };
             settingsLabels = new Text[names.Length];
             settingsButtons = new Button[names.Length];
-            bool touch = Input.touchSupported;
             // Nine desktop rows at the old 0.068 step would run into BACK,
-            // so the column tightens and BACK drops with it. Touch keeps
-            // its 2-column grid (now five rows, the last one centered).
-            float step = IsDesktopPlatform() ? 0.058f : 0.068f;
+            // so the column tightens and BACK drops with it.
+            //
+            // Touch lays the same rows out as a 2-column grid. Its spacing
+            // is DERIVED, not fixed: the rows are 100-unit targets and the
+            // grid has to clear both the BACK button and its own neighbours.
+            // The old fixed 0.125 step left the bottom row overlapping BACK
+            // by 59.5 units (caught by Settings_TouchLayout_NoOverlap).
+            float step = touch ? 0.068f : 0.058f;
+            float touchTop = 0.60f;      // first grid row, just under the title
+            float touchBackY = 0.10f;    // BACK, clear below the grid
+            float desktopTop = 0.655f;
+            float desktopBackY = 0.075f;
+            float touchTargetSize = TouchFloorUnits;
+            float targetHalf = touchTargetSize / 900f * 0.5f;
+            float touchRowStep = 0f;
+            if (touch)
+            {
+                int gridRows = (names.Length + 1) / 2;
+                // Space the rows so the last one sits above BACK with a
+                // margin, and never closer than the targets need.
+                float usable = touchTop - (touchBackY + targetHalf * 2f + 0.02f);
+                touchRowStep = gridRows > 1
+                    ? Mathf.Max(targetHalf * 2f + 0.01f, usable / (gridRows - 1))
+                    : 0f;
+            }
+            // The desktop column gets the same treatment: derive its step so
+            // the last row clears BACK at whatever the target floor is.
+            if (!touch)
+            {
+                float lastRowY = desktopBackY + targetHalf * 2f + 0.02f;
+                if (names.Length > 1 && desktopTop > lastRowY)
+                    step = Mathf.Min(step, (desktopTop - lastRowY) / (names.Length - 1));
+            }
             for (int i = 0; i < names.Length; i++)
             {
                 int index = i;
                 float x = 0.5f;
-                float y = touch ? 0f : 0.655f - i * step;
+                float y = touch ? 0f : desktopTop - i * step;
                 if (touch)
                 {
                     int row = i / 2;
                     int inRow = (i == names.Length - 1 && i % 2 == 0) ? 1 : 2;
                     x = 0.5f + (i % 2 - (inRow - 1) / 2f) * 0.42f;
-                    y = 0.59f - row * 0.125f;
+                    y = touchTop - row * touchRowStep;
                 }
                 Button b = MakeButton(settingsPanel.transform, names[i],
                     new Vector2(x, y), new Vector2(0f, 0f),
@@ -945,7 +981,8 @@ namespace GemRush
             }
 
             settingsBackButton = MakeButton(settingsPanel.transform, Strings.Back,
-                new Vector2(0.5f, touch ? 0.17f : 0.075f), new Vector2(0f, 0f),
+                new Vector2(0.5f, touch ? touchBackY : desktopBackY),
+                new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseSettings(); });
 
             // Gamepad navigation (D5): touch lays the rows out as a
@@ -1392,12 +1429,28 @@ namespace GemRush
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.72f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
+            // The four-row pause stack (RESUME / RESTART / PHOTO / MENU +
+            // SETTINGS) is the tightest vertical layout in the game: at the
+            // old 0.42/0.30/0.185/0.075 spacing its lowest gap was 1 unit
+            // SHORT of the 100-unit targets (caught by
+            // Pause_TouchLayout_NoOverlap). Space it from a derived step so
+            // the rows can never collide however tall the targets get.
+            bool touch = IsTouchLayout();
+            // Row centres, top to bottom; PHOTO is desktop-only, so on touch
+            // the stack is three rows and gets more room each.
+            int stackRows = IsDesktopPlatform() ? 4 : 3;
+            float stackTop = 0.42f;
+            float stackBottom = 0.075f;
+            float step = stackRows > 1
+                ? (stackTop - stackBottom) / (stackRows - 1) : 0f;
+            float rowY(int n) { return stackTop - n * step; }
+
             pauseResumeButton = MakeButton(pausePanel.transform, Strings.Resume,
-                new Vector2(0.5f, 0.42f), new Vector2(0f, 0f),
+                new Vector2(0.5f, rowY(0)), new Vector2(0f, 0f),
                 new Vector2(360f, 84f), delegate { GameManager.Instance.ResumeGame(); });
 
             pauseRestartButton = MakeButton(pausePanel.transform, Strings.RestartLevel,
-                new Vector2(0.5f, 0.30f), new Vector2(0f, 0f),
+                new Vector2(0.5f, rowY(1)), new Vector2(0f, 0f),
                 new Vector2(360f, 68f),
                 delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
 
@@ -1408,19 +1461,19 @@ namespace GemRush
             // documented future item.
             if (IsDesktopPlatform())
                 pausePhotoButton = MakeButton(pausePanel.transform, Strings.Photo,
-                    new Vector2(0.5f, 0.185f), new Vector2(0f, 0f),
+                    new Vector2(0.5f, rowY(2)), new Vector2(0f, 0f),
                     new Vector2(360f, 60f), delegate { ShowPhotoMode(); });
 
             // Settings joins the pause menu (D9): sound/haptics/text size
             // are adjustable mid-run, without abandoning the level. MENU and
-            // SETTINGS share the bottom row; the touch floor widens both,
-            // which still clears side by side.
+            // SETTINGS share the bottom row, which clears horizontally.
+            float bottomRowY = rowY(stackRows - 1);
             pauseMenuButton = MakeButton(pausePanel.transform, Strings.Menu,
-                new Vector2(0.5f - 0.13f, 0.075f), new Vector2(0f, 0f),
+                new Vector2(0.5f - 0.13f, bottomRowY), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
 
             pauseSettingsButton = MakeButton(pausePanel.transform, Strings.Settings,
-                new Vector2(0.5f + 0.13f, 0.075f), new Vector2(0f, 0f),
+                new Vector2(0.5f + 0.13f, bottomRowY), new Vector2(0f, 0f),
                 new Vector2(260f, 62f), delegate { ShowSettings(); });
 
             MenuNav.Set(pauseResumeButton, null, pauseRestartButton, null, null);
@@ -2286,14 +2339,36 @@ namespace GemRush
             return text;
         }
 
+        /// Which layout to build: the touch one (bigger targets, paged grid)
+        /// or the keyboard/mouse one. Production reads the device capability;
+        /// the edit-mode suite overrides it so BOTH layouts are testable —
+        /// the editor always reports touchSupported false, which left every
+        /// touch layout unverified (the settings grid silently overlapped
+        /// its BACK button because of exactly that blindness).
+        public static bool ForceTouchLayoutForTests;
+
+        static bool IsTouchLayout()
+        {
+            return ForceTouchLayoutForTests || Input.touchSupported;
+        }
+
+        /// Touch hit-target floor in reference units. One place to change:
+        /// the layouts that must clear a floored button read this too, so
+        /// raising the floor cannot silently break a stack.
+        /// 100 units ~ 45 dp at the 900-unit reference height; the 2026
+        /// research pass targets the 48-60 pt band recommended for ages
+        /// 6-8 (research: Appendix D, directive D13).
+        public const float TouchFloorUnits = 100f;
+
         /// Touch hit-target floor: on touch devices no tappable button may
-        /// be smaller than 100x100 ref units (~48 dp at the 900-unit
-        /// reference height), so requested sizes grow to meet the floor.
-        /// Keyboard and mouse builds keep their designed sizes unchanged.
+        /// be smaller than TouchFloorUnits in either axis, so requested
+        /// sizes grow to meet the floor. Keyboard and mouse builds keep
+        /// their designed sizes unchanged.
         static Vector2 TouchTarget(Vector2 size)
         {
-            if (!Input.touchSupported) return size;
-            return new Vector2(Mathf.Max(size.x, 100f), Mathf.Max(size.y, 100f));
+            if (!IsTouchLayout()) return size;
+            return new Vector2(Mathf.Max(size.x, TouchFloorUnits),
+                Mathf.Max(size.y, TouchFloorUnits));
         }
 
         Button MakeButton(Transform parent, string label, Vector2 anchor,

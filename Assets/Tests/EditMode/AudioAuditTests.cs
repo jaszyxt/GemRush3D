@@ -184,7 +184,7 @@ namespace GemRush.Tests
             // computed key variable, which is not part of this namespace
             // (it lives in the 1000.. band, built as index*32 + length).
             var re = new System.Text.RegularExpressions.Regex(
-                "noteCache\.TryGetValue\((?<key>\d+)[,)]");
+                @"noteCache\.TryGetValue\((?<key>\d+)[,)]");
             foreach (System.Text.RegularExpressions.Match m in re.Matches(source))
             {
                 string key = m.Groups["key"].Value.Trim();

@@ -51,6 +51,206 @@ namespace GemRush.Tests
                 BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, value);
         }
 
+        // ------------------------------------------------------------------
+        // Layout probes. The screens are built for a 1600x900 reference
+        // (CanvasScaler matchWidthOrHeight = 1), so a panel's rect resolves
+        // to a real band in reference units once the parent's height is
+        // known. These helpers exist because the earlier settings test
+        // compared ANCHOR values, which pass while the rendered rects
+        // overlap by 60 units — the bug that motivated this harness.
+        // ------------------------------------------------------------------
+
+        /// A vertical/horizontal band in reference units.
+        struct Band
+        {
+            public float Min, Max;
+            public float Span { get { return Max - Min; } }
+            public bool Overlaps(Band other)
+            {
+                return Min < other.Max && other.Min < Max;
+            }
+            public float OverlapAmount(Band other)
+            {
+                return Mathf.Min(Max, other.Max) - Mathf.Max(Min, other.Min);
+            }
+        }
+
+        /// Resolve a point-anchored button's Y band in reference units.
+        /// Buttons use anchorMin == anchorMax (a point anchor) with a pivot
+        /// of (0.5, 0.5) and anchoredPosition (0,0), so the rect is centred
+        /// on the anchor: the band is centre +/- half the size.
+        static Band YBand(Button b, float parentHeight = 900f)
+        {
+            RectTransform rt = b.GetComponent<RectTransform>();
+            float centre = rt.anchorMin.y * parentHeight;
+            float half = rt.sizeDelta.y * 0.5f;
+            Band band;
+            band.Min = centre - half;
+            band.Max = centre + half;
+            return band;
+        }
+
+        static Band XBand(Button b, float parentWidth = 1600f)
+        {
+            RectTransform rt = b.GetComponent<RectTransform>();
+            float centre = rt.anchorMin.x * parentWidth;
+            float half = rt.sizeDelta.x * 0.5f;
+            Band band;
+            band.Min = centre - half;
+            band.Max = centre + half;
+            return band;
+        }
+
+        /// Fail with both spans quoted, so a future regression is readable
+        /// rather than a bare assertion.
+        static void AssertNoOverlap(Band a, Band b, string label)
+        {
+            if (a.Overlaps(b))
+                Assert.Fail(label + ": overlap of " +
+                    a.OverlapAmount(b).ToString("0.0") + " ref units (" +
+                    a.Min.ToString("0.0") + ".." + a.Max.ToString("0.0") +
+                    " vs " + b.Min.ToString("0.0") + ".." + b.Max.ToString("0.0") + ")");
+        }
+
+        /// Build the UI with the TOUCH layout forced on. The editor always
+        /// reports Input.touchSupported == false, so without this the whole
+        /// mobile layout is untestable — and that blindness is exactly how
+        /// the settings grid came to overlap its BACK button unnoticed.
+        static UIManager BuildUI(bool touch)
+        {
+            UIManager.ForceTouchLayoutForTests = touch;
+            GameObject go = new GameObject(touch ? "UIProbeTouch" : "UIProbeDesk",
+                typeof(RectTransform));
+            go.AddComponent<UIManager>();
+            InvokePrivate(go.GetComponent<UIManager>(), "Awake");
+            return go.GetComponent<UIManager>();
+        }
+
+        static void TearDownUI(UIManager ui)
+        {
+            UIManager.ForceTouchLayoutForTests = false;
+            if (ui != null) Object.DestroyImmediate(ui.gameObject);
+            SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
+        }
+
+        // The touch settings grid must not overlap itself or its BACK button.
+        // This is the test the old anchor-comparison version should have been:
+        // it caught a real 60-unit overlap between the bottom row and BACK
+        // that the anchor check passed straight through.
+        [Test]
+        public void Settings_TouchLayout_NoOverlap()
+        {
+            UIManager ui = BuildUI(true);
+            try
+            {
+                Button[] rows = GetPrivate(ui, "settingsButtons") as Button[];
+                Button back = GetPrivate(ui, "settingsBackButton") as Button;
+                Assert.IsNotNull(rows, "settings rows built");
+                Assert.IsNotNull(back, "settings BACK built");
+
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    for (int j = i + 1; j < rows.Length; j++)
+                    {
+                        // Only same-column pairs can collide vertically.
+                        if (Mathf.Abs(XBand(rows[i]).Min - XBand(rows[j]).Min) < 1f)
+                            AssertNoOverlap(YBand(rows[i]), YBand(rows[j]),
+                                "settings row " + i + " vs row " + j);
+                    }
+                }
+
+                Band backBand = YBand(back);
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    AssertNoOverlap(YBand(rows[i]), backBand,
+                        "settings row " + i + " vs BACK");
+                }
+
+                // And everything stays on screen.
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    Band b = YBand(rows[i]);
+                    Assert.GreaterOrEqual(b.Min, 0f, "row " + i + " on screen");
+                    Assert.LessOrEqual(b.Max, 900f, "row " + i + " on screen");
+                }
+                Assert.GreaterOrEqual(YBand(back).Min, 0f, "BACK on screen");
+            }
+            finally
+            {
+                TearDownUI(ui);
+            }
+        }
+
+        // The pause stack (RESUME / RESTART / PHOTO / MENU+SETTINGS) is the
+        // tightest vertical stack in the game: at the old floor its lowest gap
+        // was 1 unit short before any change.
+        [Test]
+        public void Pause_TouchLayout_NoOverlap()
+        {
+            UIManager ui = BuildUI(true);
+            try
+            {
+                Button resume = GetPrivate(ui, "pauseResumeButton") as Button;
+                Button restart = GetPrivate(ui, "pauseRestartButton") as Button;
+                Button menu = GetPrivate(ui, "pauseMenuButton") as Button;
+                Assert.IsNotNull(resume, "RESUME built");
+                Assert.IsNotNull(restart, "RESTART built");
+                Assert.IsNotNull(menu, "MENU built");
+
+                AssertNoOverlap(YBand(resume), YBand(restart), "RESUME vs RESTART");
+                AssertNoOverlap(YBand(restart), YBand(menu), "RESTART vs MENU row");
+
+                // PHOTO is desktop-only, so the touch build may not have it.
+                Button photo = GetPrivate(ui, "pausePhotoButton") as Button;
+                if (photo != null)
+                {
+                    AssertNoOverlap(YBand(restart), YBand(photo),
+                        "RESTART vs PHOTO");
+                    AssertNoOverlap(YBand(photo), YBand(menu), "PHOTO vs MENU row");
+                }
+
+                for (int i = 0; i < 4; i++)
+                {
+                    Button b = i == 0 ? resume : i == 1 ? restart
+                        : i == 2 ? (photo != null ? photo : menu) : menu;
+                    if (b == null) continue;
+                    Band band = YBand(b);
+                    Assert.GreaterOrEqual(band.Min, 0f, "pause button on screen");
+                    Assert.LessOrEqual(band.Max, 900f, "pause button on screen");
+                }
+            }
+            finally
+            {
+                TearDownUI(ui);
+            }
+        }
+
+        // Win and game-over screens: the primary action and the row beneath it.
+        [Test]
+        public void ResultScreens_TouchLayout_NoOverlap()
+        {
+            UIManager ui = BuildUI(true);
+            try
+            {
+                Button winNext = GetPrivate(ui, "winNextButton") as Button;
+                Button winReplay = GetPrivate(ui, "winReplayButton") as Button;
+                Button winMenu = GetPrivate(ui, "winMenuButton") as Button;
+                AssertNoOverlap(YBand(winNext), YBand(winReplay),
+                    "win NEXT vs REPLAY");
+                AssertNoOverlap(XBand(winReplay), XBand(winMenu),
+                    "win REPLAY vs MENU");
+
+                Button overTry = GetPrivate(ui, "overTryButton") as Button;
+                Button overMenu = GetPrivate(ui, "overMenuButton") as Button;
+                AssertNoOverlap(YBand(overTry), YBand(overMenu),
+                    "game over TRY AGAIN vs MENU");
+            }
+            finally
+            {
+                TearDownUI(ui);
+            }
+        }
+
         [Test]
         public void SafeArea_KeepsAnchorsInsideTheView()
         {
