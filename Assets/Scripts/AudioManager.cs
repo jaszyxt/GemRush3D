@@ -64,6 +64,17 @@ namespace GemRush
         AudioClip pageTurn;
 
         // ---- Lazily synthesized celebratory clips ----
+        // Shared cache; keep this key map current. A collision silently
+        // plays the WRONG sound at a key moment — which is exactly what
+        // happened when PlayTrophy and PlayConcert both claimed 9600.
+        //   0..9000   melody notes, keyed by frequency*10 (PlayNote)
+        //   100..112  gem combo ladder steps (PlayPickup)
+        //   1000..    bell tones, keyed by index and ring length
+        //   9000      complete fanfare     9100+step  star dings
+        //   9200      new record           9300       bloom run
+        //   9400      crystal run          9500       milestone chime
+        //   9600      trophy chime         9700       trail tier
+        //   9800      level unlock         9900       festival concert
         readonly Dictionary<int, AudioClip> noteCache =
             new Dictionary<int, AudioClip>();
 
@@ -744,10 +755,10 @@ namespace GemRush
         public void PlayConcert()
         {
             if (!SaveSystem.SoundOn) return;
-            if (!noteCache.TryGetValue(9600, out AudioClip clip))
+            if (!noteCache.TryGetValue(9900, out AudioClip clip))
             {
                 clip = SfxSynth.FestivalConcert("sfx_concert");
-                noteCache[9600] = clip;
+                noteCache[9900] = clip;
             }
             source.PlayOneShot(clip);
         }

@@ -169,6 +169,37 @@ namespace GemRush.Tests
         // ------------------------------------------------------------------
 
         [Test]
+        public void NoteCacheKeys_AreUnique()
+        {
+            // The lazy clip cache is keyed by hand-picked integers. Two
+            // methods claiming one key silently play the wrong sound at a
+            // key moment (PlayTrophy and PlayConcert both used 9600, so the
+            // Aurora Festival's concert played the trophy chime). Reading
+            // the source is the only way to catch it — the dictionary
+            // itself cannot tell you two constants were meant to differ.
+            string source = System.IO.File.ReadAllText(
+                Application.dataPath + "/Scripts/AudioManager.cs");
+            var keys = new System.Collections.Generic.Dictionary<string, int>();
+            // Only literal numeric keys: the bell-tone cache uses a
+            // computed key variable, which is not part of this namespace
+            // (it lives in the 1000.. band, built as index*32 + length).
+            var re = new System.Text.RegularExpressions.Regex(
+                "noteCache\.TryGetValue\((?<key>\d+)[,)]");
+            foreach (System.Text.RegularExpressions.Match m in re.Matches(source))
+            {
+                string key = m.Groups["key"].Value.Trim();
+                int seen;
+                if (keys.TryGetValue(key, out seen))
+                    Assert.Fail("noteCache key '" + key +
+                        "' is claimed by more than one clip — one of them " +
+                        "will silently play the other's sound");
+                keys[key] = m.Index;
+            }
+            Assert.Greater(keys.Count, 5,
+                "the key scanner found nothing — the pattern changed");
+        }
+
+        [Test]
         public void EveryVoice_SitsInTheAudibleWorldBand()
         {
             // The gap-fill pass shipped one cue that was numerically correct
