@@ -32,7 +32,11 @@ namespace GemRush
 
         public static void Create(Transform hudParent, Font font)
         {
-            if (!Input.touchSupported) return;
+            // Same seam the rest of the UI uses: production reads the device,
+            // tests can force either layout (the editor reports touchSupported
+            // false, which otherwise makes the joystick/jump placement
+            // unverifiable).
+            if (!UIManager.TouchLayoutActive()) return;
 
             GameObject root = new GameObject("TouchControls");
             root.transform.SetParent(hudParent, false);

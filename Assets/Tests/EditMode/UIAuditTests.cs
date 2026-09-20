@@ -276,6 +276,82 @@ namespace GemRush.Tests
             }
         }
 
+        // The HUD's top band is the tightest horizontal layout in the game:
+        // level | gems | clock | pause | lives, all on one row. At the raised
+        // touch floor the pause button used to overlap the clock by 20 units
+        // and the lives counter by 4 - it was wedged into a gap that no
+        // longer existed. Pinned for both layouts.
+        [Test]
+        public void Hud_PauseButton_FitsTheTopBand()
+        {
+            foreach (bool touch in new bool[] { true, false })
+            {
+                UIManager ui = BuildUI(touch);
+                string tag = touch ? "touch" : "desktop";
+                try
+                {
+                    ui.ShowHUD();
+                    Transform hud = ui.transform.Find("UICanvas/SafeRoot/HudPanel");
+                    Assert.IsNotNull(hud, tag + ": HUD built");
+
+                    Button pause = null;
+                    foreach (Button b in hud.GetComponentsInChildren<Button>(true))
+                    {
+                        Text lbl = b.GetComponentInChildren<Text>();
+                        if (lbl != null && lbl.text == "II") { pause = b; break; }
+                    }
+                    Assert.IsNotNull(pause, tag + ": pause button found");
+
+                    Band pauseX = XBand(pause);
+
+                    // Compare against the readout bands directly.
+                    Band time = TextXBand(hud.Find("HudDynamic/Time")
+                        .GetComponent<RectTransform>());
+                    Band lives = TextXBand(hud.Find("HudDynamic/Lives")
+                        .GetComponent<RectTransform>());
+                    Band gems = TextXBand(hud.Find("HudDynamic/Gems")
+                        .GetComponent<RectTransform>());
+                    Band level = TextXBand(hud.Find("HudDynamic/Level")
+                        .GetComponent<RectTransform>());
+
+                    AssertNoOverlap(pauseX, time, tag + ": pause vs clock");
+                    AssertNoOverlap(pauseX, lives, tag + ": pause vs lives");
+                    AssertNoOverlap(pauseX, gems, tag + ": pause vs gems");
+                    AssertNoOverlap(pauseX, level, tag + ": pause vs level");
+
+                    // And it is the full target size, not shrunk to fit.
+                    RectTransform prt = (RectTransform)pause.transform;
+                    float expected = touch ? UIManager.TouchFloorUnits : 58f;
+                    Assert.AreEqual(expected, prt.sizeDelta.x, 0.5f,
+                        tag + ": pause hits the target size");
+                    Assert.AreEqual(expected, prt.sizeDelta.y, 0.5f,
+                        tag + ": pause hits the target size");
+
+                    // On screen, both axes.
+                    Assert.GreaterOrEqual(pauseX.Min, 0f, tag + ": pause on screen");
+                    Assert.LessOrEqual(pauseX.Max, 1600f, tag + ": pause on screen");
+                    Band pauseY = YBand(pause);
+                    Assert.GreaterOrEqual(pauseY.Min, 0f, tag + ": pause on screen");
+                    Assert.LessOrEqual(pauseY.Max, 900f, tag + ": pause on screen");
+                }
+                finally
+                {
+                    TearDownUI(ui);
+                }
+            }
+        }
+
+        /// X band of a stretch-anchored text (anchorMin.x != anchorMax.x),
+        /// which is how the HUD readouts are laid out — YBand/XBand assume a
+        /// point anchor and would be wrong for them.
+        static Band TextXBand(RectTransform rt)
+        {
+            Band b;
+            b.Min = rt.anchorMin.x * 1600f + rt.offsetMin.x;
+            b.Max = rt.anchorMax.x * 1600f + rt.offsetMax.x;
+            return b;
+        }
+
         [Test]
         public void SafeArea_KeepsAnchorsInsideTheView()
         {

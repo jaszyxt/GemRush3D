@@ -717,20 +717,38 @@ namespace GemRush
 
             hudTime = MakeText(dyn, "Time", "0:00.0", 28,
                 Color.white, TextAnchor.MiddleCenter,
-                new Vector2(0.48f, 0.93f), new Vector2(0.62f, 1f), 4f, 4f, 4f, 2f);
+                new Vector2(0.48f, 0.93f), new Vector2(0.60f, 1f), 4f, 4f, 4f, 2f);
 
-            // The floor-enlarged touch pause button (100 units) would poke
-            // past the top edge at the keyboard/mouse anchor, so touch sits
-            // it a little lower.
+            // The pause button shares the top band with the readouts, so its
+            // slot is RESERVED rather than hoped for: the band is split into
+            // segments and the button owns the one between the clock and the
+            // lives counter. It is sized from the same floor as every other
+            // target, so raising that floor cannot make it collide with its
+            // neighbours (Hud_PauseButton_FitsTheTopBand pins it).
             bool touch = IsTouchLayout();
+            float pauseSize = touch ? TouchFloorUnits : 58f;
+            // Segment boundaries in screen fractions.
+            const float timeEnd = 0.60f;   // clock ends here
+            const float livesStart = 0.78f;// lives counter starts here
+            float pauseCentreX = (timeEnd + livesStart) * 0.5f;
+            float pauseHalfFrac = pauseSize / 1600f * 0.5f;
+            // Keep the button inside its gap even if the floor grows past it.
+            float gapHalfFrac = (livesStart - timeEnd) * 0.5f;
+            if (pauseHalfFrac > gapHalfFrac) pauseHalfFrac = gapHalfFrac;
+
+            // Vertically: centre it so the whole target fits under the top
+            // edge (the floor-sized button would otherwise poke past it), and
+            // align with the readout band so the row reads as one line.
+            float pauseHalfFracY = pauseSize / 900f * 0.5f;
+            float pauseCentreY = 1f - pauseHalfFracY - 0.004f;
             Button pause = MakeButton(hudPanel.transform, "II",
-                new Vector2(0.645f, touch ? 0.93f : 0.965f), new Vector2(0f, 0f),
-                new Vector2(58f, 58f),
+                new Vector2(pauseCentreX, pauseCentreY), new Vector2(0f, 0f),
+                new Vector2(pauseSize, pauseSize),
                 delegate { GameManager.Instance.PauseGame(); }, 26);
 
             hudLives = MakeText(dyn, "Lives", Strings.HudLives(3), 28,
                 starGold, TextAnchor.MiddleRight,
-                new Vector2(0.68f, 0.93f), new Vector2(1f, 1f), 8f, 4f, 24f, 2f);
+                new Vector2(livesStart, 0.93f), new Vector2(1f, 1f), 8f, 4f, 24f, 2f);
 
             // Virtual joystick + jump button; only appears on touch devices.
             TouchControls.Create(hudPanel.transform, font);
@@ -2358,6 +2376,13 @@ namespace GemRush
         static bool IsTouchLayout()
         {
             return ForceTouchLayoutForTests || Input.touchSupported;
+        }
+
+        /// Public read of the same decision, for TouchControls and any other
+        /// widget that must agree with the UI about which layout is live.
+        public static bool TouchLayoutActive()
+        {
+            return IsTouchLayout();
         }
 
         /// Touch hit-target floor in reference units. One place to change:
