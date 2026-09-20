@@ -33,7 +33,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start + lantern
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 0f, 20f, 10f, 1f, 8f));    // gate isle
-            l.Platforms.Add(new PlatformSpec(3f, 1f, 30f, 5f, 1f, 5f));
+            l.Platforms.Add(new PlatformSpec(3f, 1f, 30f, 9f, 1f, 9f));
             l.Platforms.Add(new PlatformSpec(-2f, 2f, 38f, 5f, 1f, 5f));    // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 2f, 48f, 9f, 1f, 9f));     // pocket isle
             l.Platforms.Add(new PlatformSpec(0f, 3f, 62f, 6f, 1f, 6f));
@@ -86,7 +86,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 0f, 20f, 10f, 1f, 8f));    // gate isle
             l.Platforms.Add(new PlatformSpec(0f, 1f, 33f, 8f, 1f, 8f));     // fountain isle
             l.Platforms.Add(new PlatformSpec(-2f, 2f, 44f, 5f, 1f, 5f));
-            l.Platforms.Add(new PlatformSpec(2f, 3f, 53f, 5f, 1f, 5f));     // checkpoint isle
+            l.Platforms.Add(new PlatformSpec(2f, 3f, 53f, 8f, 1f, 8f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 3f, 66f, 10f, 1f, 9f));    // ferry pier
             l.Platforms.Add(new PlatformSpec(0f, 3f, 86f, 7f, 1f, 7f));     // ferry landing
             l.Platforms.Add(new PlatformSpec(-2f, 4f, 94f, 5f, 1f, 5f));

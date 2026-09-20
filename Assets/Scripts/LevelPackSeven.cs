@@ -149,11 +149,11 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 2f, 27f, 6f, 1f, 6f));    // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 3f, 37f, 10f, 1f, 10f));   // garden arena A
             l.Platforms.Add(new PlatformSpec(3f, 4f, 47f, 4f, 1f, 4f));
-            l.Platforms.Add(new PlatformSpec(-2f, 5f, 55f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(-2f, 5f, 55f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(0f, 6f, 63f, 7f, 1f, 7f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 7f, 73f, 10f, 1f, 10f));   // garden arena B
             l.Platforms.Add(new PlatformSpec(4f, 8f, 84f, 4f, 1f, 4f));
-            l.Platforms.Add(new PlatformSpec(-2f, 9f, 92f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(-2f, 9f, 92f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 10f, 101f, 7f, 1f, 7f));   // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 11f, 112f, 10f, 1f, 10f)); // garden arena C
             l.Platforms.Add(new PlatformSpec(3f, 12.5f, 123f, 4f, 1f, 4f));

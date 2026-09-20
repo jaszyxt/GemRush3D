@@ -39,7 +39,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 2f, 48f, 5f, 1f, 5f));    // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 3f, 58f, 7f, 1f, 7f));
             l.Platforms.Add(new PlatformSpec(0f, 3f, 64f, 4f, 1f, 4f));     // bell pedestal
-            l.Platforms.Add(new PlatformSpec(0f, 3f, 79f, 6f, 1f, 6f));     // bridge landing
+            l.Platforms.Add(new PlatformSpec(0f, 3f, 79f, 8f, 1f, 8f));     // bridge landing
             l.Platforms.Add(new PlatformSpec(3f, 4f, 87f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(-2f, 5f, 95f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(0f, 6f, 105f, 12f, 1f, 12f));  // summit

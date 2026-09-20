@@ -138,7 +138,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 2f, 22f, 6f, 1f, 6f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 8.5f, 40f, 6f, 1f, 6f));   // ledge, checkpoint
             l.Platforms.Add(new PlatformSpec(4f, 10f, 49f, 4f, 1f, 4f));    // tight hop chain
-            l.Platforms.Add(new PlatformSpec(-2f, 11.5f, 57f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(-2f, 11.5f, 57f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(3f, 12.5f, 64f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 13.5f, 73f, 7f, 1f, 7f));  // mid checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 20f, 92f, 6f, 1f, 6f));    // ledge 2

@@ -90,13 +90,13 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 1f, 18f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(0f, 2f, 27f, 6f, 1f, 6f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 3f, 37f, 9f, 1f, 9f));     // guardian arena
-            l.Platforms.Add(new PlatformSpec(0f, 3f, 46f, 5f, 1f, 5f));     // door pedestal
+            l.Platforms.Add(new PlatformSpec(0f, 3f, 46f, 7f, 1f, 7f));     // door pedestal
             l.Platforms.Add(new PlatformSpec(0f, 8f, 60f, 6f, 1f, 6f));     // high exit ledge
             l.Platforms.Add(new PlatformSpec(-2f, 9f, 68f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(3f, 10f, 76f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 11f, 85f, 7f, 1f, 7f));    // checkpoint isle
-            l.Platforms.Add(new PlatformSpec(0f, 11f, 94f, 4f, 1f, 4f));    // door pedestal 2
-            l.Platforms.Add(new PlatformSpec(0f, 12f, 112f, 6f, 1f, 6f));   // door exit isle
+            l.Platforms.Add(new PlatformSpec(0f, 11f, 94f, 7f, 1f, 7f));    // door pedestal 2
+            l.Platforms.Add(new PlatformSpec(0f, 12f, 112f, 7f, 1f, 7f));   // door exit isle
             l.Platforms.Add(new PlatformSpec(3f, 13f, 121f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(-2f, 14f, 129f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(0f, 15f, 139f, 12f, 1f, 12f)); // summit
@@ -155,15 +155,15 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 0f, 17f, 4f, 1f, 4f));     // door A pedestal
             l.Platforms.Add(new PlatformSpec(0f, 1f, 32f, 6f, 1f, 6f));     // door exit isle
             l.Platforms.Add(new PlatformSpec(-2f, 2f, 41f, 5f, 1f, 5f));
-            l.Platforms.Add(new PlatformSpec(3f, 3f, 50f, 5f, 1f, 5f));
+            l.Platforms.Add(new PlatformSpec(3f, 3f, 50f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 4f, 59f, 7f, 1f, 7f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 4f, 67f, 4f, 1f, 4f));     // door A pedestal
             l.Platforms.Add(new PlatformSpec(0f, 8f, 82f, 6f, 1f, 6f));     // high exit isle
             l.Platforms.Add(new PlatformSpec(-2f, 9f, 90f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(3f, 10f, 98f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 11f, 107f, 7f, 1f, 7f));   // checkpoint isle
-            l.Platforms.Add(new PlatformSpec(0f, 11f, 115f, 4f, 1f, 4f));   // door A pedestal
-            l.Platforms.Add(new PlatformSpec(0f, 14f, 132f, 6f, 1f, 6f));   // door exit isle
+            l.Platforms.Add(new PlatformSpec(0f, 11f, 115f, 5f, 1f, 5f));   // door A pedestal
+            l.Platforms.Add(new PlatformSpec(0f, 14f, 132f, 8f, 1f, 8f));   // door exit isle
             l.Platforms.Add(new PlatformSpec(0f, 15f, 142f, 9f, 1f, 9f));   // meadow arena
             l.Platforms.Add(new PlatformSpec(0f, 16f, 152f, 12f, 1f, 12f)); // meadow summit
 

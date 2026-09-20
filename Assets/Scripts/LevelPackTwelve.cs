@@ -147,7 +147,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 1f, 40f, 6f, 1f, 6f));     // updraft isle
             l.Platforms.Add(new PlatformSpec(0f, 6f, 52f, 5f, 1f, 5f));     // high shelf
             l.Platforms.Add(new PlatformSpec(0f, 6f, 74f, 6f, 1f, 6f));     // bell isle
-            l.Platforms.Add(new PlatformSpec(0f, 6f, 94f, 6f, 1f, 6f));     // bridge far isle
+            l.Platforms.Add(new PlatformSpec(0f, 6f, 94f, 7f, 1f, 7f));     // bridge far isle
             l.Platforms.Add(new PlatformSpec(0f, 6f, 110f, 6f, 1f, 6f));    // door B isle
             l.Platforms.Add(new PlatformSpec(0f, 6f, 118f, 9f, 1f, 9f));    // gate isle
             l.Platforms.Add(new PlatformSpec(0f, 9f, 168f, 12f, 1f, 12f));  // summit

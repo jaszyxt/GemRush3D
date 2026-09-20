@@ -163,7 +163,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 6f, 75f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 7f, 84f, 7f, 1f, 7f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 8f, 95f, 10f, 1f, 10f));   // garden arena
-            l.Platforms.Add(new PlatformSpec(0f, 8f, 118f, 6f, 1f, 6f));    // gust landing
+            l.Platforms.Add(new PlatformSpec(0f, 8f, 118f, 9f, 1f, 9f));    // gust landing
             l.Platforms.Add(new PlatformSpec(3f, 10f, 127f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(-2f, 11f, 136f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 12f, 146f, 13f, 1f, 13f)); // The Nest

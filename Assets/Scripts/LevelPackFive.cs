@@ -38,7 +38,7 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(4f, 9.5f, 52f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(-2f, 10.5f, 60f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 11.5f, 69f, 7f, 1f, 7f));  // checkpoint isle
-            l.Platforms.Add(new PlatformSpec(0f, 12f, 77f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(0f, 12f, 77f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 12.5f, 83f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(3f, 13.5f, 92f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(-2f, 14.5f, 101f, 5f, 1f, 5f));
@@ -92,7 +92,7 @@ namespace GemRush
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 6f, 1f, 6f));
-            l.Platforms.Add(new PlatformSpec(-3f, 1f, 19f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(-3f, 1f, 19f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(3f, 2f, 27f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 3f, 36f, 7f, 1f, 7f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 4f, 47f, 11f, 1f, 11f));   // spinner arena A
