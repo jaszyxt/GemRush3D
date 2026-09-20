@@ -175,7 +175,7 @@ namespace GemRush
                 renderer.sharedMaterial = font.material;
 
             Transform tr = go.transform;
-            Tweener.Value(0f, 1f, 0.9f, delegate(float k)
+            Tweener.Value(0f, 1f, 0.9f, delegate (float k)
             {
                 if (tr == null) return; // defensive, like Ring/SleepMote
                 tr.position = position + Vector3.up * (k * 1.7f);
@@ -223,7 +223,7 @@ namespace GemRush
                 renderer.sharedMaterial = font.material;
 
             Transform tr = go.transform;
-            Tweener.Value(0f, 1f, 2.2f, delegate(float k)
+            Tweener.Value(0f, 1f, 2.2f, delegate (float k)
             {
                 if (go == null) return; // world tore down mid-mote
                 tr.position = position + Vector3.up * (k * 1.15f)
@@ -383,7 +383,7 @@ namespace GemRush
             }
 
             Transform tr = go.transform;
-            Tweener.Value(0f, 1f, 0.5f, delegate(float k)
+            Tweener.Value(0f, 1f, 0.5f, delegate (float k)
             {
                 if (go == null) return; // world tore down mid-ring
                 float s = Mathf.Lerp(0.5f, 3.2f, k);

@@ -331,7 +331,7 @@ namespace GemRush
                         // reset scale of a fresh win screen.
                         RectTransform srt = star.rectTransform;
                         int seq = ++starPopSeq;
-                        Tweener.Value(1.6f, 1f, 0.28f, delegate(float k)
+                        Tweener.Value(1.6f, 1f, 0.28f, delegate (float k)
                         {
                             if (seq != starPopSeq) return;
                             srt.localScale = new Vector3(k, k, 1f);
@@ -2183,7 +2183,7 @@ namespace GemRush
             RectTransform rt = hudGems.rectTransform;
             float amp = crossed ? 0.45f : 0.25f;
             float seconds = crossed ? 0.4f : 0.25f;
-            Tweener.Value(0f, 1f, seconds, delegate(float k)
+            Tweener.Value(0f, 1f, seconds, delegate (float k)
             {
                 if (seq != gemPulseSeq) return;
                 float s = 1f + amp * Mathf.Sin(k * Mathf.PI);
@@ -2318,7 +2318,7 @@ namespace GemRush
             int gen = PanelGeneration(panel, true);
             panel.SetActive(true);
             group.alpha = 0f;
-            Tweener.Value(0f, 1f, 0.2f, delegate(float k)
+            Tweener.Value(0f, 1f, 0.2f, delegate (float k)
             {
                 if (gen != PanelGeneration(panel, false)) return;
                 group.alpha = k;
@@ -2336,7 +2336,7 @@ namespace GemRush
         {
             CanvasGroup group = PanelGroup(panel);
             int gen = PanelGeneration(panel, true);
-            Tweener.Value(1f, 0f, 0.12f, delegate(float k)
+            Tweener.Value(1f, 0f, 0.12f, delegate (float k)
             {
                 if (gen != PanelGeneration(panel, false)) return;
                 group.alpha = k;
@@ -2496,7 +2496,7 @@ namespace GemRush
             button.onClick.AddListener(delegate
             {
                 Vector3 rest = rt.localScale;
-                Tweener.Value(0f, 1f, 0.16f, delegate(float k)
+                Tweener.Value(0f, 1f, 0.16f, delegate (float k)
                 {
                     float s = Mathf.Lerp(0.9f, 1f, k);
                     rt.localScale = rest * s;

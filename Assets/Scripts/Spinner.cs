@@ -95,7 +95,8 @@ namespace GemRush
             {
                 float awake = wakeRadius > 0f
                     ? Mathf.Clamp01(currentSpeed / Mathf.Max(1f, degreesPerSecond))
-                    : 1f;                armMat.SetColor("_EmissionColor",
+                    : 1f;
+                armMat.SetColor("_EmissionColor",
                     armBase * (0.25f + awake * 0.75f));
             }
         }

@@ -77,7 +77,7 @@ namespace GemRush
             Transform tr = transform;
             tr.localScale = new Vector3(1.3f, 1.3f, 1.3f);
             ComboCrown self = this;
-            Tweener.Value(1.3f, 1f, 0.24f, delegate(float k)
+            Tweener.Value(1.3f, 1f, 0.24f, delegate (float k)
             {
                 if (self == null) return;
                 tr.localScale = new Vector3(k, k, k);
@@ -89,7 +89,7 @@ namespace GemRush
             showing = false;
             ComboCrown self = this;
             Transform tr = transform;
-            Tweener.Value(1f, 0f, 0.35f, delegate(float k)
+            Tweener.Value(1f, 0f, 0.35f, delegate (float k)
             {
                 if (self == null) return; // world rebuilt mid-fade
                 Color c = gold.color;
