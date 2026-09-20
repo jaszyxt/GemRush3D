@@ -62,23 +62,30 @@ Built and shipped — do not rebuild, extend instead:
 | Panel fade/scale transitions (0.2 s) | `UIManager` show/hide, `Tweener` |
 | FOV kick (bounce pads +8°, wind rides +5°, ShakeOn-gated, +10° cap) | `CameraFollow.FovKick` |
 | Skid dust, wind speed streaks, gust ride haptics | `PlayerController`, `WindStreaks`, `Haptics` |
-| Idle Pip ladder (glance → wave → yawn → nap under Gloomfang's shade) | `PlayerController.IdleLife` |
-| Pokeable flowers (pentatonic chime per flower) | `Props`/`FlowerPoke` |
+| Idle Pip ladder (glance 6s → wave 12s → sit+yawn 20s → sleep 35s under Gloomfang's shade) | `PlayerController.IdleLife` |
+| Pokeable flowers (pentatonic chime per flower) | `FlowerPoke`/`Props` |
 | Gloomfang giggle-raindrop bloom (10 s cooldown) | `Gloomfang`, `Fx` |
+| Golden-gem signal (mote trail, breathing glimmer, found outline, canon note) | `GoldenSignal`, `GoldenGem`, `Strings.GoldenNote` |
+| The Rest (slow win-drift, unrewarded, ShakeOn-gated) | `RestBeat` |
 
 ## Future queue (researched, ranked, mine to green-light)
 
-1. **Photo mode + share cards** — the nap-under-the-cloud moment deserves a
-   camera; also serves accessibility (pause the world, look around).
-2. **Ghost runs** — race your best-time self, translucent and friendly.
-3. **Pip's shelf** — a home hub that displays earned things (stars, gifts, the
-   crown). One-way menu changes at movement milestones is the model.
-4. **Parameterized music intensity** — explore/near-death crossfade, slow-and-
-   dark for danger (cozy tone: slow, never frantic). RESEARCH.md strategic item.
-5. **Golden-gem remix gate** — one hidden golden gem per level unlocks B-side
-   remixes (Celeste cassette model; Daily Gem plumbing exists).
-6. **Pack 14 The Guardian Games** — see-saws + Red Nine's carousel, canonical in
-   `docs/Movement-Two-Story.md`. Guard rule one is spin. Rule two: take turns.
+Shipped from this queue: photo mode + share cards, ghost runs, Pip's shelf,
+parameterized music intensity, golden-gem remix gate, the golden signal, and
+The Rest. What remains:
+
+1. **Secrets with a taught signal, applied beyond the golden** — the signal
+   law now has a working implementation (`GoldenSignal`); the next use is
+   teaching the *wonder* beats (prism gates, if the content door reopens) the
+   same way. Diegetic cue first, no UI marker, never missable-in-a-punishing
+   sense.
+2. **More micro-rest** — The Rest covers the win moment. Research (Slowdowns /
+   Stasis / Stillness) also favours **in-level** calm: an optional perch off
+   the route where the camera eases and the ambient mix opens. Zero reward
+   attached, or it stops being rest.
+3. **The guardian Games (Pack 14)** — see-saws exist (The Homecoming shipped
+   them); the carousel set-piece + level content are canonical in
+   `docs/Movement-Two-Story.md`. Shelved with the rest of the content pause.
 
 ## Rejected (do not re-litigate)
 
@@ -86,6 +93,13 @@ Jump wind-up (fights the jump buffer), camera lookahead (wobble; revisit only if
 long glides feel directionless), mid-level mood flips (doesn't fit the level
 data model — do moods at level granularity), difficulty selectors, streak guilt,
 scarcity of any kind. Delight here is abundant, unhurried, and kind.
+
+**Also rejected, now that the research is in:** rewarding the rest beat
+(attaching a reward converts rest into a task — Cook's law: an activity must be
+satisfying in itself, and "when the reward outweighs its gentle momentary
+pleasure, the activity becomes extrinsic and loses its cozy appeal"); quantified
+friendship/relationship scores (the "transactional kindness" anti-pattern);
+day/streak notifications of any kind.
 
 ## Source index
 
@@ -95,3 +109,32 @@ Nintendo's kishōtenketsu level structure (Hayashida, GDC 2015) · "Cozy Games"
 (Daniel Cook, Lostgarden) · "Designing for Coziness" (Game Developer) ·
 Sakurai's Creating Games: "Being Kind to Beginners" · Designing Game Feel: A
 Survey (arXiv 2025) · Team ASOBI idle-animation showcases (community catalogs).
+
+Added in the 2026-09-21 research pass ("The Kindness Layer"):
+
+- **Nicole Lazzaro, "4 Keys 2 Fun"** — empirical emotion taxonomy (facial
+  coding over ~100M player experiences). Bestsellers engage 3 of the 4 keys per
+  session; and *wonder is an emotion adults feel very rarely*, which makes it
+  disproportionately valuable to a game that can deliver it. Source for the
+  wonder-first framing of any future prism-gate work.
+- **Secret/discovery craft (Rumbral's collectible design; Outer Wilds
+  environmental-storytelling scholarship; Super Mario Odyssey's collectible
+  softness)** — teach the *signal* early; diegetic cues, never UI markers;
+  collectibles carry narrative weight rather than filler; hide them in optional
+  space; previously-found collectibles leave a faded outline and nothing is
+  ever permanently missable. Source for `GoldenSignal`.
+- **Reflective-play research (ACM CHI 2024 "A Design Framework for Reflective
+  Play"; thatgamecompany's GDC 2025 "It's Okay to Slow Down"; Attention
+  Restoration theory applied to games; the HAW Hamburg cozy-games taxonomy)** —
+  name the patterns Slowdowns, Stasis and Stillness, cite Animal Crossing's
+  bench and *Flower*'s measurable stress reduction. Source for `RestBeat`.
+- **Cozy market/design analysis (KOCCA trend data; Wanderstop and Dorfromantik
+  design interviews)** — "cozy" in Steam descriptions rose from 0.4% (2022) to
+  3.1% (2025); the demand driver is **autonomy**, not "healing"; and the
+  recurring anti-pattern to avoid is friendship/relationship systems that
+  become *transactional* (quantified kindness points). Source for the
+  "rewarding the rest is rejected" rule above.
+- **Adaptive-music literature (Celeste FMOD analysis theses; DMuSe layer/intensity
+  documentation)** — vertical layering, stingers, and quantized transitions;
+  already implemented, retained as the reference for future music states.
+

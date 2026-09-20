@@ -62,6 +62,22 @@ session can pick them up without re-researching.
 
 ## ADAPT — queued backlog (researched, ranked, not yet built)
 
+> **Status note (2026-09-21):** this list is now largely SHIPPED. Kept
+> verbatim below as the research record — the ticks show where each idea
+> landed. It had gone stale enough to mislead a new session, which is its
+> own hazard: treat this section as history, not as a to-do.
+>
+> DONE: combo pitch-ramp (`AudioManager.PlayPickup`), death/win ducking +
+> tonic restart (`AudioManager.DuckFor` / `RestartMusicAtTonic`),
+> gust→music phase-lock (`AudioManager.GetMusicPhase`), checkpoint cadence,
+> parameterized music intensity (`AudioManager` melody crossfade), milestone
+> chime + ring, skid dust, wind streaks, gust-ride haptics, HUD gem pulse,
+> D11 string table (`Strings.cs`), weather remixes (`Remixes.cs`),
+> golden-gem gate (`GoldenGem.cs`), forward-pass audit
+> (`LevelReachability.cs` + `tools/LevelAudit`).
+> OPEN: bell/echo/mirror index-integrity tests, `Dormant` foreshadowing,
+> the optional `string Phase` twist field.
+
 **Audio (highest-value queue; most files were mid-flight in Pack 9/10 work):**
 - **Combo pitch-ramp on pickups** (XS): streak counter in
   `AudioManager.PlayPickup`; freq × `2^(min(streak,12)/12)`; the `noteCache`
@@ -124,9 +140,12 @@ support, difficulty selectors, font-size slider.
   latency is the enemy of this game's identity (Sakurai's own trade-off note).
 - Camera lookahead — ship the soft zone first; Keren flags extrapolation
   wobble on jumps; revisit only if long glides feel directionless.
-- Hit-stop on death — valuable but touches `Time.timeScale` (pause interplay)
-  in a file the main session was actively editing; queued with a guard design
-  (≤150 ms, unscaled-time restore, never stacks with Escape pause).
+- ~~Hit-stop on death~~ — **NO LONGER SKIPPED: SHIPPED.** It was deferred
+  only because it touches `Time.timeScale` (pause interplay) while that file
+  was mid-edit. It now lives in `GameManager` with exactly the guard design
+  proposed here (≤150 ms, unscaled-time restore, never stacks with Escape
+  pause) and was independently reviewed: `TickHitStop()` runs before every
+  state gate, so the freeze can never outlive a pause or a respawn.
 - Wonder-seed mid-level state flips — per-zone mood doesn't fit the per-level
   data model; defer until LevelDefinition grows zones.
 

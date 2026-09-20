@@ -14,7 +14,11 @@ namespace GemRush
     /// never affect the race.
     public static class GhostStore
     {
-        const float SampleInterval = 0.1f;   // 10 Hz
+        /// 10 Hz, shared with GhostRecorder and GhostRunner so the sample
+        /// rate lives in exactly one place — it used to be a second
+        /// hardcoded 0.1f in each, and a drifted copy would silently
+        /// mis-time every replay.
+        public const float SampleInterval = 0.1f;
         const int MaxSamples = 9000;         // 15 minutes of level
 
         /// Encode: seconds-since-start -> position, packed compactly.
@@ -145,16 +149,19 @@ namespace GemRush
                 ? GameManager.Instance.State : GameState.Menu;
             if (state != GameState.Playing)
             {
-                // Death/respawn or pause breaks the run: a ghost should be
-                // a deathless line. Keep recording from the new position —
-                // the ghost then shows the actual route, teleports and all.
-                Stop();
+                // Death/respawn or pause interrupts the run, but it must
+                // not END it: a run with a death still has a route worth
+                // showing. Skip sampling while the level is not live and
+                // pick straight back up when play resumes — the ghost then
+                // shows the real route, teleports and all, instead of
+                // stopping dead at the first death.
+                nextSample = 0f;
                 return;
             }
             nextSample -= Time.deltaTime;
             if (nextSample <= 0f)
             {
-                nextSample = 0.1f;
+                nextSample = GhostStore.SampleInterval;
                 samples.Add(player.transform.position);
             }
         }
@@ -212,9 +219,12 @@ namespace GemRush
             if (state == GameState.Playing)
                 elapsed += Time.deltaTime;
 
-            // Interpolate along the 10 Hz samples: sample i happens at
-            // i * 0.1 s. Past the end, the ghost waits at the goal.
-            float t = elapsed / 0.1f;
+            // Interpolate along the samples: sample i happens at
+            // i * SampleInterval. Past the end, the ghost waits at the
+            // goal. The recorder and this clock both advance only while
+            // the level is live, so a death's downtime is excluded from
+            // the route on both sides and the line stays continuous.
+            float t = elapsed / GhostStore.SampleInterval;
             int i = Mathf.Min((int)t, samples.Count - 1);
             int j = Mathf.Min(i + 1, samples.Count - 1);
             float f = Mathf.Clamp01(t - i);

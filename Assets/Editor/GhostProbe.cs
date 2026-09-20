@@ -118,7 +118,8 @@ namespace GemRush.EditorTools
                         float elapsed = (float)elapsedField.GetValue(
                             runnerComponent);
                         float z = ghost.transform.position.z;
-                        float expectZ = Mathf.Min(elapsed / 0.1f, 99f);
+                        float expectZ = Mathf.Min(
+                            elapsed / GemRush.GhostStore.SampleInterval, 99f);
                         Check("ghost-replay-fidelity",
                             Mathf.Abs(z - expectZ) < 0.35f,
                             "elapsed " + elapsed.ToString("F2") + "s -> z=" +
