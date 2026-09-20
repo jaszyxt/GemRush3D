@@ -517,3 +517,90 @@ owner); MarkOther on mouse/touch; mobile photo path.
 
 **Note:** the boot-visible photo bar itself was independently fixed in
 `00d4f5c` (art agent) — `HideAll` coverage remains as belt-and-braces.
+
+## Appendix D — 2026 research pass (UI/UX agent · 2026-09-21)
+
+A fresh literature pass over the UI/UX surface, checked line-by-line against
+the shipped code (audit quoted `UIManager.cs`, `TouchControls.cs`, `Fx.cs`
+and `SaveSystem.cs`). Findings are stated as **research says / we do /
+verdict**, so the gap is visible rather than implied.
+
+### D.1 Findings
+
+| Area | Research says | We do | Verdict |
+|---|---|---|---|
+| Touch targets | 44 pt / 48 dp floor; **48–60 pt for ages 6–8**; ≥ 8 dp spacing | `TouchTarget()` floors at 100 ref units ≈ **45 dp** | **Under the kids' bar** → D13 |
+| Thumb ergonomics | Primary actions bottom corners; top ~40 % is a dead zone on > 6" phones | Pause button is **top-centre** of the HUD | Tunable → D14 |
+| Text rendering | Legacy `UI.Text` deprecated (no bug fixes); uGUI is **not** migrated to ATG until ~6.8 | All legacy `Text`; 0 TextMeshPro | **Deferred by decision** → D17 |
+| UI batching | Split canvases by change rate; group siblings by material | Root canvas + one `HudDynamic` split; every label carries an `Outline` | One cheap gain left → D15 |
+| Kid cognitive load | Working memory 3–5 items; **≤ 2 screens to content**; audio over text | Menu → Play is one step; **Settings is a single 9-row list** | Rows exceed the scanning budget → D16 |
+| HUD via eye-tracking | Minimise fixation load; keep status consolidated | 4 status readouts, one band, change-cached | **No change needed** |
+| Wayfinding | Even minimal landmarks stabilise orientation in screen-based 3D | **Zero** minimap / compass / marker; only a near-range portal hum | Real gap → D18 |
+
+### D.2 The queue (D13–D18)
+
+**D13 · Kid-scale touch targets (P1).** Raise the touch floor to **120 ref
+units (≈ 54 dp)** — inside the 48–60 pt band the research recommends for
+ages 6–8, and still within the paged 5×2 grid budget. Re-verify the grid and
+the settings 2-column layout against it; assert inter-target spacing
+(≥ 8 dp) in a test rather than assuming it.
+**DoD:** every tappable target ≥ 120×120 touch units; spacing assertion
+green; no screen overflows at 4:3 / 16:10 / 20:9.
+
+**D14 · Pause button out of the dead zone (P2).** Move the HUD pause control
+from top-centre to a thumb-reachable edge. Requires a real layout pass: it
+shares the band with `hudLives` (x 0.68–1.0) and the touch floor already
+pushed it to y 0.93, so collision with the lives readout and the notch must
+be checked, not assumed.
+**DoD:** in-editor proof of no overlap at 4:3 and 20:9; anchor test pinned.
+
+**D15 · One batching break to remove (P2).** Buttons already share
+`Fx.CircleSprite()`, but each label's `Outline` is a second material.
+**Measure first** with the Frame Debugger at our scale (5 visible level
+buttons + labels); if it breaks batches, share one outline material rather
+than instancing per label.
+**DoD:** Frame Debugger before/after numbers recorded here; no visual change.
+
+**D16 · Settings grouping (P2).** Nine boolean rows is a long scan for a
+6–8 audience (≤ 2 screens to content, 3–5 items in working memory). Group
+the same rows under **Audio / Display / Controls** so the panel reads as
+three short lists.
+**DoD:** every row still present and reachable; touch floor respected;
+layout test pinned per group.
+
+**D17 · TMP/ATG readiness (P3 · deferred, not built).** Legacy `Text` is
+deprecated and gets no fixes, but **Unity forces no migration before ~6.8**,
+and ATG reaches uGUI only around then. Our zero-imported-assets rule makes
+the SDF font asset the real obstacle. **Trigger: pick this up when
+localization or a Steam build is scheduled** — not before.
+
+**D18 · Diegetic wayfinding (P2).** Research flags orientation as a genuine
+gap in screen-based 3D; we have no navigational aid beyond a near-range
+portal hum. No new HUD element (that would contradict "UI never speaks
+louder than gameplay"). Instead widen the portal's **audio and emissive cue
+range** so the goal reads from further away, and verify the near-range cue
+is doing its job.
+**DoD:** portal audible/visible from the level's far end on the longest
+courses; no gameplay change.
+
+### D.3 Method note
+
+D13 rests on the best-evidenced research in this pass (touch-target sizing
+for young children is well studied). **D14 and D15 are unmeasured layout and
+performance questions** — both get reproduced in-editor before any change is
+claimed, the same way the pause-overlap bug was reproduced before it was
+fixed. Every layout change ships with an anchor-math test pin in the
+existing `UIAuditTests` pattern; the suite must stay green.
+
+### D.4 Sources
+
+- [HUD eye-movement systematic review (2025)](https://doaj.org/article/702d307bbd31415ba6c2c3fd10c4440a)
+- [UX guidelines for HUD design, indie devs — HCI in Games 2025](https://dl.acm.org/doi/10.1007/978-3-031-92578-8_6)
+- [Minimal landmarks stabilise orientation in screen-based 3D (ACM 2025)](https://dlnext.acm.org/doi/pdf/10.1145/3772318.3791522)
+- [Readability thresholds and attributable failure (2025)](https://www.theseus.fi/handle/10024/900621)
+- [Processing subtitled instructions — eye-tracking (JEMR 2025)](https://mdpi-res.com/d_attachment/jemr/jemr-18-00044/article_deploy/jemr-18-00044-v2.pdf)
+- [Unity — performance considerations for runtime UI](https://docs.unity3d.com/Manual/UIE-performance-consideration-runtime.html)
+- [Unity — controlling the dynamic atlas (2026)](https://docs.unity3d.com/6000.2/Documentation/Manual/UIE-control-textures-of-the-dynamic-atlas.html)
+- [UGUI draw-call reduction and batching failure analysis](https://dev.to/gameoptim/ugui-drawcall-reduction-atlas-packing-and-batching-failure-analysis-1gaa)
+- [TextMeshPro breaking canvas batching](https://bugnet.io/blog/fix-unity-textmeshpro-canvas-batching-broken)
+- [Adapting Causa for mobile (Unity)](https://unity.com/cn/blog/adapting-causa-into-the-dusk-for-mobile)
