@@ -24,7 +24,15 @@ namespace GemRush
 
         public static void Create(Transform parent)
         {
-            if (Instance != null) return;
+            // Rebuild safety: Object.Destroy is deferred, so on a replay
+            // the OLD world's rig is still findable this frame — a plain
+            // "skip if one exists" guard would settle for that doomed rig,
+            // skip building a new one, and the new world would end up
+            // with none at all: bells went permanently silent for the
+            // rest of the run after a game-over replay. Retire the old
+            // rig and always build a fresh one for this world.
+            BellRig existing = Instance;
+            if (existing != null) Object.Destroy(existing.gameObject);
             GameObject go = new GameObject("BellRig");
             go.transform.SetParent(parent, false);
             go.AddComponent<BellRig>();

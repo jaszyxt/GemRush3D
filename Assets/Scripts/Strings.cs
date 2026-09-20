@@ -262,5 +262,8 @@ namespace GemRush
 
         public const string LanternWake =
             "The sunstone wakes. Its warm little light hops up to travel with Pip.";
+
+        public const string BellHint =
+            "Ring the bell — its song builds the bridge.";
     }
 }

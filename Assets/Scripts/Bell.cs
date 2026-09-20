@@ -59,13 +59,45 @@ namespace GemRush
             b.clapper = clapperGo.transform;
         }
 
+        // The teach-me hint: lingering near an un-rung bell shows one
+        // quiet toast (cooldown-limited, never while the echo is live) —
+        // the same gentle pattern the lantern shrine uses. The mechanic
+        // should be guessable, but a first-time player who can't connect
+        // bell to bridge deserves the sentence.
+        const float HintRadius = 4.5f;
+        const float HintCooldown = 10f;
+        float hintCooldown;
+
         void Update()
         {
+            HintPulse();
             if (swingTimer <= 0f || clapper == null) return;
             swingTimer -= Time.deltaTime;
             swing += Time.deltaTime * 9f;
             clapper.localRotation = Quaternion.Euler(
                 Mathf.Sin(swing * 3f) * 18f, 0f, Mathf.Sin(swing * 2f) * 12f);
+        }
+
+        void HintPulse()
+        {
+            if (hintCooldown > 0f)
+            {
+                hintCooldown -= Time.deltaTime;
+                return;
+            }
+            GameManager gm = GameManager.Instance;
+            PlayerController player = GameBootstrap.Player;
+            if (gm == null || gm.State != GameState.Playing || player == null)
+                return;
+            if (BellRig.Instance != null &&
+                BellRig.Instance.IsSolid(bellIndex))
+                return; // the echo is doing the teaching right now
+            Vector3 flat = player.transform.position - transform.position;
+            flat.y = 0f;
+            if (flat.magnitude > HintRadius) return;
+            hintCooldown = HintCooldown;
+            if (UIManager.Instance != null)
+                UIManager.Instance.ShowStoryToast(Strings.BellHint);
         }
 
         void OnTriggerEnter(Collider other)
