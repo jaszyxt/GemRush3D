@@ -64,10 +64,16 @@ def main():
         capture_output=True, text=True, cwd=ROOT)
     lines = out.stdout.splitlines()
 
-    # Parse: "platform@(x, y, z) -> platform@(x, y, z)" from TIGHT lines
+    # Parse: "platform@(x, y, z) -> platform@(x, y, z)" from the flagged
+    # lines. The audit prints "<optional|FORCED  > <pct>%  gap a/b  rise r
+    # platform@(..) -> platform@(..)" — an earlier iteration of the audit
+    # printed a "TIGHT" marker, and matching that stale token made this
+    # parse ZERO hops and silently report "nothing to widen" no matter how
+    # tight the library was (caught when L17/L18 sat at 7.7% and the tool
+    # still found nothing). Match the two words the audit actually emits.
     hops = []
     for ln in lines:
-        m = re.search(r"TIGHT (\d+)%.*?platform@\(([-\d.]+), ([-\d.]+), ([-\d.]+)\)"
+        m = re.search(r"(?:optional|FORCED)\s+(\d+)%.*?platform@\(([-\d.]+), ([-\d.]+), ([-\d.]+)\)"
                       r" -> platform@\(([-\d.]+), ([-\d.]+), ([-\d.]+)\)", ln)
         if not m:
             continue

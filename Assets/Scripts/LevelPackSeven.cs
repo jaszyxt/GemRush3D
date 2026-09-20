@@ -33,7 +33,13 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 2f, 28f, 6f, 1f, 6f));    // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 3f, 38f, 9f, 1f, 9f));     // garden arena
             l.Platforms.Add(new PlatformSpec(4f, 4f, 48f, 5f, 1f, 5f));
-            l.Platforms.Add(new PlatformSpec(-2f, 5f, 57f, 5f, 1f, 5f));
+            // 7 wide, not 5: the climb out of the second garden arena asks
+            // for an 11.9 gap against a 12.9 maximum — a 7.7% margin, the
+            // tightest geometry in any teaching region (I-VII) and tighter
+            // than every level in Region I. A bigger deck here gives the
+            // run-up a child needs; the arena, the route and the pacing
+            // are untouched.
+            l.Platforms.Add(new PlatformSpec(-2f, 5f, 57f, 7f, 1f, 7f));
             l.Platforms.Add(new PlatformSpec(0f, 6f, 66f, 8f, 1f, 8f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 7f, 77f, 9f, 1f, 9f));     // garden arena
             l.Platforms.Add(new PlatformSpec(3f, 8f, 88f, 5f, 1f, 5f));
@@ -90,7 +96,11 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 4f, 46f, 10f, 1f, 10f));   // garden arena
             l.Platforms.Add(new PlatformSpec(0f, 9f, 64f, 6f, 1f, 6f));     // high ledge
             l.Platforms.Add(new PlatformSpec(4f, 10f, 72f, 4f, 1f, 4f));
-            l.Platforms.Add(new PlatformSpec(-2f, 11f, 80f, 4f, 1f, 4f));
+            // 6 wide, not 4, for the same reason as First Blooms: the hop
+            // into the upper arena is 11.9 against a 12.9 maximum (7.7%),
+            // the joint-tightest geometry in the teaching regions. A
+            // landing deck a child can actually stand up on.
+            l.Platforms.Add(new PlatformSpec(-2f, 11f, 80f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 12f, 89f, 7f, 1f, 7f));    // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 13f, 100f, 10f, 1f, 10f)); // garden arena
             l.Platforms.Add(new PlatformSpec(3f, 14f, 111f, 5f, 1f, 5f));
