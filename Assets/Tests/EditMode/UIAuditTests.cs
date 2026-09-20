@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
@@ -338,6 +339,57 @@ namespace GemRush.Tests
                 {
                     TearDownUI(ui);
                 }
+            }
+        }
+
+        // Settings are GROUPED: audio-ish rows together, then display, then
+        // play. The old flat order paired Mission Text with Screen Shake and
+        // Haptics with Shadows — adjacent on screen, unrelated in meaning,
+        // so a player hunting for one option read all eight. The grid reads
+        // in column order, so adjacency here IS what the player sees.
+        [Test]
+        public void Settings_RelatedRows_AreAdjacent()
+        {
+            UIManager ui = BuildUI(true);
+            try
+            {
+                Button[] rows = GetPrivate(ui, "settingsButtons") as Button[];
+                Assert.IsNotNull(rows, "settings rows built");
+
+                StringBuilder order = new StringBuilder();
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    Text lbl = rows[i].GetComponentInChildren<Text>();
+                    order.Append((i > 0 ? " " : "") +
+                        (lbl != null ? lbl.text : "?"));
+                }
+                string flat = order.ToString();
+
+                // The audio/briefing cluster leads, and its members are
+                // contiguous — nothing unrelated wedged between them.
+                int sound = flat.IndexOf("Sound");
+                int voice = flat.IndexOf("Voice");
+                int mission = flat.IndexOf("Mission Text");
+                int haptics = flat.IndexOf("Haptics");
+                Assert.GreaterOrEqual(sound, 0, "Sound present");
+                Assert.Greater(voice, sound, "Voice follows Sound");
+                Assert.Greater(mission, voice, "Mission Text follows Voice");
+                Assert.Greater(haptics, mission, "Haptics follows Mission Text");
+
+                // Accessibility sits together: text size and persistence of
+                // the control scheme are the two "make it work for me" rows.
+                int textSize = flat.IndexOf("Text Size");
+                Assert.Greater(textSize, haptics, "Text Size follows the audio cluster");
+
+                // The hazard/motion cluster closes the list.
+                int shake = flat.IndexOf("Screen Shake");
+                int shadows = flat.IndexOf("Shadows");
+                Assert.Greater(shake, textSize, "Screen Shake after the display group");
+                Assert.Greater(shadows, shake, "Shadows follows Screen Shake");
+            }
+            finally
+            {
+                TearDownUI(ui);
             }
         }
 

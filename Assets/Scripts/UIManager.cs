@@ -33,8 +33,8 @@ namespace GemRush
         Image[] winStars;
         Text[] levelButtonTexts;
         Button[] levelButtons;
-        Text[] settingsLabels; // 0 sound, 1 shake, 2 haptics, 3 shadows,
-                               // 4 lefty, 5 fullscreen (desktop only)
+        Text[] settingsLabels; // labels for the rows in settingsIds order
+        SettingId[] settingsIds; // which setting each row is, in display order
         GameObject introPanel;
         Text introTitle;
         Text introMission;
@@ -930,28 +930,36 @@ namespace GemRush
                 new Vector2(0f, 0.66f), new Vector2(1f, 0.78f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
-            // Rows: Sound, Voice, Mission Text, Screen Shake, Haptics,
-            // Shadows, Left-handed Controls, Text Size — plus Fullscreen on
-            // desktop only. Voice and Mission Text sit together because they
-            // are the two halves of the same choice: how the briefing
-            // reaches the player.
+            // Rows are GROUPED so that related settings sit next to each
+            // other. The grid reads in column order, so the old flat list
+            // paired Mission Text with Screen Shake and Haptics with
+            // Shadows — adjacent on screen, unrelated in meaning, which
+            // forced a player hunting for one option to read all eight.
+            //
+            //   Audio   : Sound, Voice, Mission Text, Haptics
+            //   Display : Text Size, Fullscreen (desktop only)
+            //   Play    : Screen Shake, Shadows, Left-handed Controls
             //
             // The row list and the sizing must branch on the SAME thing.
             // They used to disagree (list on IsDesktopPlatform, sizes on
             // touch capability), which produced a real overlap the moment
-            // the two differed: nine desktop rows laid out at the desktop
-            // step, but floored to touch-sized buttons.
+            // the two differed.
             bool touch = IsTouchLayout();
-            string[] names = touch
-                ? new string[] { Strings.SettingSound, Strings.SettingVoice,
-                    Strings.SettingMissionText, Strings.SettingShake,
-                    Strings.SettingHaptics, Strings.SettingShadows,
-                    Strings.SettingLefty, Strings.SettingTextSize }
-                : new string[] { Strings.SettingSound, Strings.SettingVoice,
-                    Strings.SettingMissionText, Strings.SettingShake,
-                    Strings.SettingHaptics, Strings.SettingShadows,
-                    Strings.SettingLefty, Strings.SettingTextSize,
-                    Strings.SettingFullscreen };
+            // Grouped, in the order they are DISPLAYED. Everything else reads
+            // this table (labels, values, toggling), so the grouping can be
+            // reordered without anything silently pointing at the wrong row.
+            settingsIds = touch
+                ? new SettingId[] { SettingId.Sound, SettingId.Voice,
+                    SettingId.MissionText, SettingId.Haptics,
+                    SettingId.TextSize,
+                    SettingId.Shake, SettingId.Shadows, SettingId.Lefty }
+                : new SettingId[] { SettingId.Sound, SettingId.Voice,
+                    SettingId.MissionText, SettingId.Haptics,
+                    SettingId.TextSize, SettingId.Fullscreen,
+                    SettingId.Shake, SettingId.Shadows, SettingId.Lefty };
+            string[] names = new string[settingsIds.Length];
+            for (int i = 0; i < settingsIds.Length; i++)
+                names[i] = NameOf(settingsIds[i]);
             settingsLabels = new Text[names.Length];
             settingsButtons = new Button[names.Length];
             // Nine desktop rows at the old 0.068 step would run into BACK,
@@ -1343,29 +1351,26 @@ namespace GemRush
 
         void RefreshSettings()
         {
-            if (settingsLabels == null) return;
-            // Same constants BuildSettings used for the rows — refresh and
-            // build can never drift apart (D11).
-            ApplyLabel(settingsLabels[0], Strings.SettingSound, SaveSystem.SoundOn);
-            ApplyLabel(settingsLabels[1], Strings.SettingVoice, SaveSystem.VoiceOn);
-            ApplyLabel(settingsLabels[2], Strings.SettingMissionText,
-                SaveSystem.MissionTextOn);
-            ApplyLabel(settingsLabels[3], Strings.SettingShake, SaveSystem.ShakeOn);
-            ApplyLabel(settingsLabels[4], Strings.SettingHaptics, SaveSystem.HapticsOn);
-            ApplyLabel(settingsLabels[5], Strings.SettingShadows, SaveSystem.ShadowsOn);
-            ApplyLabel(settingsLabels[6], Strings.SettingLefty, SaveSystem.LeftyOn);
-            if (settingsLabels.Length > 7 && settingsLabels[7] != null)
+            if (settingsLabels == null || settingsIds == null) return;
+            for (int i = 0; i < settingsIds.Length && i < settingsLabels.Length; i++)
             {
-                // A mode, not an on/off: the label names the value, and the
-                // row tint follows it like every other toggle.
-                settingsLabels[7].text = Strings.TextSizeLabel(
-                    SaveSystem.TextLargeOn);
-                Image img = settingsLabels[7].transform.parent.GetComponent<Image>();
-                if (img != null) img.color = SaveSystem.TextLargeOn ? onColor : offColor;
+                Text label = settingsLabels[i];
+                if (label == null) continue;
+                SettingId id = settingsIds[i];
+                if (id == SettingId.TextSize)
+                {
+                    // A mode, not an on/off: the label names the value, and
+                    // the row tint follows it like every other toggle.
+                    label.text = Strings.TextSizeLabel(SaveSystem.TextLargeOn);
+                    Image timg = label.transform.parent.GetComponent<Image>();
+                    if (timg != null)
+                        timg.color = SaveSystem.TextLargeOn ? onColor : offColor;
+                }
+                else
+                {
+                    ApplyLabel(label, NameOf(id), CurrentValue(id));
+                }
             }
-            if (settingsLabels.Length > 8)
-                ApplyLabel(settingsLabels[8], Strings.SettingFullscreen,
-                    SaveSystem.FullscreenOn);
             // Keep the focus highlight honest after the tint repaints (D5).
             for (int i = 0; i < settingsButtons.Length; i++)
             {
@@ -1382,50 +1387,103 @@ namespace GemRush
             if (img != null) img.color = on ? onColor : offColor;
         }
 
+        /// One entry per settings row, keyed by WHAT it is rather than by its
+        /// position in the list. The rows are grouped for readability and the
+        /// touch/desktop lists differ in length, so a positional index was
+        /// wrong the moment either changed — it silently toggled the wrong
+        /// setting. Everything (build, refresh, toggle, focus) reads this one
+        /// table.
+        enum SettingId
+        {
+            Sound, Voice, MissionText, Haptics, TextSize,
+            Fullscreen, Shake, Shadows, Lefty
+        }
+
         void ToggleSetting(int index)
         {
-            if (index == 0) SaveSystem.SoundOn = !SaveSystem.SoundOn;
-            else if (index == 1) SaveSystem.VoiceOn = !SaveSystem.VoiceOn;
-            else if (index == 2) SaveSystem.MissionTextOn = !SaveSystem.MissionTextOn;
-            else if (index == 3) SaveSystem.ShakeOn = !SaveSystem.ShakeOn;
-            else if (index == 4) SaveSystem.HapticsOn = !SaveSystem.HapticsOn;
-            else if (index == 5)
+            if (settingsIds == null || index < 0 || index >= settingsIds.Length)
+                return;
+            SettingId id = settingsIds[index];
+            switch (id)
             {
-                SaveSystem.ShadowsOn = !SaveSystem.ShadowsOn;
-                QualitySettings.shadows = SaveSystem.ShadowsOn
-                    ? ShadowQuality.All : ShadowQuality.Disable;
+                case SettingId.Sound:
+                    SaveSystem.SoundOn = !SaveSystem.SoundOn;
+                    break;
+                case SettingId.Voice:
+                    SaveSystem.VoiceOn = !SaveSystem.VoiceOn;
+                    break;
+                case SettingId.MissionText:
+                    SaveSystem.MissionTextOn = !SaveSystem.MissionTextOn;
+                    break;
+                case SettingId.Haptics:
+                    SaveSystem.HapticsOn = !SaveSystem.HapticsOn;
+                    break;
+                case SettingId.TextSize:
+                    SaveSystem.TextLargeOn = !SaveSystem.TextLargeOn;
+                    ApplyTextSize();
+                    break;
+                case SettingId.Fullscreen:
+                    SaveSystem.FullscreenOn = !SaveSystem.FullscreenOn;
+                    Screen.fullScreenMode = SaveSystem.FullscreenOn
+                        ? FullScreenMode.FullScreenWindow
+                        : FullScreenMode.Windowed;
+                    break;
+                case SettingId.Shake:
+                    SaveSystem.ShakeOn = !SaveSystem.ShakeOn;
+                    break;
+                case SettingId.Shadows:
+                    SaveSystem.ShadowsOn = !SaveSystem.ShadowsOn;
+                    QualitySettings.shadows = SaveSystem.ShadowsOn
+                        ? ShadowQuality.All : ShadowQuality.Disable;
+                    break;
+                case SettingId.Lefty:
+                    SaveSystem.LeftyOn = !SaveSystem.LeftyOn;
+                    // Live-mirror the HUD: re-anchor the jump button now, no
+                    // level restart needed (no-op off touch, where the
+                    // controls do not exist).
+                    if (TouchControls.Instance != null)
+                        TouchControls.Instance.ApplySide();
+                    break;
             }
-            else if (index == 6)
-            {
-                SaveSystem.LeftyOn = !SaveSystem.LeftyOn;
-                // Live-mirror the HUD: re-anchor the jump button now, no
-                // level restart needed (no-op off touch, where the controls
-                // do not exist).
-                if (TouchControls.Instance != null) TouchControls.Instance.ApplySide();
-            }
-            else if (index == 7)
-            {
-                SaveSystem.TextLargeOn = !SaveSystem.TextLargeOn;
-                ApplyTextSize();
-            }
-            else if (index == 8)
-            {
-                SaveSystem.FullscreenOn = !SaveSystem.FullscreenOn;
-                Screen.fullScreenMode = SaveSystem.FullscreenOn
-                    ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
-            }
-            // A flipped setting answers with its own blip: up when it
-            // turned on, down when it turned off. (Text Size reads its
-            // state after ApplyTextSize, so the blip matches the screen.)
-            bool[] states =
-            {
-                SaveSystem.SoundOn, SaveSystem.VoiceOn, SaveSystem.MissionTextOn,
-                SaveSystem.ShakeOn, SaveSystem.HapticsOn, SaveSystem.ShadowsOn,
-                SaveSystem.LeftyOn, SaveSystem.TextLargeOn, SaveSystem.FullscreenOn
-            };
-            if (index >= 0 && index < states.Length)
-                AudioManager.Instance.PlayUIToggle(states[index]);
+            // A flipped setting answers with its own blip: up when it turned
+            // on, down when it turned off. Read AFTER the flip (and after
+            // ApplyTextSize), so the blip matches what is on screen.
+            AudioManager.Instance.PlayUIToggle(CurrentValue(id));
             RefreshSettings();
+        }
+
+        /// The live value of a setting, for the toggle blip and the labels.
+        static bool CurrentValue(SettingId id)
+        {
+            switch (id)
+            {
+                case SettingId.Sound: return SaveSystem.SoundOn;
+                case SettingId.Voice: return SaveSystem.VoiceOn;
+                case SettingId.MissionText: return SaveSystem.MissionTextOn;
+                case SettingId.Haptics: return SaveSystem.HapticsOn;
+                case SettingId.TextSize: return SaveSystem.TextLargeOn;
+                case SettingId.Fullscreen: return SaveSystem.FullscreenOn;
+                case SettingId.Shake: return SaveSystem.ShakeOn;
+                case SettingId.Shadows: return SaveSystem.ShadowsOn;
+                default: return SaveSystem.LeftyOn;
+            }
+        }
+
+        /// The display name for a setting id.
+        static string NameOf(SettingId id)
+        {
+            switch (id)
+            {
+                case SettingId.Sound: return Strings.SettingSound;
+                case SettingId.Voice: return Strings.SettingVoice;
+                case SettingId.MissionText: return Strings.SettingMissionText;
+                case SettingId.Haptics: return Strings.SettingHaptics;
+                case SettingId.TextSize: return Strings.SettingTextSize;
+                case SettingId.Fullscreen: return Strings.SettingFullscreen;
+                case SettingId.Shake: return Strings.SettingShake;
+                case SettingId.Shadows: return Strings.SettingShadows;
+                default: return Strings.SettingLefty;
+            }
         }
 
         /// Re-derives every registered label from its designed size. Runs
