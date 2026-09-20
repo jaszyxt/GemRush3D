@@ -67,6 +67,13 @@ namespace GemRush
             public float Range;
             public float Rise;
             public float Margin;
+            /// True when the player is not forced through this jump: either
+            /// endpoint has another reachable neighbour (a mover beside the
+            /// island, a parallel route), so a tight margin here is the
+            /// designer's intended challenge and a child can ride instead.
+            /// False means this hop is the only way through — a tight
+            /// margin there is a trap, not a test.
+            public bool Optional;
         }
 
         /// Outcome of one level's analysis. Problems block finishing
@@ -273,8 +280,10 @@ namespace GemRush
                 // a difficulty band should be judged on.
                 for (int k = 1; k < r.Path.Count; k++)
                 {
-                    Top from = tops[r.Path[k - 1]];
-                    Top to = tops[r.Path[k]];
+                    int ai = r.Path[k - 1];
+                    int bi = r.Path[k];
+                    Top from = tops[ai];
+                    Top to = tops[bi];
                     if (!IsJumpSurface(from) || !IsJumpSurface(to)) continue;
                     if (from.Group == to.Group && from.Group >= 0) continue;
                     float rise = to.TopY - from.TopY;
@@ -282,6 +291,15 @@ namespace GemRush
                     if (range <= 0f) continue;
                     float gap = RectDistXz(from, to, TakeoffExpand, LandExpand);
                     if (gap > range) continue; // crossed by a ride
+                    // Forced or optional: a hop is OPTIONAL only if the
+                    // player can actually skip it — there is a route from
+                    // this hop's start to its landing that does not use
+                    // this hop, and is not meaningfully longer. Merely
+                    // having a second neighbour is not a bypass (that is
+                    // just the next link in the same chain), which is why
+                    // a plain neighbour count marks every chain hop as
+                    // optional and hides the traps.
+                    bool optional = HasBypass(adj, tops, ai, bi);
                     r.RouteHops.Add(new Hop
                     {
                         From = Describe(from),
@@ -289,7 +307,8 @@ namespace GemRush
                         Gap = gap,
                         Range = range,
                         Rise = rise,
-                        Margin = 1f - gap / range
+                        Margin = 1f - gap / range,
+                        Optional = optional
                     });
                 }
             }
@@ -543,6 +562,37 @@ namespace GemRush
         static bool IsJumpSurface(Top t)
         {
             return t.Kind == "platform" || t.Kind == "mover";
+        }
+
+        /// True when the player can get from A to B WITHOUT this hop —
+        /// a genuine bypass (a mover beside the island, a parallel lane).
+        /// Tested by removing the edge and re-searching: that is the only
+        /// definition that distinguishes "there is another way" from
+        /// "there is another platform along the same chain".
+        static bool HasBypass(List<List<int>> adj, List<Top> tops,
+            int a, int b)
+        {
+            Queue<int> frontier = new Queue<int>();
+            bool[] seen = new bool[tops.Count];
+            seen[a] = true;
+            frontier.Enqueue(a);
+            while (frontier.Count > 0)
+            {
+                int cur = frontier.Dequeue();
+                for (int k = 0; k < adj[cur].Count; k++)
+                {
+                    int next = adj[cur][k];
+                    // Skip the hop under test, both directions (the graph
+                    // is undirected; crossing it either way is the hop).
+                    if ((cur == a && next == b) || (cur == b && next == a))
+                        continue;
+                    if (seen[next]) continue;
+                    if (next == b) return true;
+                    seen[next] = true;
+                    frontier.Enqueue(next);
+                }
+            }
+            return false;
         }
 
         /// Tightest-first, for reporting.

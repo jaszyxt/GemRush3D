@@ -103,14 +103,13 @@ namespace GemRush.Tools
                     foreach (LevelReachability.Hop h in r.RouteHops)
                     {
                         if (h.Margin >= floor) continue;
-                        Console.WriteLine("     TIGHT " +
-                            (h.Margin * 100f).ToString("F0") + "%  gap " +
+                        Console.WriteLine("     " +
+                            (h.Optional ? "optional" : "FORCED  ") +
+                            " " + (h.Margin * 100f).ToString("F0") + "%  gap " +
                             h.Gap.ToString("F1") + "/" +
                             h.Range.ToString("F1") + "  rise " +
                             h.Rise.ToString("F1") +
-                            "  " + h.From + " -> " + h.To +
-                            (i < LevelReachability.ChildRegionLevelCount
-                                ? "  [teaching region]" : ""));
+                            "  " + h.From + " -> " + h.To);
                     }
                 }
                 if (i == detail && r.Path != null && r.Path.Count > 0)

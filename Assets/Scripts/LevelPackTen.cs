@@ -157,7 +157,13 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 2f, 41f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(3f, 3f, 50f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 4f, 59f, 7f, 1f, 7f));     // checkpoint isle
-            l.Platforms.Add(new PlatformSpec(0f, 4f, 67f, 4f, 1f, 4f));     // door A pedestal
+            // 6 wide, not 4: this pedestal is the only platform in the
+            // game reached by a jump with NO alternative route (the door
+            // beside it leads onward, not up), and at 4 wide the hop left
+            // 11% margin — the tightest forced jump in 40 levels. The
+            // other door pedestals stay 4 wide: those are optional
+            // approaches with a route around them.
+            l.Platforms.Add(new PlatformSpec(0f, 4f, 67f, 6f, 1f, 6f));     // door A pedestal
             l.Platforms.Add(new PlatformSpec(0f, 8f, 82f, 6f, 1f, 6f));     // high exit isle
             l.Platforms.Add(new PlatformSpec(-2f, 9f, 90f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(3f, 10f, 98f, 4f, 1f, 4f));

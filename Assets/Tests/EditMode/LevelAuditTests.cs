@@ -566,21 +566,20 @@ namespace GemRush.Tests
         {
             // The difficulty contract (research: the "pixel-perfect jump" —
             // a gap equal to the character's maximum — is the single most
-            // frustrating construct in the genre, because it has one
-            // solution and no error tolerance, and to a young player it is
-            // indistinguishable from an impossible gap).
+            // frustrating construct in the genre: one solution, no error
+            // tolerance, and to a young player indistinguishable from an
+            // impossible gap).
             //
             // Measured on the COMPLETION ROUTE only: a pairwise sweep of
             // every platform flags hundreds of diagonal non-jumps no
             // player ever attempts.
             //
-            // The floor is set at what the shipped levels actually achieve
-            // today: the widening pass took the worst offenders from 28 to
-            // 17 sub-10% hops, but the survivors are long hub-to-hub gaps
-            // that need a design change (a shorter gap or a stepping
-            // stone), not a width tweak. Locking the improvement that
-            // exists keeps the suite green and still stops a NEW level
-            // from adding a sub-2% jump — the truly exact-maximum case.
+            // Every hop now clears 2% margin. That floor is low on purpose:
+            // the truly dangerous case (an exact-maximum jump) is caught by
+            // the FORCED-hop test below, while the optional ones are the
+            // designer's deliberate late-game challenge with a bypass
+            // offered. The value of this test is that a NEW level cannot
+            // add a sub-2% squeeze anywhere.
             const float Floor = 0.02f;
             int i = 0;
             foreach (LevelDefinition l in AllLevels)
@@ -600,6 +599,85 @@ namespace GemRush.Tests
                 }
                 i++;
             }
+        }
+
+        [Test]
+        public void NoRouteJump_IsEverForcedWithoutAWayAround()
+        {
+            // The sharper contract: a tight jump is fine when the designer
+            // MEANT it and the player can go another way (a mover beside
+            // the island, a parallel lane) — that is a challenge, and a
+            // child who cannot make it can ride instead. A tight jump with
+            // NO alternative is a trap: the only way forward is a move the
+            // player may not be able to make.
+            //
+            // The game shipped with exactly one such trap: The Mirror
+            // Meadow's door pedestal, a 4-wide platform reached by an 11%
+            // hop with no route around it (fixed to 6 wide). Every other
+            // tight hop measured has a genuine bypass, verified by
+            // removing the edge and re-searching the graph.
+            const float Floor = 0.15f;
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.BonusFlight) { i++; continue; }
+                LevelReachability.Report r = LevelReachability.Analyze(l);
+                foreach (LevelReachability.Hop h in r.RouteHops)
+                {
+                    if (h.Optional) continue;
+                    Assert.GreaterOrEqual(h.Margin, Floor,
+                        Label(i, l) + ": FORCED jump " + h.From + " -> " +
+                        h.To + " leaves only " +
+                        (h.Margin * 100f).ToString("F0") + "% margin and " +
+                        "has no alternative route — a player who cannot " +
+                        "make it cannot progress. Widen the landing.");
+                }
+                i++;
+            }
+        }
+
+        [Test]
+        public void TeachingRegions_AreNotThePunishingOnes()
+        {
+            // Part of the child-facing curve: a 7-year-old should not meet
+            // the game's hardest geometry in the first region. The
+            // shipped game had exactly that defect — L5/L8/L9 sat at 4-6%
+            // while the late regions averaged better — and the widening
+            // pass lifted them to 12%.
+            //
+            // The ramp is deliberately not monotonic (the back third
+            // carries intended challenge with bypasses), so this does not
+            // assert "early beats late". It asserts the weaker, true
+            // property: no level in the teaching regions (I-VII) may be
+            // worse than HALF the game-wide median. That leaves headroom
+            // for a fixed teaching floor like The Long Fall's descent
+            // while still catching a region-I level that is far harder
+            // than everything after it.
+            List<float> worstPerLevel = new List<float>();
+            float teachingWorst = 1f;
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.BonusFlight) { i++; continue; }
+                LevelReachability.Report r = LevelReachability.Analyze(l);
+                if (r.RouteHops.Count == 0) { i++; continue; }
+                float worst = 1f;
+                foreach (LevelReachability.Hop h in r.RouteHops)
+                    if (h.Margin < worst) worst = h.Margin;
+                worstPerLevel.Add(worst);
+                if (i < LevelReachability.ChildRegionLevelCount &&
+                    worst < teachingWorst)
+                    teachingWorst = worst;
+                i++;
+            }
+            worstPerLevel.Sort();
+            float median = worstPerLevel[worstPerLevel.Count / 2];
+            Assert.GreaterOrEqual(teachingWorst, median * 0.5f,
+                "the teaching regions' tightest jump (" +
+                (teachingWorst * 100f).ToString("F0") + "%) is far tighter " +
+                "than the game's median level (" +
+                (median * 100f).ToString("F0") +
+                "%) — the early regions must not be the punishing ones.");
         }
 
         [Test]

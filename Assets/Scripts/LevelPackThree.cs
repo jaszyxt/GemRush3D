@@ -32,7 +32,12 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 0f, 9f, 7f, 1f, 7f));
             l.Platforms.Add(new PlatformSpec(3f, -3f, 17f, 5f, 1f, 5f));    // first drop
             l.Platforms.Add(new PlatformSpec(-2f, -5f, 26f, 5f, 1f, 5f));
-            l.Platforms.Add(new PlatformSpec(0f, -7f, 35f, 7f, 1f, 7f));    // checkpoint isle
+            // 10 wide, not 7: this is the descent's landing pad, and the
+            // straight drop from the opening deck leaves only a 6% margin
+            // — tighter than anything else in the teaching regions. The
+            // level's theme is falling, so the drop stays long; the
+            // landing just gets wide enough to forgive an over-eager run.
+            l.Platforms.Add(new PlatformSpec(0f, -7f, 35f, 10f, 1f, 10f));  // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, -12f, 44f, 5f, 1f, 5f));   // the big drop
             l.Platforms.Add(new PlatformSpec(4f, -14f, 53f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(-1f, -16f, 62f, 4f, 1f, 4f));
@@ -96,17 +101,17 @@ namespace GemRush
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
             l.Platforms.Add(new PlatformSpec(0f, 0f, 10f, 5f, 1f, 5f));
-            l.Platforms.Add(new PlatformSpec(3f, 1f, 18f, 4f, 1f, 4f));     // bridge isles
-            l.Platforms.Add(new PlatformSpec(-2f, 2f, 26f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(3f, 1f, 18f, 6f, 1f, 6f));     // bridge isles
+            l.Platforms.Add(new PlatformSpec(-2f, 2f, 26f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 3f, 36f, 7f, 1f, 7f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 4f, 47f, 11f, 1f, 11f));   // spinner arena A
             l.Platforms.Add(new PlatformSpec(0f, 9f, 66f, 6f, 1f, 6f));     // high ledge
-            l.Platforms.Add(new PlatformSpec(4f, 10f, 74f, 4f, 1f, 4f));    // bridge isles
-            l.Platforms.Add(new PlatformSpec(-2f, 11f, 82f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(4f, 10f, 74f, 6f, 1f, 6f));    // bridge isles
+            l.Platforms.Add(new PlatformSpec(-2f, 11f, 82f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 12f, 92f, 7f, 1f, 7f));    // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 13f, 103f, 11f, 1f, 11f)); // spinner arena B
-            l.Platforms.Add(new PlatformSpec(3f, 15f, 122f, 4f, 1f, 4f));   // bridge isle
-            l.Platforms.Add(new PlatformSpec(0f, 16f, 130f, 4f, 1f, 4f));   // last step
+            l.Platforms.Add(new PlatformSpec(3f, 15f, 122f, 6f, 1f, 6f));   // bridge isle
+            l.Platforms.Add(new PlatformSpec(0f, 16f, 130f, 6f, 1f, 6f));   // last step
             l.Platforms.Add(new PlatformSpec(0f, 17f, 138f, 12f, 1f, 12f)); // summit
 
             l.Movers.Add(new MoverSpec(0f, 6.5f, 57f, new Vector3(0f, 3f, 0f), 4.5f));  // lift
@@ -164,9 +169,9 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 7f, 36f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 8f, 46f, 10f, 1f, 10f));   // guardian arena
             l.Platforms.Add(new PlatformSpec(0f, 16f, 63f, 6f, 1f, 6f));    // checkpoint ledge
-            l.Platforms.Add(new PlatformSpec(3f, 17f, 72f, 4f, 1f, 4f));    // hop chain
-            l.Platforms.Add(new PlatformSpec(-2f, 18f, 80f, 4f, 1f, 4f));
-            l.Platforms.Add(new PlatformSpec(3f, 19f, 88f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(3f, 17f, 72f, 6f, 1f, 6f));    // hop chain
+            l.Platforms.Add(new PlatformSpec(-2f, 18f, 80f, 6f, 1f, 6f));
+            l.Platforms.Add(new PlatformSpec(3f, 19f, 88f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 20f, 97f, 7f, 1f, 7f));    // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 21.5f, 108f, 10f, 1f, 10f));// guardian arena
             l.Platforms.Add(new PlatformSpec(0f, 29f, 134f, 14f, 1f, 14f)); // the Heart

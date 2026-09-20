@@ -82,8 +82,8 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 3f, 34f, 7f, 1f, 7f));     // checkpoint isle
             l.Platforms.Add(new PlatformSpec(0f, 4f, 44f, 11f, 1f, 11f));   // spinner arena 1
             l.Platforms.Add(new PlatformSpec(0f, 9f, 64f, 6f, 1f, 6f));     // high ledge
-            l.Platforms.Add(new PlatformSpec(4f, 10f, 72f, 4f, 1f, 4f));    // high bridge isles
-            l.Platforms.Add(new PlatformSpec(-2f, 11f, 80f, 4f, 1f, 4f));
+            l.Platforms.Add(new PlatformSpec(4f, 10f, 72f, 6f, 1f, 6f));    // high bridge isles
+            l.Platforms.Add(new PlatformSpec(-2f, 11f, 80f, 6f, 1f, 6f));
             l.Platforms.Add(new PlatformSpec(0f, 12f, 90f, 7f, 1f, 7f));    // checkpoint isle 2
             l.Platforms.Add(new PlatformSpec(0f, 13f, 101f, 11f, 1f, 11f)); // spinner arena 2
             l.Platforms.Add(new PlatformSpec(3f, 14f, 112f, 4f, 1f, 4f));   // bridge isle
