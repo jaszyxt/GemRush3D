@@ -20,11 +20,28 @@ except D11**) → this file.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Code: v1.19.0 (versionCode 28), committed on main** — 40 levels,
-  13 packs + B-Sides. Release-signed
-  `Builds/GemRush3D.apk` (V2 cert `CN=Gem Rush 3D, O=PipStudio`) +
-  `Builds/GemRush3D.exe` (check `GemRush3D_Data/Managed/GemRush.dll`
-  mtime for freshness, not the stub exe).
+- **Version now lives in ONE place: `VERSION` at the repo root.** The
+  build reads it and derives the Android versionCode automatically
+  (`tools/check-version.sh` fails CI if a doc disagrees — it already
+  caught real drift: this file said 1.19.0 while the code was at
+  1.27.0). Never hand-edit a version in `EnsureShaders.cs` or
+  ProjectSettings again.
+- **40 levels, 14 atlas regions.** Release-signed `Builds/GemRush3D.apk`
+  (V2 cert `CN=Gem Rush 3D, O=PipStudio`) + `Builds/GemRush3D.exe`
+  (check `GemRush3D_Data/Managed/GemRush.dll` mtime for freshness, not
+  the stub exe).
+- **CI now runs three gates on every push** (all green): the stub
+  compile, the version-drift check, and **30 of the 75 EditMode tests
+  headlessly** (`tools/run-tests-headless.sh`, ~15 s, no Unity and no
+  license). The other 45 need a live scene or native APIs and still run
+  on `v*` tags via GameCI.
+- **Deploy to every connected device with one command:**
+  `bash tools/deploy.sh` installs the APK everywhere and verifies the
+  installed versionCode against it (`--status` reports without
+  installing). Verified live: found a stale emulator at code 25,
+  installed, confirmed 43.
+- **Missing devices do not block anything** — the script reports and
+  exits cleanly when nothing is plugged in.
 - **Laptop auto-install worked unattended this build**: the deploy step
   copied v1.15.0 to `%LOCALAPPDATA%\Programs\GemRush3D\` by itself and
   retargeted the Desktop shortcut. Byte-compare verified. This is the
@@ -32,10 +49,12 @@ except D11**) → this file.
 - **Emulator (Pixel_7:5554)**: v1.15.0 installed. The emulator dies
   between sessions — reboot the AVD, wait for `sys.boot_completed=1`,
   then `adb install -r`.
-- **Tablet (SM-X810 / R52W70BRE9E) + phone (SM-A366B / RRCY5008R7M) are
-  still waiting for an update** (tablet last had v1.10.0, phone v1.10.1).
-  `adb install -r Builds/GemRush3D.apk` on next USB; same key since
-  v1.1.0, saves kept. Install to **every** `adb devices` entry.
+- **Tablet + phone fall behind between sessions** — that drift is now
+  visible instead of invisible: run `bash tools/deploy.sh --status` to
+  see each device's installed version next to the APK's, then run it
+  without the flag to update everything. Same signing key since v1.1.0,
+  so saves are kept. (The old advice was to remember an adb command;
+  the script automates the install AND the verification.)
 - Tablet/phone were also due the **gamepad hardware pass** (Xbox +
   DualSense through the Windows exe) — still owed; virtual-pad rigs
   (`Assets/Editor/PadProbe.cs`, `PadProbe2.cs`, `WinterProbe.cs`,

@@ -149,6 +149,94 @@ support, difficulty selectors, font-size slider.
 - Wonder-seed mid-level state flips — per-zone mood doesn't fit the per-level
   data model; defer until LevelDefinition grows zones.
 
+## ROUND 2 — tooling & technology (same day, second pass)
+
+Four tracks researched against verified project state (headless test
+execution, Unity dev tooling, shipping/ops infrastructure, plus a
+reconnaissance pass over the repo and a friction audit). Headline
+finding, worth stating plainly: **the biggest wins were not new tools,
+they were wiring up what the project already had** — and three of the
+findings were latent bugs, not missing software.
+
+### ADOPTED — verified working, CI green
+
+1. **Version drift fixed at the root.** The version was hand-edited in
+   five places and HAD ALREADY DRIFTED (code 1.27.0, HANDOFF 1.19.0,
+   Steam-Deploy 1.22.1). `VERSION` at the repo root is now the single
+   source; `EnsureShaders` reads it and *derives* the Android
+   versionCode (major*10000 + minor*100 + patch, so 1.27.0 -> 12700,
+   safely above the old hand-held 43 and monotonic by construction).
+   `tools/check-version.sh` fails CI when a doc disagrees; proven to
+   catch injected drift and pass when correct.
+
+2. **30 of the 75 EditMode tests now run on EVERY push, with no Unity
+   and no license.** The enabling discovery: UnityEngine's math is
+   *managed* code, so a test asserting `Vector3.Distance` returns
+   exactly 5 outside Unity. `tools/run-tests-headless.sh` compiles the
+   level-audit suite against Unity module assemblies and runs it under
+   Mono (~15 s); `tools/headless/HeadlessTests.csproj` does the same via
+   the .NET SDK in CI, which is where it now runs. The 16 MB of
+   reference assemblies are committed so CI needs no 3.6 GB Unity
+   install. Honest scope: the other 45 tests need a live scene (UI
+   hierarchy, RectTransform, instantiated GameObjects) or native APIs
+   (AudioClip, Resources) and stay on the GameCI tag path, which still
+   runs everything.
+
+3. **The silent level-truncation bug is gone.** `LevelLibrary` used to
+   pre-size its array from a hand-summed 13-term length expression —
+   add a pack, forget the term, and levels VANISH from the game with no
+   error anywhere. It now appends to a List, which cannot lose content,
+   and a new test asserts the atlas region table tiles the level list
+   exactly (proven to fail on a wrong Count).
+
+4. **Multi-device deploy with verification.**
+   `tools/deploy.sh` installs to every connected device and compares
+   each one's installed versionCode against the APK's — automating the
+   check that once caught a package-identity bug by hand. Verified live:
+   it found a stale emulator (code 25), installed, and confirmed 43.
+
+5. **Code-quality gate.** `.editorconfig` + Microsoft.Unity.Analyzers
+   (pinned) ride the compile CI already ran, so findings cost no extra
+   pipeline time and need no Unity asset-label setup. `dotnet format
+   --verify-no-changes` is the new gate; its first run found 13 real
+   formatting defects (delegate spacing, a statement joined onto a
+   ternary line). Rules that fight Unity idioms are explicitly
+   disabled, and line-ending enforcement was dropped after it produced
+   hundreds of no-value errors.
+
+### VERIFIED, one worry eliminated
+- **Target SDK is already 36.** `AndroidTargetSdkVersion: 0` means
+  "automatic", so the real value was unknown — and Google requires API
+  36 for new apps from 31 Aug 2026. `aapt` confirms the built APK
+  targets 36, so the deadline is NOT a risk. No action needed.
+
+### SKIPPED (researched, rejected — do not re-litigate)
+- **Luban / Datra / Tiled / Blender level authoring** — every one
+  requires imported assets or a heavyweight schema ecosystem; this
+  project's levels are already clean C# data and the existing
+  `tools/LevelAudit` is the right shape. A generator would add a
+  dependency to solve a problem the audit suite already solves.
+- **Maestro** — drives the accessibility tree, and Unity renders to one
+  GL/Vulkan surface exposing none, so it cannot see the game at all.
+- **AltTester** — GPL-3.0 plus a 2026 move to EUR 75/month for the tier
+  that matters, for capability the 14 in-editor probes already cover.
+- **release-please / semantic-release** — solve version
+  *determination*; this project needed version *collapsing*. A ~30-line
+  custom fix beat both.
+- **Burst / Unity.Mathematics** — documented scheduling overhead that
+  can make small workloads slower; textbook premature optimisation for
+  tens of objects.
+- **Roslyn source generators** for the duplicated probe rigs — the
+  generator route needs a separate project, an external build and asset
+  labelling; a plain shared-base-class refactor is strictly better and
+  cheaper.
+- **Unity Diagnostics / Firebase / Sentry crash reporting** — deferred
+  by the owner's choice this round. Diagnostics remains the
+  recommended first step (no SDK, no manifest, works on sideloads).
+- **Play package-name change** (`com.DefaultCompany.GemRush3D`) — a
+  real decision, deliberately left to the owner: it is permanent once
+  published but costs one save to change today.
+
 ## Source index (key)
 Celeste & Forgiveness (Maddy Thorson) · Itay Keren "Scroll Back" GDC 2015 ·
 "Juice it or lose it" (Jonasson & Purho) · Sakurai's Creating Games episodes ·
