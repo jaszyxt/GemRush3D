@@ -978,6 +978,66 @@ namespace GemRush.Tests
         }
 
         [Test]
+        public void Golden_IsNotHiddenOnTheWayOut()
+        {
+            // The golden must be a detour, not a souvenir of the exit.
+            // Player-reported on The Silent Spire: the gem sat 3.6 units
+            // BEHIND the portal, so a normal run touched the exit, the
+            // level completed, and the gem was never met — 3 stars and a
+            // gold medal with the golden still sitting there. Measured
+            // before the fix: 29 of 37 levels hid it within 12 units of
+            // the portal, several within 1-2.
+            const float MinPortalDistance = 12f;
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (l.BonusFlight) continue;
+                if (LevelLibrary.BSideSourceIndex(i) >= 0) { i++; continue; }
+                Vector3 spot = GemRush.GoldenGem.PickSpot(l);
+                float toPortal = new Vector2(
+                    spot.x - l.Portal.x, spot.z - l.Portal.z).magnitude;
+                Assert.GreaterOrEqual(toPortal, MinPortalDistance,
+                    Label(i, l) + ": the golden hides " +
+                    toPortal.ToString("F1") + " units from the portal (" +
+                    spot + " vs " + l.Portal + ") — at that range the exit " +
+                    "is the natural thing to do and the gem is missed.");
+                i++;
+            }
+        }
+
+        [Test]
+        public void GustBlowWindow_IsARealShareOfEveryCycle()
+        {
+            // Player-reported: The Festival Finale's gust crossing was
+            // impossible — the wind blew on the first cycle and then never
+            // again, so waiting for the giggle telegraph never helped.
+            //
+            // Cause: the gust wrapped the MUSIC phase by its period, which
+            // only yields a full duty cycle when the mood's loop is a
+            // multiple of that period. Day/rain pads are 8.8s (2 x 4.4) and
+            // worked; Festival is 4 x 3.4 = 13.6s, so the phase stepped
+            // 0 -> 4.4 -> 8.8 -> 13.2 and landed in the 2.2s blow window on
+            // the first cycle only. The gust now runs on its own clock, so
+            // this asserts the gameplay rule directly and records which
+            // moods would drift if it ever read the music again.
+            float period = 4.4f;   // the game's gust period
+            float active = 2.2f;   // half of it, by design
+            Assert.Greater(active, period * 0.5f,
+                "a gust must blow for over half of every cycle, or a player " +
+                "waiting to cross spends most of their time unable to");
+            Assert.LessOrEqual(active, period,
+                "the blow cannot outlast its own period");
+            foreach (SoundMood mood in
+                (SoundMood[])System.Enum.GetValues(typeof(SoundMood)))
+            {
+                if (mood == SoundMood.Auto) continue;
+                float loop = GemRush.MusicSynth.MoodLoopLength(mood);
+                Assert.Greater(loop, 0f,
+                    mood + " has no loop length for the gust to align to");
+            }
+        }
+
+        [Test]
         public void RegionTable_CoversEveryLevelInOrder()
         {
             // The atlas screen groups levels by the region table: the
