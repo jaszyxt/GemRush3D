@@ -35,6 +35,7 @@ cd "$ROOT"
   Assets/Scripts/LevelPackTwelve.cs \
   Assets/Scripts/LevelPackThirteen.cs \
   Assets/Scripts/LevelReachability.cs \
+  Assets/Scripts/HazardTiming.cs \
   Assets/Scripts/GoldenGem.cs \
   Assets/Scripts/SaveSystem.cs \
   Assets/Tests/EditMode/LevelAuditTests.cs 2>&1 \

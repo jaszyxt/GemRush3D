@@ -36,6 +36,7 @@ cd "$ROOT"
   Assets/Scripts/LevelPackTwelve.cs \
   Assets/Scripts/LevelPackThirteen.cs \
   Assets/Scripts/LevelReachability.cs \
+  Assets/Scripts/HazardTiming.cs \
   tools/LevelAudit/Program.cs
 
 # CoreModule must be on mono's assembly load path at runtime.

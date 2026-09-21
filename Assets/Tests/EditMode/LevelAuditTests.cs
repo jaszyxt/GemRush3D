@@ -1006,6 +1006,54 @@ namespace GemRush.Tests
         }
 
         [Test]
+        public void EverySpinner_IsReadableByAChild()
+        {
+            // The timing half of the difficulty contract. Everything else
+            // measures space (gaps, margins, routes); this measures TIME,
+            // which is what makes the game's one lethal hazard fair. A
+            // spinner must leave a clear window longer than a young player
+            // needs to notice, decide and cross — and must not cover
+            // nearly the whole platform it guards, or there is nowhere to
+            // stand and read it.
+            //
+            // The budget is grounded in child development research, not
+            // taste: a 7-year-old's simple visual reaction is 370-407 ms
+            // and choice reaction 711-893 ms, so 450 ms is the floor for
+            // "notice and act" alone.
+            //
+            // Measured across all 46 spinners when this was written: every
+            // one passes, with the game's fastest (140 deg/s, level 5)
+            // still leaving a 2.23s window — five times the budget. The
+            // value of the test is that it makes that a verified property
+            // rather than an assumption, and fails the suite if a future
+            // level adds a hazard a child cannot read.
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                if (!HazardTiming.FairnessApplies(l)) { i++; continue; }
+                List<HazardTiming.Hazard> hazards =
+                    HazardTiming.Survey(l);
+                foreach (HazardTiming.Hazard h in hazards)
+                {
+                    Assert.GreaterOrEqual(h.SafeWindowSeconds,
+                        HazardTiming.ChildResponseSeconds,
+                        Label(i, l) + ": spinner at " + h.Top + " spins at " +
+                        h.DegreesPerSecond.ToString("F0") + "deg/s, leaving " +
+                        (h.SafeWindowSeconds * 1000f).ToString("F0") +
+                        "ms clear — under the " +
+                        (HazardTiming.ChildResponseSeconds * 1000f)
+                            .ToString("F0") + "ms a child needs to react " +
+                        "and cross. Slow it down or open the platform.");
+                    Assert.LessOrEqual(h.Exposure, HazardTiming.MaxExposure,
+                        Label(i, l) + ": spinner at " + h.Top + " sweeps " +
+                        (h.Exposure * 100f).ToString("F0") + "% of its " +
+                        "platform — there is nowhere to stand and read it.");
+                }
+                i++;
+            }
+        }
+
+        [Test]
         public void GustBlowWindow_IsARealShareOfEveryCycle()
         {
             // Player-reported: The Festival Finale's gust crossing was

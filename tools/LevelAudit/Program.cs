@@ -80,12 +80,50 @@ namespace GemRush.Tools
             "u at " + worstName + "; " + over + " level(s) over the bound");
     }
 
+    // Hazard timing: the spinner is the game's only lethal object, and its
+    // fairness is a WINDOW, not a distance — how long the arm is clear at
+    // the point the player must cross, against how long the crossing
+    // takes. Report in play order so the ramp is visible as numbers.
+    static void HazardReport(LevelDefinition[] levels)
+    {
+        Console.WriteLine("=== hazard timing (spinners; child response budget " +
+            (HazardTiming.ChildResponseSeconds * 1000f).ToString("F0") +
+            "ms, max exposure " + (HazardTiming.MaxExposure * 100f).ToString("F0") +
+            "%) ===");
+        int unfair = 0;
+        for (int i = 0; i < levels.Length; i++)
+        {
+            List<HazardTiming.Hazard> hs = HazardTiming.Survey(levels[i]);
+            if (hs.Count == 0) continue;
+            bool applies = HazardTiming.FairnessApplies(levels[i]);
+            Console.WriteLine("  L" + (i + 1).ToString().PadLeft(2) + " " +
+                levels[i].Name + (applies ? "" : "  [flight: contact is harmless]"));
+            foreach (HazardTiming.Hazard h in hs)
+            {
+                bool bad = applies && HazardTiming.IsUnfair(h);
+                if (bad) unfair++;
+                Console.WriteLine((bad ? "    BAD " : "    ok  ") +
+                    h.DegreesPerSecond.ToString("F0").PadLeft(3) + "deg/s" +
+                    "  rev " + h.RevolutionSeconds.ToString("F2") + "s" +
+                    "  pass " + (h.ArmPassSeconds * 1000f).ToString("F0").PadLeft(4) + "ms" +
+                    "  cross " + h.CrossSeconds.ToString("F2") + "s" +
+                    "  passes/cross " + h.PassesPerCross.ToString("F2") +
+                    "  window " + h.SafeWindowSeconds.ToString("F2") + "s" +
+                    "  exposure " + (h.Exposure * 100f).ToString("F0") + "%" +
+                    "  " + (h.WakeRadius > 0f ? "sleepy" : "awake"));
+            }
+        }
+        Console.WriteLine();
+        Console.WriteLine(unfair + " hazard(s) outside the child budget");
+    }
+
     static int Main(string[] args)
     {
         int detail = -1;
         bool margins = false;
         bool curve = false;
         bool retrace = false;
+        bool hazards = false;
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "--detail" && i + 1 < args.Length)
@@ -93,6 +131,7 @@ namespace GemRush.Tools
             if (args[i] == "--margins") margins = true;
             if (args[i] == "--curve") curve = true;
             if (args[i] == "--retrace") retrace = true;
+            if (args[i] == "--hazards") hazards = true;
         }
 
         if (curve)
@@ -103,6 +142,11 @@ namespace GemRush.Tools
         if (retrace)
         {
             RetraceReport(LevelLibrary.Levels);
+            return 0;
+        }
+        if (hazards)
+        {
+            HazardReport(LevelLibrary.Levels);
             return 0;
         }
 
