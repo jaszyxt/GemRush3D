@@ -55,7 +55,7 @@ namespace GemRush
             Transform tr = transform;
             int seq = ++focusSeq;
             float from = tr.localScale.x;
-            Tweener.Value(from, target, FocusSeconds, delegate(float k)
+            Tweener.Value(from, target, FocusSeconds, delegate (float k)
             {
                 if (seq != focusSeq) return; // focus moved on
                 tr.localScale = new Vector3(k, k, 1f);
