@@ -3,6 +3,15 @@
 **Owner:** the story agent. **Status:** Movement Two is **shipped and
 complete** (packs 11–13, levels 32–40).
 
+**Working with other agents:** the story leads and the build follows it.
+If a mechanic, level or prop needs a story line, that is a **feature
+request with a reason attached** and it takes priority over cosmetic work
+— the mechanic IS the storytelling. Do not edit story text (missions, win
+lines, beats, milestones, menu quotes, the epilogue) without the story
+owner's say-so; if a build needs a line changed, ask, because the line may
+be load-bearing canon. The protected decisions live in
+`docs/User-Directives.md` **D-7** (which wins over every story doc).
+
 > ⚠️ **A previous revision of this file contained a 46-level speculative
 > script (packs 11–16: Long Winter, Aurora Festival, First Rainbow,
 > Guardian Games, Little Apprentice, Badge Ceremony) written before the

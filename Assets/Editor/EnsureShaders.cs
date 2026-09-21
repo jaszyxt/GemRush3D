@@ -314,6 +314,17 @@ namespace GemRush.EditorTools
 
         /// (Re)writes the Desktop shortcut so it always launches the
         /// installed copy. Idempotent: same name, same target every time.
+        ///
+        /// Written through the Windows Script Host COM object directly,
+        /// in-process. An earlier version shelled out to powershell.exe
+        /// with the paths pasted into a command string — that meant a path
+        /// containing a quote (a profile like C:\Users\O'Brien\) could both
+        /// break the command and land in executable position. Calling COM
+        /// needs no shell, no command text and no Process.Start at all, so
+        /// there is nothing to escape and nothing to inject into.
+        ///
+        /// Any failure is non-fatal: the install itself has already
+        /// succeeded by the time we get here, and the log says so.
         static void WriteDesktopShortcut(string installRoot)
         {
             string desktop = System.Environment.GetFolderPath(
@@ -321,17 +332,35 @@ namespace GemRush.EditorTools
             string lnk = System.IO.Path.Combine(desktop,
                 ShortcutName + ".lnk");
             string exe = System.IO.Path.Combine(installRoot, "GemRush3D.exe");
-            string ps = "$ws = New-Object -ComObject WScript.Shell; " +
-                "$s = $ws.CreateShortcut('" + lnk + "'); " +
-                "$s.TargetPath = '" + exe + "'; " +
-                "$s.WorkingDirectory = '" + installRoot + "'; " +
-                "$s.Save()";
             try
             {
-                System.Diagnostics.Process.Start(
-                    "powershell.exe",
-                    "-NoProfile -ExecutionPolicy Bypass -Command \"" +
-                    ps.Replace("\\", "\\\\") + "\\").WaitForExit(15000);
+                System.Type shellType =
+                    System.Type.GetTypeFromProgID("WScript.Shell");
+                if (shellType == null)
+                    throw new System.Exception("WScript.Shell unavailable");
+                object shell = System.Activator.CreateInstance(shellType);
+                try
+                {
+                    object shortcut = shellType.InvokeMember(
+                        "CreateShortcut",
+                        System.Reflection.BindingFlags.InvokeMethod, null,
+                        shell, new object[] { lnk });
+                    System.Type scType = shortcut.GetType();
+                    scType.InvokeMember("TargetPath",
+                        System.Reflection.BindingFlags.SetProperty, null,
+                        shortcut, new object[] { exe });
+                    scType.InvokeMember("WorkingDirectory",
+                        System.Reflection.BindingFlags.SetProperty, null,
+                        shortcut, new object[] { installRoot });
+                    scType.InvokeMember("Save",
+                        System.Reflection.BindingFlags.InvokeMethod, null,
+                        shortcut, null);
+                }
+                finally
+                {
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(
+                        shell);
+                }
             }
             catch (System.Exception e)
             {

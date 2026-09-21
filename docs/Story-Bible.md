@@ -4,9 +4,14 @@
 that adds levels, mechanics, UI copy or audio to this game.
 
 **Precedence:** on all matters of story, voice, canon and tone, this
-document wins over every other document, including DESIGN.md. Systems,
-engineering and pacing law remain governed by DESIGN.md; this document
-governs *what the game says and where it is going*.
+document wins over every other document, including DESIGN.md — **except
+`docs/User-Directives.md` (D-7), which wins over this file.** D-7 records
+the user's protected story decisions: closed canon (the redemption, the
+resolved badge, Nim's family status, the lullaby, pronouns) and the
+Evergreen Law. Systems, engineering and pacing law remain governed by
+DESIGN.md; this document governs *what the game says and where it is
+going*. If this file and D-7 ever disagree, D-7 is right and this file is
+out of date.
 
 ---
 
@@ -277,6 +282,7 @@ against the §3 checklist in Movement-Two-Story.md.
 
 | What | Where |
 |---|---|
+| **Protected story law (wins over this file)** | `docs/User-Directives.md` **D-7** |
 | Epilogue, menu quotes | `Assets/Scripts/Story.cs` |
 | Mission / WinLine / StoryBeats / Milestone per level | the `LevelPack*.cs` files and `LevelLibrary.cs` |
 | The Milestone field | `LevelDefinition.Milestone` (win-screen banner) |

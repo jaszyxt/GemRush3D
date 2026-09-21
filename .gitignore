@@ -81,3 +81,15 @@ tools/voice/bin/
 # Python bytecode (was tracked by accident; regenerated on import)
 __pycache__/
 *.pyc
+
+# Mimosa security-scanner working state (its own hook/report/baseline cache).
+# Local tool scratch, never source. It was filling ~5,000 untracked files —
+# the scanner counts untracked non-ignored files against its own 5,000-file
+# census cap, so its cache was overflowing its own scan and forcing
+# `coverage: partial`, which fails closed and blocks every commit in the
+# repo with "findings" that are really just a truncated baseline. Ignoring
+# the cache keeps the census on real source; the gate itself is untouched.
+.mimosa/
+
+# Headless test-runner build intermediates
+tools/obj/

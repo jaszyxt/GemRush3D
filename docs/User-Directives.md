@@ -183,6 +183,75 @@ its predecessor, should be treated as a bug.
 
 ---
 
+## D-7. The story leads. The build follows it.
+
+**Source: user, 2026-09-21** — *"i want you to dictate the direction of the
+game by your story and the agent developers will follow thru"*, and on
+scope, *"you own the stories. you decide the best approach"*, and
+*"yes, the game will follow your story. collaborate with other agents."*
+
+The story is not flavour applied after the fact. It is the **delivery
+vehicle for the whole expansion contract**: each region is a feeling, each
+feeling is one weather-obstacle. Levels, mechanics, props and audio are
+built *to serve* the story — so story text and canon are protected here,
+with the same force as D-1 and D-2.
+
+**Canon is closed. These may not be changed by an agent:**
+
+- **Gloomfang's redemption is permanent** (end of pack 3). He is never
+  re-villainized, never an "evil storm" again, and his loneliness is never
+  played for mockery.
+- **The badge story is RESOLVED.** The review that Movement Two was built
+  around concluded at level 40 (The Homecoming): the Sky-Keeper crossed
+  one word off the badge. He is **not** probationary. The old
+  "request pending" gag **paid off and is retired** — do not restart it,
+  and do not replace it with a new version of the same joke.
+- **Nim is family** (Gloomfang's found baby cloud). No character — and
+  especially not Nim — may be characterized negatively in any doc.
+- **The lullaby is the realm's song.** New arrangements are welcome;
+  replacing it is not.
+- **Characters' pronouns are canon** (Pip he, Gloomfang he, the
+  Sky-Keeper she, Nim he, Red Nine he). See the cast table in
+  `docs/Story-Bible.md` §3.
+
+**The Evergreen Law (anti-drift).** Story strings describe a game that
+keeps growing, so they may not state its size:
+
+- **No counts** in evergreen text — no level totals, pack counts,
+  percentages. (Precedent: a menu quote claimed "twelve levels" when the
+  game had forty; the README said the epilogue played at level 9.)
+- **No spec digits in prose.** Mechanics live in specs, not sentences
+  ("for as long as the tone sings", not "six seconds of bridge").
+- **No statuses that the next pack invalidates** — never "the last", "the
+  final", "the end", "the only" about *content*. Moments may be final;
+  the game may not be.
+- **The completion screen is a chapter break, never a finale.**
+
+**What this means for other agents.**
+
+- Do not edit story text, missions, win lines, beats, milestones, menu
+  quotes or the epilogue without the story owner's say-so. If a build
+  needs a line changed, **ask** — the line may be load-bearing canon.
+- Story is a **handoff partner, not a blocker**. If the story needs a
+  mechanic to exist (a lantern to carry, a bell to ring), that is a
+  feature request *with a reason attached*, and it takes priority over
+  cosmetic work — the mechanic IS the storytelling.
+- Every pack's story text is validated against the **craft checklist** in
+  `docs/Movement-Two-Story.md` §3 and the QA gate in
+  `docs/Story-Bible.md` §9 before it ships.
+
+**Why it matters:** story text is the one artifact a player reads
+literally, and it is the thing that dates fastest. Every drift found in
+the 2026-09 review was a string that described a game that no longer
+existed — a menu quote, a README line, a test message, and an epilogue
+that contradicted the ending the player had just watched.
+
+**Enforcement:** `tools/check-directives.sh` fails the build when
+evergreen story text states a level count, or when the retired
+probationary gag is reintroduced as current status.
+
+---
+
 ## Enforcement
 
 `tools/check-directives.sh` (run by CI on every push and pull request)
@@ -191,7 +260,9 @@ guards the mechanically-checkable parts of this file:
 1. **D-2** — no inline colour literals for hazards/rewards outside ArtLib.
 2. **D-1** — no `Haptics.*` call inside the jump / skid / ordinary-landing
    code paths in `PlayerController.cs`.
-3. This file must not be deleted, and the directive headings must remain.
+3. **D-7** — no level counts in evergreen story text, and no reinstated
+   "probationary" as Gloomfang's current status.
+4. This file must not be deleted, and the directive headings must remain.
 
 A failing guard means someone changed a protected decision without the
 user's explicit instruction. **Do not edit the guard to make it pass.**

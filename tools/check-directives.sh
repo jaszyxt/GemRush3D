@@ -28,7 +28,7 @@ if [ ! -f "$DIRECTIVES" ]; then
   exit 1
 fi
 
-for heading in "## D-1." "## D-2." "## D-3." "## D-4." "## D-5." "## D-6."; do
+for heading in "## D-1." "## D-2." "## D-3." "## D-4." "## D-5." "## D-6." "## D-7."; do
   if ! grep -q "^$heading" "$DIRECTIVES"; then
     echo "FAIL: $DIRECTIVES no longer contains '$heading'. A protected"
     echo "      directive was removed. Restore it, or update the file"
@@ -93,6 +93,63 @@ if grep -rn "new Color(1.00f, 0.84f, 0.25f)\|new Color(1f, 0.84f, 0.25f)" \
   FAILED=1
 else
   echo "ok (D-2):   no inline reward-gold literals"
+fi
+
+# ---------------------------------------------------------------- D-7
+# The Evergreen Law (story leads, build follows): story text describes a
+# game that keeps growing, so it must not state its own size. Precedent:
+# a menu quote claimed "twelve levels" when the game had forty.
+#
+# Both checks below are pure fixed-pattern greps over repository files.
+# Every expansion is quoted and no value is ever passed to a command
+# interpreter: nothing here is assembled from input.
+
+# Spelled-out level/pack counts anywhere inside a quoted story string.
+# Case-INSENSITIVE on purpose: the historical drift line was
+# "Twelve levels" (capitalised), and an earlier case-sensitive version of
+# this check missed both that shape and a mid-sentence count. Verified by
+# injection - both a capitalised and a mid-sentence violation fail it.
+COUNT_RE='"[^"]*\b(twelve|fifteen|twenty|twenty-five|thirty|thirty-five|forty|forty-five|fifty) (levels|packs)\b'
+counts="$(grep -inE "$COUNT_RE" Assets/Scripts/Story.cs \
+    Assets/Scripts/LevelLibrary.cs Assets/Scripts/LevelPackBSides.cs \
+    Assets/Scripts/LevelPackTwo.cs Assets/Scripts/LevelPackThree.cs \
+    Assets/Scripts/LevelPackFour.cs Assets/Scripts/LevelPackFive.cs \
+    Assets/Scripts/LevelPackSix.cs Assets/Scripts/LevelPackSeven.cs \
+    Assets/Scripts/LevelPackEight.cs Assets/Scripts/LevelPackNine.cs \
+    Assets/Scripts/LevelPackTen.cs Assets/Scripts/LevelPackEleven.cs \
+    Assets/Scripts/LevelPackTwelve.cs Assets/Scripts/LevelPackThirteen.cs \
+    2>/dev/null || true)"
+if [ -n "$counts" ]; then
+  echo "FAIL (D-7): evergreen story text states a level or pack COUNT."
+  echo "      The game keeps growing, so the count will become a lie."
+  echo "      Say 'the realm keeps growing' rather than how many levels"
+  echo "      it has. See docs/Story-Bible.md (Evergreen Law)."
+  printf '%s\n' "$counts" | sed 's/^/      /'
+  FAILED=1
+else
+  echo "ok (D-7):   no level counts in story prose"
+fi
+
+# The probationary gag was RESOLVED at level 40 (the badge is official).
+# Reintroducing it as current status reverses the ending.
+PROBATION_RE='weather support \(probationary\)'
+probation="$(grep -nE "$PROBATION_RE" Assets/Scripts/Story.cs \
+    Assets/Scripts/Strings.cs Assets/Scripts/LevelPackTwo.cs \
+    Assets/Scripts/LevelPackThree.cs Assets/Scripts/LevelPackFour.cs \
+    Assets/Scripts/LevelPackFive.cs Assets/Scripts/LevelPackSix.cs \
+    Assets/Scripts/LevelPackSeven.cs Assets/Scripts/LevelPackEight.cs \
+    Assets/Scripts/LevelPackNine.cs Assets/Scripts/LevelPackTen.cs \
+    Assets/Scripts/LevelPackEleven.cs Assets/Scripts/LevelPackTwelve.cs \
+    Assets/Scripts/LevelPackThirteen.cs 2>/dev/null || true)"
+if [ -n "$probation" ]; then
+  echo "FAIL (D-7): the 'weather support (probationary)' gag is back."
+  echo "      The badge review concluded at the end of Movement Two -"
+  echo "      Gloomfang is NOT probationary. See docs/Story-Bible.md"
+  echo "      (Canon amendments)."
+  printf '%s\n' "$probation" | sed 's/^/      /'
+  FAILED=1
+else
+  echo "ok (D-7):   the probation gag is not reinstated"
 fi
 
 # ---------------------------------------------------------------- done
