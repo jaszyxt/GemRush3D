@@ -70,8 +70,12 @@ if [ -n "$AAPT" ]; then
   APK_VERSION="$(printf '%s' "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)"
   APK_CODE="$(printf '%s' "$BADGING" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p" | head -1)"
 fi
-# Fall back to VERSION so the report still works without aapt.
-[ "$APK_VERSION" = "?" ] && APK_VERSION="$(tr -d ' \t\r\n' < "$ROOT/VERSION" 2>/dev/null || echo '?')"
+# Fall back to the version file so the report still works without aapt.
+# The file is GemRush.version (NOT VERSION — the old name collided with
+# libc++'s <version> header and broke every Android IL2CPP build; see
+# EnsureShaders.VersionFileName). Renaming it left this path stale, so the
+# fallback silently printed '?' instead of a version.
+[ "$APK_VERSION" = "?" ] && APK_VERSION="$(tr -d ' \t\r\n' < "$ROOT/GemRush.version" 2>/dev/null || echo '?')"
 
 echo "APK: $APK"
 echo "     version $APK_VERSION (code $APK_CODE)"
