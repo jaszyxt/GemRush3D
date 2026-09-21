@@ -111,7 +111,17 @@ else asks.
    game. **Never record a verdict the user did not give.**
 4. **`HANDOFF.md`** — what each session shipped, environment wisdom,
    hard-won gotchas.
-5. **`RESEARCH.md`** — research record (adopted / ADAPT / SKIPPED).
+5. **`docs/HANDOFF-Difficulty.md`** — the playability / reachability /
+   difficulty-curve scope. **Adjacent to yours in one important way:**
+   its instruments (`sh tools/LevelAudit/run.sh` and `--margins`,
+   `--curve`, `--retrace`, `--hazards`) measure whether the game is
+   completable and kind, and its §4 is the D-5 "a bug is a CLASS"
+   method you also work by. **Run its instruments before and after any
+   change that touches level data** — onboarding edits especially, since
+   moving a checkpoint or a guardian changes reachability and retrace.
+   Difficulty numbers themselves are still the user's (D-4), and the
+   instruments are read-only.
+6. **`RESEARCH.md`** — research record (adopted / ADAPT / SKIPPED).
 
 ---
 

@@ -62,10 +62,13 @@ Spinner ceiling **90 deg/s** (D-6). Levels are **1-based** in UI, 0-based in cod
 
 ## 3. Tests
 
-`Assets/Tests/EditMode/LevelAuditTests.cs` — **39 tests** (suite total 96 across
+`Assets/Tests/EditMode/LevelAuditTests.cs` — **43 tests** (suite total 96 across
 6 files; re-count with
 `grep -rc '\[Test\]' Assets/Tests/EditMode/*.cs` before quoting — numbers drift
-as parallel sessions add suites).
+as parallel sessions add suites). Four were added by the story/delight office
+during the onboarding pass: story-slot coverage (every level has a beat, every
+pack finale a milestone) and two locks on the B-side ladder, which had put a
+hidden-golden hunt in the critical path to the ending.
 
 Headless (no Unity): `bash tools/run-tests-headless.sh`.
 Editor full suite is authoritative; CI runs the headless set on every push.
