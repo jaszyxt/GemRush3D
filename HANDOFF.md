@@ -20,7 +20,7 @@ except D11**) → this file.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Version now lives in ONE place: `VERSION` at the repo root.** The
+- **Version now lives in ONE place: `GemRush.version` at the repo root.** The
   build reads it and derives the Android versionCode automatically
   (`tools/check-version.sh` fails CI if a doc disagrees — it already
   caught real drift: this file said 1.19.0 while the code was at

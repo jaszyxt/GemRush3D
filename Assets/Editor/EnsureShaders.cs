@@ -81,12 +81,36 @@ namespace GemRush.EditorTools
     {
         const string BuildMenuPath = "GemRush/Build Android APK (Release)";
 
-        /// The one place a release version is written by hand: VERSION at
-        /// the repo root. Everything else (bundleVersion, the Android
-        /// versionCode, git tags, docs) derives from it — the old
-        /// hardcoded pair here drifted from HANDOFF and Steam-Deploy
-        /// without anyone noticing.
-        const string VersionFilePath = "VERSION";
+        /// The one place a release version is written by hand:
+        /// GemRush.version at the repo root. Everything else
+        /// (bundleVersion, the Android versionCode, git tags, docs)
+        /// derives from it — the old hardcoded pair here drifted from
+        /// HANDOFF and Steam-Deploy without anyone noticing.
+        ///
+        /// Deliberately NOT named "VERSION": IL2CPP compiles the C++
+        /// libc++ headers, and <variant> does `#include <version>`.
+        /// Windows filesystems are case-insensitive, so a root file named
+        /// VERSION resolves for that include and clang tries to compile
+        /// its contents as C++ — "version(1,1): error: expected
+        /// unqualified-id", 20 errors, Android build dead. Renaming is
+        /// the fix; the name must never collide with a C++ std header.
+        const string VersionFileName = "GemRush.version";
+
+        /// Absolute path to the version file, resolved against the
+        /// PROJECT ROOT rather than the process working directory: a
+        /// relative "VERSION" silently yielded the 0.0.1 fallback (and a
+        /// versionCode of 1) whenever the editor's cwd was not the
+        /// project, which reads as a valid build while regressing Play's
+        /// monotonic code.
+        static string VersionFilePath
+        {
+            get
+            {
+                return System.IO.Path.Combine(
+                    System.IO.Directory.GetParent(Application.dataPath).FullName,
+                    VersionFileName);
+            }
+        }
 
         /// Minor/patch ceiling for the derived Android versionCode. Play
         /// requires it to increase monotonically; encoding major*10000 +
@@ -111,8 +135,8 @@ namespace GemRush.EditorTools
             return value;
         }
 
-        /// Reads VERSION, falling back to a loud default rather than
-        /// silently shipping a stale number if the file goes missing.
+        /// Reads GemRush.version, falling back to a loud default rather
+        /// than silently shipping a stale number if the file goes missing.
         public static string ReadVersion()
         {
             try
@@ -122,10 +146,12 @@ namespace GemRush.EditorTools
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning("[GemRush] Could not read VERSION: " + e.Message);
+                Debug.LogWarning("[GemRush] Could not read " + VersionFileName +
+                    ": " + e.Message);
             }
-            Debug.LogError("[GemRush] VERSION file missing — shipping fallback " +
-                "version 0.0.1. Create VERSION at the repo root.");
+            Debug.LogError("[GemRush] " + VersionFileName + " missing — shipping " +
+                "fallback version 0.0.1. Create " + VersionFileName +
+                " at the repo root.");
             return "0.0.1";
         }
 

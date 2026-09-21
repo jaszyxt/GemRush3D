@@ -162,7 +162,7 @@ findings were latent bugs, not missing software.
 
 1. **Version drift fixed at the root.** The version was hand-edited in
    five places and HAD ALREADY DRIFTED (code 1.27.0, HANDOFF 1.19.0,
-   Steam-Deploy 1.22.1). `VERSION` at the repo root is now the single
+   Steam-Deploy 1.22.1). `GemRush.version` at the repo root is now the single
    source; `EnsureShaders` reads it and *derives* the Android
    versionCode (major*10000 + minor*100 + patch, so 1.27.0 -> 12700,
    safely above the old hand-held 43 and monotonic by construction).

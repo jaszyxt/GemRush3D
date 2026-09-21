@@ -45,7 +45,7 @@ missing is entirely on the account/upload side.
   `GemRush3D_Data/`, `MonoBleedingEdge/`, `D3D12/`, `DirectML.dll`,
   `dstorage.dll`, `dstoragecore.dll`.
 - Exclude from depot: the BackUp folder, `*.pdb`, any `.apk`.
-- Versioning: `VERSION` at the repo root is the single source of truth —
+- Versioning: `GemRush.version` at the repo root is the single source of truth —
   the build reads it and derives the Android versionCode automatically
   (`tools/check-version.sh` enforces doc agreement). Put the same string
   in the SteamPipe build `Desc` so builds are traceable.
