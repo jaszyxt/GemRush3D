@@ -1,7 +1,17 @@
 # Gem Rush 3D — Story Bible
 
-**Owner:** the story agent. **Audience:** every agent (human or automated)
-that adds levels, mechanics, UI copy or audio to this game.
+**Owner:** the story agent — who also holds three related roles. See
+`docs/Fun-Creativity-Handover.md` §1 for the full scope:
+
+| Role | Owns |
+|---|---|
+| **Story owner** *(this file)* | what the game says and where it goes — the writing, cast, canon, voice, roadmap |
+| **Fun & delight owner** | what the game feels — game feel, feedback, reward, reactive world, calm/rest |
+| **Onboarding owner** | how the game introduces itself — the first ten minutes, the first sentence, the first three verbs |
+| **Continuity & coherence editor** | the seams between owners — do story, audio, art, UI and difficulty still describe the same game? |
+
+**Audience:** every agent (human or automated) that adds levels,
+mechanics, UI copy or audio to this game.
 
 **Precedence:** on all matters of story, voice, canon and tone, this
 document wins over every other document, including DESIGN.md — **except
