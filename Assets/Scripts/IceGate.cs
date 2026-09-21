@@ -180,6 +180,7 @@ namespace GemRush
 
         /// One remnant's pop: a slim shard rises out of the slush with the
         /// same overshoot language as the garden blooms.
+        [UnityEngine.Scripting.Preserve]
         class CrystalShard : MonoBehaviour
         {
             public float delay;

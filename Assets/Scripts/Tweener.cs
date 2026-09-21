@@ -18,6 +18,7 @@ namespace GemRush
             public Action onDone;
         }
 
+        [UnityEngine.Scripting.Preserve]
         class TweenerDriver : MonoBehaviour
         {
             void Update()

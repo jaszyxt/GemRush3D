@@ -322,6 +322,7 @@ namespace GemRush
     /// a small Air-colored bead, a soft accelerating fall, and where it
     /// lands a tiny flower blooms. Purely cosmetic — no collider, no
     /// gameplay — and it cleans itself up once the bloom settles.
+    [UnityEngine.Scripting.Preserve]
     class GloomfangRaindrop : MonoBehaviour
     {
         const float FallSeconds = 0.6f;

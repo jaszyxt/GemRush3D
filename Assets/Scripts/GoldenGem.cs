@@ -195,6 +195,20 @@ namespace GemRush
         /// The collectible itself: spin, bob, and on touch — the save
         /// flag, a gold burst, the toast, the gift chime. Never the gem
         /// counter.
+        ///
+        /// [Preserve] IS LOAD-BEARING — do not remove it. This is a
+        /// private nested class referenced by nothing in managed code (it
+        /// is created only through AddComponent<GoldenStar>()), which
+        /// makes it a prime target for IL2CPP's linker. Windows runs Mono
+        /// and strips nothing, so the bug was invisible there; on Android
+        /// the type was stripped and its OnTriggerEnter never registered
+        /// with the physics system. The result was the reported symptom
+        /// exactly: the gem RENDERED and its Update ran (it glowed and
+        /// bobbed) but the player passed straight through it with no
+        /// sound and no pickup. Compare Gem (top-level, publicly
+        /// referenced) which never had the problem, and MirrorDoor's
+        /// DoorSide (nested, but held in fields) which also survived.
+        [UnityEngine.Scripting.Preserve]
         class GoldenStar : MonoBehaviour
         {
             public int levelIndex;

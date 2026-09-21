@@ -109,6 +109,7 @@ namespace GemRush
         }
 
         /// Press-and-hold jump button; also queues the buffered jump.
+        [UnityEngine.Scripting.Preserve]
         class JumpTouch : MonoBehaviour,
             UnityEngine.EventSystems.IPointerDownHandler,
             UnityEngine.EventSystems.IPointerUpHandler

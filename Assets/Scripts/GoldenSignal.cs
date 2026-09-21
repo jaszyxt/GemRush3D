@@ -168,6 +168,7 @@ namespace GemRush
     /// Slow breathing emission on the golden's body material — the
     /// "something glints over there" tell. Unscaled, so a photogenic
     /// pause never freezes the cue mid-breath.
+    [UnityEngine.Scripting.Preserve]
     class GoldenGlimmer : MonoBehaviour
     {
         public Material body;
