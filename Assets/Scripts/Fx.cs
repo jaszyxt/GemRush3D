@@ -265,6 +265,14 @@ namespace GemRush
 
         public static void Burst(Vector3 position, Color color, int count)
         {
+            // The same budget ceiling PetalPuff and Confetti enforce. This
+            // one had none, and the cast below is (short): an over-budget
+            // request would WRAP silently rather than throw, so a caller
+            // passing a big number would get a small or negative burst
+            // with no warning at all.
+            if (count > 60) count = 60;
+            if (count < 0) count = 0;
+
             GameObject go = new GameObject("Burst");
             go.transform.position = position;
 

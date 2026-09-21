@@ -280,24 +280,70 @@ namespace GemRush.Tests
         {
             // The directives cap one-shot effects (60 particles; petals 30)
             // and Fx is the only thing standing between a caller's number
-            // and the phone's frame budget. Over-budget requests must
-            // clamp, never throw and never overflow the budget.
-            Assert.DoesNotThrow(delegate
-            {
-                Fx.Confetti(Vector3.zero, 500);
-                Fx.PetalPuff(Vector3.zero, ArtLib.Gold, 500);
-                Fx.Burst(Vector3.zero, ArtLib.Gold, 500);
-            }, "over-budget requests must clamp, not throw");
+            // and the phone's frame budget.
+            //
+            // This test used to assert only DoesNotThrow, which proved
+            // nothing: Burst had NO clamp at all, so sending it 500 simply
+            // built a 500-particle system without complaining — and because
+            // the count goes through a (short) cast, a large enough number
+            // would wrap to a small or negative burst in silence. The test
+            // passed for exactly the wrong reason. It now MEASURES the
+            // clamp, so removing any of the three ceilings fails here.
+            assertClamped("Burst", 60,
+                delegate { Fx.Burst(Vector3.zero, ArtLib.Gold, 500); });
+            assertClamped("PetalPuff", 30,
+                delegate { Fx.PetalPuff(Vector3.zero, ArtLib.Gold, 500); });
+            assertClamped("Confetti", 60,
+                delegate { Fx.Confetti(Vector3.zero, 500); });
 
-            // Clean up whatever the spawns left behind so this fixture
-            // never leaks objects into the next test.
-            foreach (GameObject go in
-                Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None))
+            // A negative request must not become a wrapped positive one.
+            assertClamped("Burst", 60,
+                delegate { Fx.Burst(Vector3.zero, ArtLib.Gold, -1); });
+        }
+
+        /// Spawns one one-shot and asserts the burst it built is inside the
+        /// budget. Reads the live system rather than trusting the clamp's
+        /// source, because the whole point is that a missing clamp is
+        /// invisible from the call site.
+        ///
+        /// The signal measured is the BURST ENTRY, not maxParticles: these
+        /// one-shots never set maxParticles (Unity's 1000 default applies),
+        /// so the emitted count is what the budget actually rides on — and
+        /// it is the number the (short) cast consumes.
+        static void assertClamped(string label, int budget,
+            System.Action spawn)
+        {
+            spawn();
+            ParticleSystem found = null;
+            foreach (ParticleSystem ps in Object.FindObjectsByType<ParticleSystem>(
+                FindObjectsSortMode.None))
             {
-                if (go.name == "Confetti" || go.name == "PetalPuff"
-                    || go.name == "Burst")
-                    Object.DestroyImmediate(go);
+                if (ps.gameObject.name == label
+                    || label.StartsWith(ps.gameObject.name))
+                {
+                    found = ps;
+                    break;
+                }
             }
+            Assert.IsNotNull(found,
+                label + ": expected a particle system named for the effect");
+
+            ParticleSystem.Burst[] bursts = new ParticleSystem.Burst[8];
+            int n = found.emission.GetBursts(bursts);
+            Assert.Greater(n, 0, label + ": expected a burst entry");
+            for (int i = 0; i < n; i++)
+            {
+                // count is a MinMaxCurve; these bursts are always constant,
+                // so .constant is the number the (short) cast consumed.
+                int count = (int)bursts[i].count.constant;
+                Assert.LessOrEqual(count, budget,
+                    label + ": burst entry of " + count +
+                    " exceeds the " + budget + " budget — the clamp is gone");
+                Assert.GreaterOrEqual(count, 0,
+                    label + ": burst count went negative — the (short) wrap");
+            }
+
+            Object.DestroyImmediate(found.gameObject);
         }
 
         // ---------- The genre law (cozy, not transactional) ----------

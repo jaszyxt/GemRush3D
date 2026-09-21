@@ -75,6 +75,7 @@ namespace GemRush
         //   9400      crystal run          9500       milestone chime
         //   9600      trophy chime         9700       trail tier
         //   9800      level unlock         9900       festival concert
+        //   9950      photo shutter
         readonly Dictionary<int, AudioClip> noteCache =
             new Dictionary<int, AudioClip>();
 
@@ -677,10 +678,14 @@ namespace GemRush
         public void PlayShutter()
         {
             if (!SaveSystem.SoundOn) return;
-            if (!noteCache.TryGetValue(9200, out AudioClip clip))
+            // 9950, not 9200: 9200 is PlayNewRecord's. Reusing it made the
+            // shutter and the new-record flourish share one cached clip, so
+            // one of them would silently play the other's sound — the same
+            // class of collision the key map below warns about.
+            if (!noteCache.TryGetValue(9950, out AudioClip clip))
             {
                 clip = SfxSynth.Shutter("ui_shutter");
-                noteCache[9200] = clip;
+                noteCache[9950] = clip;
             }
             source.PlayOneShot(clip);
         }
