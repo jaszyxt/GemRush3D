@@ -32,6 +32,36 @@ namespace GemRush
             return -1;
         }
 
+        /// True when a level is an OPTIONAL remix rather than a step of the
+        /// main road. The B-Sides are a side branch: they are unlocked by
+        /// finding a hidden golden gem, and they are never required to
+        /// reach the rest of the game.
+        public static bool IsOptionalRemix(int levelIndex)
+        {
+            return BSideSourceIndex(levelIndex) >= 0;
+        }
+
+        /// The level the ladder should advance to after clearing
+        /// <paramref name="levelIndex"/>: the next MAIN-ROAD level,
+        /// skipping any optional remix.
+        ///
+        /// This exists because the ladder used to be `index + 1`, which put
+        /// the golden-gated B-Sides (28-30) directly in the critical path:
+        /// unlocking is strictly sequential, so a player who never found
+        /// the hidden golden on level 2, 19 or 22 could never open levels
+        /// 31-39 — the entire ending. Missing a secret must cost a secret,
+        /// never the game. Goldens still gate the remixes themselves; they
+        /// no longer gate progress.
+        public static int NextMainRoadLevel(int levelIndex)
+        {
+            int last = Levels.Length - 1;
+            int next = levelIndex + 1;
+            while (next < last && IsOptionalRemix(next)) next++;
+            // Clearing the final level has nowhere to advance to; clamp so
+            // the stored unlocked-count can never grow past the library.
+            return next > last ? last : next;
+        }
+
         public static readonly Region[] Regions =
         {
             new Region { Roman = "I",     Name = "The Storm",            First = 0,  Count = 3 },

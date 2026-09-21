@@ -628,6 +628,12 @@ namespace GemRush
 
                 // The golden-gem gate: a B-side also needs its source
                 // level's golden gem; a found golden gilds the row.
+                //
+                // The gate applies ONLY to the optional remix itself — it
+                // never withholds the main road. The ladder advances past
+                // B-Sides (LevelLibrary.NextMainRoadLevel), so reaching a
+                // later level does not require any golden. Missing a secret
+                // costs a secret, never the ending.
                 int gateSource = LevelLibrary.BSideSourceIndex(i);
                 bool goldenFound = SaveSystem.GoldenFound(i);
                 bool gateOpen = gateSource < 0 ||
@@ -1300,8 +1306,11 @@ namespace GemRush
 
                 int index = region.First + i;
                 LevelDefinition def = LevelLibrary.Levels[index];
-                // The golden-gem gate, atlas-side: B-sides need their
-                // source's golden; the locked detail names the quest.
+                // The golden-gem gate, atlas-side: a B-side needs its
+                // source's golden; the locked detail names the quest. Like
+                // the menu grid, this withholds only the optional remix —
+                // the ladder advances past B-Sides, so a later region is
+                // never blocked by a missing golden.
                 int gateSource = LevelLibrary.BSideSourceIndex(index);
                 bool gateOpen = gateSource < 0 ||
                     SaveSystem.GoldenFound(gateSource);

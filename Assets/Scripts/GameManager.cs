@@ -451,8 +451,11 @@ namespace GemRush
                         GhostStore.Encode(path));
             }
             if (ghostRecorder != null) ghostRecorder.Stop();
-            SaveSystem.UnlockLevel(Mathf.Min(CurrentLevel + 1,
-                LevelLibrary.Levels.Length - 1));
+            // Advance to the next MAIN-ROAD level, stepping over the
+            // golden-gated B-Sides: those are an optional branch, and the
+            // ladder must never depend on finding a hidden secret (a missed
+            // golden used to wall off the ending).
+            SaveSystem.UnlockLevel(LevelLibrary.NextMainRoadLevel(CurrentLevel));
 
             AudioManager.Instance.PlayWin();
             Haptics.Fanfare();
