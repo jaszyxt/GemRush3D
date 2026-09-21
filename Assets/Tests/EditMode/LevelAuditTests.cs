@@ -292,6 +292,102 @@ namespace GemRush.Tests
         }
 
         // ------------------------------------------------------------------
+        // Story slots (Story-Bible section 7)
+        //
+        // The bible claims these live here as the metadata half of its QA
+        // gate, and until now nothing asserted them: a level could ship
+        // with no story beat at all, or a pack finale with no milestone,
+        // and pass the entire suite in silence.
+        // ------------------------------------------------------------------
+
+        [Test]
+        public void EveryLevel_HasAtLeastOneStoryBeat()
+        {
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                // Bonus-flight is a single serene delivery level with no
+                // checkpoints to hang beats on; every other level tells
+                // the player something as they go.
+                if (l.BonusFlight) { i++; continue; }
+                Assert.GreaterOrEqual(l.StoryBeats.Count, 1,
+                    Label(i, l) + " has no story beats — the world says "
+                    + "nothing while the player crosses it.");
+                i++;
+            }
+        }
+
+        [Test]
+        public void EveryPackFinale_CarriesAMilestone()
+        {
+            // A milestone is the "atlas grew a page" stamp on the win
+            // screen. The last level of each region must carry one, or
+            // finishing a region passes without the world acknowledging it.
+            // Regions come from the same table the atlas uses, so a new
+            // pack is covered the moment it registers a region.
+            foreach (LevelLibrary.Region region in LevelLibrary.Regions)
+            {
+                int last = region.First + region.Count - 1;
+                LevelDefinition l = LevelLibrary.Levels[last];
+                Assert.IsFalse(string.IsNullOrEmpty(l.Milestone),
+                    "region " + region.Roman + " '" + region.Name + "' ends "
+                    + "at level " + (last + 1) + " '" + l.Name + "' with no "
+                    + "milestone — that region's finale is silent.");
+            }
+        }
+
+        [Test]
+        public void EveryOptionalRemix_IsReachableWithoutAnyGolden()
+        {
+            // The B-Sides are gated behind hidden golden gems, and unlocking
+            // is sequential. Those two facts together used to put a
+            // collectible hunt in the critical path: a player who never
+            // found the golden on the source level could never open the
+            // levels BEHIND the remix, including the ending.
+            //
+            // The ladder now steps over optional remixes, so walking it from
+            // level 1 must always reach the final level with no goldens at
+            // all. This is the class-level lock for that defect.
+            int last = LevelLibrary.Levels.Length - 1;
+            int frontier = 0;
+            int guard = 0;
+            while (frontier < last && guard++ < LevelLibrary.Levels.Length)
+                frontier = LevelLibrary.NextMainRoadLevel(frontier);
+
+            Assert.AreEqual(last, frontier,
+                "walking the main road from level 1 stops at " + (frontier + 1)
+                + " instead of " + (last + 1) + " — something in the ladder "
+                + "depends on a secret, so the game can be made unfinishable.");
+        }
+
+        [Test]
+        public void NextMainRoadLevel_SkipsOnlyOptionalRemixes()
+        {
+            // The helper must be a no-op everywhere except across a gated
+            // remix, and must never run off the end of the library.
+            int last = LevelLibrary.Levels.Length - 1;
+            for (int i = 0; i < LevelLibrary.Levels.Length; i++)
+            {
+                int next = LevelLibrary.NextMainRoadLevel(i);
+                Assert.LessOrEqual(next, last,
+                    "NextMainRoadLevel(" + i + ") returned past the library.");
+                Assert.GreaterOrEqual(next, i,
+                    "NextMainRoadLevel(" + i + ") went backwards.");
+
+                if (LevelLibrary.IsOptionalRemix(i + 1))
+                    Assert.IsFalse(LevelLibrary.IsOptionalRemix(next),
+                        "level " + (i + 1) + " leads onto optional remix "
+                        + (next + 1) + " — the ladder must step over it.");
+                else if (i < last)
+                    Assert.AreEqual(i + 1, next,
+                        "level " + (i + 1) + " advanced to " + (next + 1)
+                        + " without a remix in between.");
+                // else: the final level has nowhere to advance to, and the
+                // clamp correctly leaves it where it is.
+            }
+        }
+
+        // ------------------------------------------------------------------
         // Geometry
         // ------------------------------------------------------------------
 

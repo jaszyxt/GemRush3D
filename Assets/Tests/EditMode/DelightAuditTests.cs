@@ -378,8 +378,41 @@ namespace GemRush.Tests
             foreach (LevelDefinition level in LevelLibrary.Levels)
                 samples.Add(Strings.GoldenNote(level.Name));
 
+            // The surfaces that are actually TEMPTING to make transactional,
+            // and which this test previously never read: the strings that
+            // talk about coming back, or about a running total. A pressure
+            // phrase added to the visit recap, the game-over line, the
+            // completion screen or a menu quote used to sail through.
+            samples.Add(Strings.VisitRecapProgress(3, 1));
+            samples.Add(Strings.VisitRecapGifts(4, false));
+            samples.Add(Strings.VisitRecapGifts(4, true));
+            samples.Add(Strings.OverSub);
+            samples.Add(Strings.CompleteSub);
+            samples.Add(Strings.FirstVisitWelcome);
+            samples.Add(Strings.TrailTier1);
+            samples.Add(Strings.TrailTier2);
+            samples.Add(Strings.TrailTier3);
+            samples.Add(Strings.FirstStepsHint());
+            samples.Add(Strings.BellHint);
+            samples.Add(Strings.AtlasUncharted);
+            samples.Add(Strings.GoldenGateLocked);
+            samples.Add(Strings.NoTimeYet);
+            foreach (string quote in Story.MenuQuotes)
+                samples.Add(quote);
+            foreach (string page in Story.Epilogue)
+                samples.Add(page);
+            foreach (LevelDefinition level in LevelLibrary.Levels)
+            {
+                samples.Add(level.WinLine);
+                if (!string.IsNullOrEmpty(level.Milestone))
+                    samples.Add(level.Milestone);
+                foreach (string beat in level.StoryBeats)
+                    samples.Add(beat);
+            }
+
             foreach (string line in samples)
             {
+                if (string.IsNullOrEmpty(line)) continue;
                 string lower = line.ToLowerInvariant();
                 foreach (string phrase in banned)
                     Assert.IsFalse(lower.Contains(phrase),

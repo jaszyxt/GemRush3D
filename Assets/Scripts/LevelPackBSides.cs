@@ -45,6 +45,7 @@ namespace GemRush
                 l.Hearts.Add(new Vector3(-2f, 13.5f, 52f));
                 l.StoryBeats.Add("Climb the beacon route in the dark, the way the first keepers did, before anyone thought to make it easy.");
                 l.StoryBeats.Add("From the summit at night you can see every portal you ever lit. All of them. Still burning.");
+                l.Milestone = "REGION CHARTED: THE B-SIDES. The atlas keeps a shelf for after dark.";
             })
         };
     }
