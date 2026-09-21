@@ -1020,11 +1020,18 @@ namespace GemRush.Tests
             // the first cycle only. The gust now runs on its own clock, so
             // this asserts the gameplay rule directly and records which
             // moods would drift if it ever read the music again.
-            float period = 4.4f;   // the game's gust period
-            float active = 2.2f;   // half of it, by design
-            Assert.Greater(active, period * 0.5f,
-                "a gust must blow for over half of every cycle, or a player " +
-                "waiting to cross spends most of their time unable to");
+            // Read the REAL constants rather than copies: a duplicated
+            // literal cannot catch a regression in the value it duplicates,
+            // and the original strict `>` compared 2.2 against 2.2 — the
+            // design value is EXACTLY half — so the test failed on its own
+            // definition of correct.
+            float period = GemRush.GustZone.DefaultPeriod;
+            float active = GemRush.GustZone.DefaultActiveTime;
+            Assert.Greater(period, 0f, "the gust needs a positive period");
+            Assert.GreaterOrEqual(active, period * 0.5f,
+                "a gust must blow for at least half of every cycle, or a " +
+                "player waiting to cross spends most of their time unable " +
+                "to move (active " + active + " of period " + period + ")");
             Assert.LessOrEqual(active, period,
                 "the blow cannot outlast its own period");
             foreach (SoundMood mood in

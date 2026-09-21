@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.27.0 session, 2026-09-21)
+# HANDOFF — current state (update: v1.27.1 session, 2026-09-21)
 
 **Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
@@ -20,12 +20,21 @@ except D11**) → this file.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Version now lives in ONE place: `GemRush.version` at the repo root.** The
-  build reads it and derives the Android versionCode automatically
-  (`tools/check-version.sh` fails CI if a doc disagrees — it already
-  caught real drift: this file said 1.19.0 while the code was at
-  1.27.0). Never hand-edit a version in `EnsureShaders.cs` or
-  ProjectSettings again.
+- **Code: v1.27.1** (versionCode 12701, derived). Version now lives in ONE
+  place: `GemRush.version` at the repo root. The build reads it and derives
+  the Android versionCode automatically (`tools/check-version.sh` fails CI
+  if a doc disagrees — it already caught real drift: this file said 1.19.0
+  while the code was at 1.27.0). Never hand-edit a version in
+  `EnsureShaders.cs` or ProjectSettings again.
+- **A repo-root file MUST NOT be named after a C++ standard header.**
+  `VERSION` (the file's original name) collided with libc++'s `<version>`
+  on case-insensitive Windows: IL2CPP's `<variant>` does
+  `#include <version>`, clang compiled our version file as C++, and EVERY
+  Android build failed with `version(1,1): error: expected unqualified-id`
+  — while the editor and Windows player stayed green, since neither
+  compiles that header. Fixed by renaming to `GemRush.version` (df6ab5e).
+  If an IL2CPP build ever fails citing a path in this repo, check that
+  name against the C++ standard headers first.
 - **40 levels, 14 atlas regions.** Release-signed `Builds/GemRush3D.apk`
   (V2 cert `CN=Gem Rush 3D, O=PipStudio`) + `Builds/GemRush3D.exe`
   (check `GemRush3D_Data/Managed/GemRush.dll` mtime for freshness, not

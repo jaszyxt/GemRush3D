@@ -11,9 +11,18 @@ namespace GemRush
     /// on the chord root.
     public class GustZone : MonoBehaviour
     {
+        /// The canonical gust timing, exposed so the audit can assert the
+        /// gameplay contract against the REAL constants instead of copies
+        /// (a duplicated literal in a test cannot catch a regression in
+        /// the value it duplicates). ActiveBlow is half the period by
+        /// design: a player waiting to cross spends equal time able and
+        /// unable, and the giggle telegraph fills the lull.
+        public const float DefaultPeriod = 4.4f;
+        public const float DefaultActiveTime = 2.2f;
+
         public Vector3 direction = new Vector3(0f, 0f, 1f);
-        public float period = 4.4f;
-        public float activeTime = 2.2f;
+        public float period = DefaultPeriod;
+        public float activeTime = DefaultActiveTime;
         public float strength = 8f;
         public float lift = 0f;
 
