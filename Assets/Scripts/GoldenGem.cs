@@ -46,6 +46,12 @@ namespace GemRush
         /// the way out".
         public const float MinPortalDistance = 15f;
 
+        /// How high a gem floats above the platform it hides over — the
+        /// contract the placement below and the audit tests both rely on.
+        /// Named because a spot that is not exactly this high over a
+        /// platform is a spot the player cannot walk into.
+        public const float HoverHeight = 1.2f;
+
         public static Vector3 PickSpot(LevelDefinition level)
         {
             int seed = 0;
@@ -66,7 +72,7 @@ namespace GemRush
                 float pz = ((float)rng.NextDouble() * 2f - 1f) *
                     (p.Size.z * 0.5f - 1f);
                 Vector3 spot = p.Center +
-                    new Vector3(px, p.Size.y * 0.5f + 1.2f, pz);
+                    new Vector3(px, p.Size.y * 0.5f + HoverHeight, pz);
 
                 // Never hide the prize on the way out.
                 float toPortal = Vector3.Distance(
@@ -118,7 +124,7 @@ namespace GemRush
                 float pz = ((float)rng.NextDouble() * 2f - 1f) *
                     (p.Size.z * 0.5f - 1f);
                 Vector3 spot = p.Center +
-                    new Vector3(px, p.Size.y * 0.5f + 1.2f, pz);
+                    new Vector3(px, p.Size.y * 0.5f + HoverHeight, pz);
 
                 float nearestGem = 999f;
                 for (int g = 0; g < level.Gems.Count; g++)
@@ -141,18 +147,34 @@ namespace GemRush
         public static void PlaceIfHidden(LevelDefinition level,
             Transform parent)
         {
+            Place(level, parent, SaveSystem.GoldenFound(ActiveLevelIndex));
+        }
+
+        /// The placement itself, with the found state passed in rather than
+        /// read from the save. The seam exists so a test can drive BOTH
+        /// branches without writing the developer's save — the reason the
+        /// old probe could never see this bug.
+        public static void Place(LevelDefinition level, Transform parent,
+            bool alreadyFound)
+        {
             int index = ActiveLevelIndex;
             if (!HidesGolden(index)) return;
 
-            // Found already: leave the gentle trace instead of a void.
-            // Odyssey's softness — a found thing keeps a faint outline so
-            // returning to the spot reads as "yours", never as "gone".
-            if (SaveSystem.GoldenFound(index))
-            {
-                GoldenSignal.FoundOutline(level, parent);
-                return;
-            }
-
+            // THE LAW, set by the user on 2026-09-22 after three releases
+            // of players reporting a golden gem they could not collect:
+            // "if it's not a gem, then DELETE it. If it's a gem, then make
+            // it a gem." So the spot ALWAYS holds a real gem — a level
+            // whose golden was already found used to spawn a faint gold
+            // cube in its place, a non-gem wearing a gem's shape, and that
+            // fake was the bug (32 of 37 levels on one save). A find now
+            // changes only what the pickup SAYS, never whether the gem is
+            // there: the first find gets the unlock line and the note, a
+            // re-find gets the burst and the chime and nothing else.
+            //
+            // This also means no save state can ever render a level's
+            // golden uncollectable again — the whole class is gone, not
+            // just the instance — and it needs no repair of the flags the
+            // old exit-pad placement swept up.
             Vector3 spot = PickSpot(level);
 
             // Built EXACTLY like the working pink gem (see Gem.Create): one
@@ -188,6 +210,7 @@ namespace GemRush
 
             GoldenStar star = golden.AddComponent<GoldenStar>();
             star.levelIndex = index;
+            star.alreadyFound = alreadyFound;
             star.Note = Strings.GoldenNote(level.Name);
             star.body = golden.transform;
         }
@@ -196,22 +219,27 @@ namespace GemRush
         /// flag, a gold burst, the toast, the gift chime. Never the gem
         /// counter.
         ///
-        /// [Preserve] IS LOAD-BEARING — do not remove it. This is a
-        /// private nested class referenced by nothing in managed code (it
-        /// is created only through AddComponent<GoldenStar>()), which
-        /// makes it a prime target for IL2CPP's linker. Windows runs Mono
-        /// and strips nothing, so the bug was invisible there; on Android
-        /// the type was stripped and its OnTriggerEnter never registered
-        /// with the physics system. The result was the reported symptom
-        /// exactly: the gem RENDERED and its Update ran (it glowed and
-        /// bobbed) but the player passed straight through it with no
-        /// sound and no pickup. Compare Gem (top-level, publicly
-        /// referenced) which never had the problem, and MirrorDoor's
-        /// DoorSide (nested, but held in fields) which also survived.
+        /// [Preserve] is cheap insurance here, NOT the fix it was once
+        /// believed to be. Keep it; do not trust its old story. The
+        /// "goldens can't be collected" reports were traced on 2026-09-22
+        /// to the save gate in PlaceIfHidden: a level whose find flag was
+        /// set spawned GoldenSignal's mark instead of a gem, and it was
+        /// that uncollectable mark players walked through. Nothing was
+        /// ever stripped — GemRush3D.apk (12903) carries GoldenStar in its
+        /// IL2CPP metadata, and a live golden collected in-engine with no
+        /// manual Physics.SyncTransforms. The old note here claimed
+        /// "Update ran but OnTriggerEnter never registered", a state that
+        /// cannot exist: a stripped type has no component to run Update.
         [UnityEngine.Scripting.Preserve]
-        class GoldenStar : MonoBehaviour
+        public class GoldenStar : MonoBehaviour
         {
             public int levelIndex;
+            /// Set at spawn from the save flag. It does NOT remove the gem:
+            /// a yellow shape the player cannot collect is the exact bug
+            /// this feature shipped for three releases. It only decides
+            /// whether the pickup re-tells the discovery (see
+            /// OnTriggerEnter).
+            public bool alreadyFound;
             /// The canon-voice line carried by this gem's spot (see
             /// Strings.GoldenNote). Shown after the unlock line so the
             /// find reads as a discovery with a story, not a pickup.
@@ -241,6 +269,16 @@ namespace GemRush
             /// rigidbody that triggers it (the player) is a real body
             /// moving under physics. The pickup falls back to the magnet
             /// path the moment Pip is within reach, exactly like Gem.cs.
+            ///
+            /// MEASURED, not assumed: an earlier fix blamed this movement
+            /// for the uncollectable goldens, on the theory that a
+            /// transform moved in Update never reaches the physics engine
+            /// with autoSyncTransforms off. It was never the cause — the
+            /// sync runs at the next simulation step, so a mover's
+            /// collider lags by at most one fixed step. The standing proof
+            /// is the ordinary gems: they have always bobbed their own
+            /// trigger and have always collected. A live golden collected
+            /// in-engine with no manual Physics.SyncTransforms too.
             void Update()
             {
                 if (taken) return;
@@ -284,7 +322,13 @@ namespace GemRush
                 SaveSystem.SetGoldenFound(levelIndex);
                 Fx.Burst(transform.position, ArtLib.Gold * 1.8f, 30);
                 Fx.Ring(transform.position, ArtLib.Gold);
-                if (UIManager.Instance != null)
+                // The celebration is for the FIND, not for the pickup. A
+                // re-find still bursts, still chimes and still leaves (the
+                // player must always see that it worked — "nothing
+                // happened, no sound" was half the original complaint),
+                // but it does not replay the unlock line and the note as
+                // though the secret were new.
+                if (!alreadyFound && UIManager.Instance != null)
                 {
                     int bside = -1;
                     for (int i = 0; i < LevelLibrary.Levels.Length; i++)

@@ -142,14 +142,11 @@ namespace GemRush
 
     /// The golden gem itself. Gentle spin, generous trigger, one gift.
     ///
-    /// [Preserve] IS LOAD-BEARING — do not remove it. The daily gift is
-    /// created ONLY through AddComponent<DailyStar>() and the type is
-    /// referenced nowhere else in managed code, so IL2CPP's linker is free
-    /// to strip it from the Android player. When that happens the component
-    /// is gone from the build and the gift simply never collects — exactly
-    /// the failure that made every golden uncollectable on the phone while
-    /// working on the laptop, since Windows player builds run Mono, which
-    /// strips nothing. See GoldenStar for the full account.
+    /// [Preserve] is cheap insurance, not the fix it was once believed to
+    /// be: the uncollectable-golden reports turned out to be the golden's
+    /// save gate (see GoldenStar), and GemRush3D.apk carries this class in
+    /// its IL2CPP metadata. Kept because the type is still created only
+    /// through AddComponent<DailyStar>() and the attribute costs nothing.
     [UnityEngine.Scripting.Preserve]
     public class DailyStar : MonoBehaviour
     {
@@ -170,12 +167,18 @@ namespace GemRush
             bodyBase = body != null ? body.localPosition : Vector3.zero;
         }
 
-        /// The ROOT carries the trigger and must never move: this project
-        /// runs with Physics.autoSyncTransforms OFF, so a transform moved
-        /// in Update leaves its collider's physics position behind and the
-        /// pickup stops firing. The gift used to bob its root here, the
-        /// same defect that made every golden uncollectable. Only the
-        /// visual child animates.
+        /// The trigger lives on the ROOT, so the spin and bob ride on the
+        /// child: that keeps the pickup shape still and reads clearly. The
+        /// magnet below does move the root, and is safe.
+        ///
+        /// An earlier note here claimed the root moving was WHAT BROKE the
+        /// pickup, via Physics.autoSyncTransforms, "the same defect that
+        /// made every golden uncollectable". That was wrong twice over: the
+        /// physics engine syncs transform changes at the next simulation
+        /// step (a mover's collider lags one fixed step, it does not
+        /// stick), and the goldens' real failure was their save gate, not
+        /// their motion. The ordinary gems have always bobbed their own
+        /// trigger and have always collected.
         void Update()
         {
             if (taken) return;

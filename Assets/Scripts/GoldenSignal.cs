@@ -115,38 +115,19 @@ namespace GemRush
             gem.gameObject.AddComponent<GoldenGlimmer>().body = body;
         }
 
-        /// The faded outline left where a golden was found: Odyssey's
-        /// softness — a found thing leaves a gentle trace, never a void.
-        /// Placed by LevelBuilder once the level's goldens are known.
-        public static void FoundOutline(LevelDefinition level,
-            Transform parent)
-        {
-            GameObject outline = new GameObject("GoldenFoundOutline");
-            outline.transform.SetParent(parent, false);
-            outline.transform.localPosition = PickSpotFor(level);
-
-            GameObject shell = GameObject.CreatePrimitive(
-                PrimitiveType.Cube);
-            Object.Destroy(shell.GetComponent<Collider>());
-            shell.transform.SetParent(outline.transform, false);
-            shell.transform.localRotation = Quaternion.Euler(45f, 45f, 0f);
-            shell.transform.localScale = Vector3.one * 1.0f;
-
-            // Hollow, not solid: a ghost of the shape, in a dim gold that
-            // reads as "already yours". No spin, no bob, no glow — it
-            // asks for nothing.
-            Material mat = ArtLib.Solid(ArtLib.Gold * 0.55f, 0f);
-            ArtLib.SetFade(mat, 0.22f);
-            shell.GetComponent<MeshRenderer>().sharedMaterial = mat;
-        }
-
-        /// Mirrors GoldenGem.PickSpot so the outline lands exactly where
-        /// the gem would have been. Kept here (not called into) so a
-        /// found level never needs the gem's spawn path at all.
-        static Vector3 PickSpotFor(LevelDefinition level)
-        {
-            return GoldenGem.PickSpot(level);
-        }
+        // The found spot used to hold a "trace" here (FoundOutline): a
+        // faint, full-size gold cube at gem height, meant as Odyssey-style
+        // softness for a level whose golden was already found. It was a
+        // non-gem wearing a gem's shape, and that is what players reported
+        // for three releases — "i can see the yellow gem, but it is not
+        // solid, pip can pass thru it like a cloud, nothing happened, no
+        // sound no anything, just a shape" — on every level whose find
+        // flag was set (32 of 37 on one device, 11-13 on another). Deleted
+        // on the user's call, 2026-09-22: "if it's not a gem, then DELETE
+        // it / if it's a gem, then make it a gem". The rule that replaces
+        // it holds game-wide now: a gem spot holds a REAL collectible gem
+        // or nothing at all, and a find is remembered in the atlas, not by
+        // a ghost standing in the world.
 
         // One cached white material for the trail, colour carried in the
         // particle startColor/gradient — the same no-orphan-material rule

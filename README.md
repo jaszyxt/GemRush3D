@@ -8,7 +8,7 @@ from code. Even the app icon is painted procedurally at build time.
 
 ## Release build (already configured)
 
-`Builds/GemRush3D.apk` is a **release-signed** build (v1.29.3, IL2CPP,
+`Builds/GemRush3D.apk` is a **release-signed** build (v1.29.4, IL2CPP,
 arm64). Signing uses `tools/gemrush.keystore`; its password lives in
 `tools/signing.txt`. Both are git-ignored — back them up somewhere safe:
 all updates to a published game must be signed with the same key.

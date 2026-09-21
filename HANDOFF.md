@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.29.3 session, 2026-09-21)
+# HANDOFF — current state (update: v1.29.4 session, 2026-09-22)
 
 **READ FIRST — `docs/User-Directives.md`.** That file holds the USER's
 protected decisions (haptics, palette families, user-edit authority,
@@ -34,7 +34,7 @@ written down.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Code: v1.29.3** (versionCode 12903, derived). Version now lives in ONE
+- **Code: v1.29.4** (versionCode 12904, derived). Version now lives in ONE
   place: `GemRush.version` at the repo root. The build reads it and derives
   the Android versionCode automatically (`tools/check-version.sh` fails CI
   if a doc disagrees — it already caught real drift: this file said 1.19.0
@@ -330,6 +330,56 @@ written down.
 - **Devices**: Samsung phone SM-A566B (R5CY34G48CK) installed v1.24.0
   over the release key (first install needed a clean uninstall — it had
   debug-signed v1.0). Tablet SM-X810 still awaits USB.
+
+## Shipped in v1.29.4 — the goldens were never broken (the replay ghost)
+
+**The bug, finally located after three shipping releases and three wrong
+fixes:** `GoldenGem.PlaceIfHidden` returned early when a level's golden had
+already been found and spawned `GoldenSignal.FoundOutline` instead — a bare
+transform plus a full-size gold cube at **alpha 0.22, no collider, no
+script**. That is the player's report verbatim: *"i can see the yellow gem,
+but it is not solid, pip can pass thru it like a cloud, nothing happened, no
+sound no anything, just a shape."* Pink gems have no such flag, which is why
+"pink is fine, yellow is broken" on the same level. The user isolated it
+themselves: **collectable on a new game, a ghost on a replay.**
+
+**Why it looked platform-specific and survived three fixes.** The flags
+differ per device, so "which levels are broken" differed: the phone's save
+had **32 of 36 hiding levels flagged** — exactly the contiguous cleared run
+0–35, the four uncleared levels clean, i.e. flags track CLEARANCE, not
+discovery — while the laptop had 11 (13 by the end of the session). The
+flags were manufactured by the pre-`ebe59cf` placement that parked the
+golden on the exit pad (re-measured with the repo's own pre-fix scorer: 17
+levels within 3u of the portal, 16 of them flagged), so finishing a level
+swept the gem up. Fixes `b76fa5d` (root bob), `ecf635d` (pink mirror) and
+`14d20a0`/`96ce27e` (IL2CPP `[Preserve]`) all treated working code: a live
+golden was collected in-engine with **no** `Physics.SyncTransforms`, and
+`Builds/GemRush3D.apk` carries GoldenStar in its IL2CPP metadata.
+
+**The fix is the user's law, verbatim: "if it's not a gem, then DELETE it;
+if it's a gem, then make it a gem."** The ghost is deleted outright, and the
+spot now **always spawns the real gem**, found or not. The save flag changes
+only what the pickup says: first find → unlock line + note; replay → burst
+and chime, no repeated discovery text (`GoldenStar.alreadyFound`).
+**No save repair was needed or done** — no flag was cleared, so the B-sides
+players have finished stay open.
+
+**Verified:** stub compile, format, version, directives clean; **headless
+39/39**; **editor EditMode 97/97** with the new lock
+`DelightAuditTests.GoldenGem_SpotAlwaysHoldsARealGem` (both find states →
+a real trigger + pickup script; both ghost names must be absent); in-engine
+on a flagged level the gem was present, opaque (1.00), on screen
+(`isVisible`, viewport 0.60) and **collected on replay**. Placement is now
+`GoldenGem.Place(level, parent, alreadyFound)` — a seam so the test drives
+both branches without writing anyone's save.
+
+**Process lesson (worth more than the fix):** the cause was found by reading
+the two devices' SAVE FILES and observing both states in-engine, not by code
+reading. And two instrument failures nearly hid it: a **stale test assembly**
+(a `CS0246` from a private nested type meant a "97/97" ran on the previous
+compile and blocked Play Mode — always read the console before believing a
+green suite), and destroying children while enumerating a `Transform`, which
+made the new test accuse correct code.
 
 ## Shipped in v1.25.0 — Golden-gem remix gate + Steam prep (this session)
 - **The golden-gem gate — THE NAMED BACKLOG IS NOW EMPTY**:

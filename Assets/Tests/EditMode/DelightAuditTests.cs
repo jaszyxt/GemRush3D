@@ -168,6 +168,110 @@ namespace GemRush.Tests
         }
 
         [Test]
+        public void GoldenGem_SpotAlwaysHoldsARealGem()
+        {
+            // The law the user set on 2026-09-22, after three releases of
+            // "the yellow gem can't be collected": "if it's not a gem, then
+            // DELETE it / if it's a gem, then make it a gem." A gem spot
+            // holds a real, collectable gem or nothing — never a shape
+            // wearing a gem's look.
+            //
+            // The failure this locks out: a level whose golden was already
+            // found spawned a faint, full-size gold cube in the gem's
+            // place, and players reported it exactly as "not solid, pip
+            // can pass thru it like a cloud, nothing happened, no sound,
+            // just a shape" on 32 of 37 levels of one save. Now the found
+            // state changes only the celebration, never the gem.
+            //
+            // Both branches run through Place's found-state seam, so this
+            // is deterministic and CI-safe: no save is read or written.
+            GameObject parent = new GameObject("GoldenPlacementAudit");
+            int savedIndex = GoldenGem.ActiveLevelIndex;
+            try
+            {
+                for (int i = 0; i < LevelLibrary.Levels.Length; i++)
+                {
+                    LevelDefinition level = LevelLibrary.Levels[i];
+                    // Only the levels that actually hide a golden. A B-side
+                    // is the reward and bonus flight is weightless, so
+                    // neither has a spot — that HidesGolden contract is
+                    // locked separately by
+                    // GoldenGem_HidesGolden_OnlyOnRealCollectableCourses.
+                    if (!GoldenGem.HidesGolden(i)) continue;
+
+                    GoldenGem.ActiveLevelIndex = i;
+
+                    foreach (bool alreadyFound in new[] { true, false })
+                    {
+                        // The scratch parent must be EMPTY before each
+                        // pass. This guard is not decoration: destroying
+                        // children while enumerating a Transform skips
+                        // some, and a survivor let the next pass assert
+                        // against the PREVIOUS pass's gem — which is how
+                        // this test first reported "expected True but was
+                        // False" for a gem the code had built correctly.
+                        Assert.AreEqual(0, parent.transform.childCount,
+                            "the audit scratch must be empty before each "
+                            + "pass: " + level.Name);
+
+                        string when = alreadyFound
+                            ? "on a re-find" : "on a first find";
+                        GoldenGem.Place(level, parent.transform, alreadyFound);
+
+                        Transform gem = parent.transform.Find("GoldenGem");
+                        Assert.IsNotNull(gem,
+                            "the spot must hold a real gem " + when + ": "
+                            + level.Name);
+                        Collider collider = gem.GetComponent<Collider>();
+                        Assert.IsNotNull(collider,
+                            "the gem must be touchable " + when + ": "
+                            + level.Name);
+                        Assert.IsTrue(collider.isTrigger,
+                            "the gem's collider must be its pickup trigger "
+                            + when + ": " + level.Name);
+                        // Public nested (like MirrorDoor.DoorSide) because
+                        // this test has to reach it: a private nested type
+                        // cannot be named from the test assembly at all,
+                        // which is what broke this file's compile.
+                        GoldenGem.GoldenStar star =
+                            gem.GetComponent<GoldenGem.GoldenStar>();
+                        Assert.IsNotNull(star,
+                            "the gem must carry its pickup script " + when
+                            + ": " + level.Name);
+                        Assert.AreEqual(alreadyFound, star.alreadyFound,
+                            "the gem must be told which find this is, or it "
+                            + "re-tells the secret: " + level.Name);
+
+                        // The deleted impostor, by both of its old names.
+                        Assert.IsNull(parent.transform
+                            .Find("GoldenFoundOutline"),
+                            "the uncollectable ghost must stay deleted: "
+                            + level.Name);
+                        Assert.IsNull(parent.transform
+                            .Find("GoldenFoundMark"),
+                            "the uncollectable ghost must stay deleted: "
+                            + level.Name);
+
+                        // Collected first, destroyed after: Unity's
+                        // Transform enumerator is index-based, so a
+                        // DestroyImmediate inside the foreach walks off the
+                        // end and leaves survivors behind.
+                        List<GameObject> doomed = new List<GameObject>();
+                        foreach (Transform child in parent.transform)
+                            doomed.Add(child.gameObject);
+                        foreach (GameObject go in doomed)
+                            Object.DestroyImmediate(go);
+                    }
+                }
+            }
+            finally
+            {
+                GoldenGem.ActiveLevelIndex = savedIndex;
+                Object.DestroyImmediate(parent);
+            }
+        }
+
+        [Test]
         public void Strings_GoldenNote_IsEvergreenAndStablePerLevel()
         {
             // Evergreen law: no digits, no level numbers, no statuses in
