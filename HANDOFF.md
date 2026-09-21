@@ -30,11 +30,18 @@ except D11**) → this file.
   (V2 cert `CN=Gem Rush 3D, O=PipStudio`) + `Builds/GemRush3D.exe`
   (check `GemRush3D_Data/Managed/GemRush.dll` mtime for freshness, not
   the stub exe).
-- **CI now runs three gates on every push** (all green): the stub
-  compile, the version-drift check, and **30 of the 75 EditMode tests
-  headlessly** (`tools/run-tests-headless.sh`, ~15 s, no Unity and no
-  license). The other 45 need a live scene or native APIs and still run
-  on `v*` tags via GameCI.
+- **Tests are green at both levels, measured:**
+  - **CI, every push:** three gates — stub compile, version-drift
+    check, and **30 level-audit tests headlessly**
+    (`tools/run-tests-headless.sh`, ~15 s, no Unity, no license).
+  - **Editor, full suite:** **76/76 pass** (8.7 s) — this is the
+    authoritative run and includes the 45 scene-dependent tests
+    (UI hierarchy, RectTransform, instantiated objects) that cannot
+    execute outside Unity.
+  - Re-run after any test change: the headless script locally, and
+    GameCI on a tag (or the Test Runner window) for the full 76.
+  - The count grew from 75 to 76 with the new
+    `Regions_CoverEveryLevel_Exactly` guard.
 - **Deploy to every connected device with one command:**
   `bash tools/deploy.sh` installs the APK everywhere and verifies the
   installed versionCode against it (`--status` reports without
