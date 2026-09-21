@@ -96,7 +96,6 @@ namespace GemRush
                 // The trail's own note replaces the generic pickup blip.
                 AudioManager.Instance.PlayNote(noteFrequency);
             }
-            Haptics.Light(); // the core verb answers in the hand too
             Fx.Burst(transform.position, ArtLib.GemPink * 1.6f, 18);
             // The "+1" ramps with the live streak: it grows and shifts
             // toward the reward gold as the chain climbs, so mastery is

@@ -239,7 +239,6 @@ namespace GemRush
                 rb.linearVelocity = vel;
                 squash = 0.28f;
                 AudioManager.Instance.PlayJump();
-                Haptics.Light();
                 if (!flyMode) Gloomfang.OnPipJumped(tr.position);
                 Vector3 feet = tr.position + Vector3.down * 0.9f;
                 Fx.Burst(feet, DustColor, 8);
@@ -589,10 +588,6 @@ namespace GemRush
         {
             squash = Mathf.Clamp(-impactSpeed * 0.06f, -0.3f, 0f);
             AudioManager.Instance.PlayLand(impactSpeed);
-            // Hard landings land in the hand: the same impact scale the
-            // sound and dust already use, so all three agree.
-            if (impactSpeed > 8f) Haptics.Medium();
-            else if (impactSpeed > 3f) Haptics.Light();
             if (impactSpeed > 5f)
                 Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 10);
             if (!flyMode && Landed != null) Landed(tr.position, impactSpeed);
@@ -751,9 +746,6 @@ namespace GemRush
             if (Vector3.Dot(flat / speed, wishDir) > -0.6f) return;
             lastSkidTime = Time.time;
             Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 6);
-            // The scrape that belongs with the dust: cooldown and speed gate
-            // are already handled above, so this cannot machine-gun.
-            Haptics.Light();
             AudioManager.Instance.PlaySkid(
                 Mathf.InverseLerp(SkidMinSpeed, moveSpeed, speed));
         }

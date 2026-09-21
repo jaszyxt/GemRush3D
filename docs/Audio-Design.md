@@ -54,7 +54,7 @@ as gameplay wind; the mood sets a base level and updrafts pulse above it.
 |---|---|---|
 | Jump | breathy puff + rising chirp | 3 baked pitch variants, randomized |
 | Land | thump + dust | scales with impact; silent below 2.5 |
-| Gem | chime | combo ladder: chained pickups climb semitones, resets on death |
+| Gem | chime | combo ladder: chained pickups climb semitones, resets on death (NO haptic per gem — the buzz rides the every-10th milestone only) |
 | Melody gem | music-box note | Sky Garden; same scale as the Garden motif |
 | Checkpoint | three rising chimes | |
 | Heart | three notes over a low bed | "a hug in C" |

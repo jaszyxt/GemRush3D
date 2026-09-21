@@ -669,12 +669,14 @@ namespace GemRush
             if (milestone && GameBootstrap.Player != null)
                 Fx.Ring(GameBootstrap.Player.transform.position, ArtLib.Gold);
 
-            // Haptics ride OUTSIDE the sound gate: the ladder is tactile as
-            // well as audible, and a muted player still feels the run build.
-            // The gem trail is the most repeated interaction in the game and
-            // Haptics already rate-limits same-class ticks for exactly this.
+            // Haptics ride OUTSIDE the sound gate, and ONLY on the streak
+            // milestone. A gem is the most repeated interaction in the game
+            // (dozens per level, often in fast chains) — buzzing every one
+            // turns the phone into a rattle in the player's hands, which is
+            // the opposite of what a haptic is for. The every-10th gem
+            // already has a chime and a gold ring; the buzz marks that same
+            // moment, so the ladder is felt exactly when it is celebrated.
             if (milestone) Haptics.Medium();
-            else Haptics.Light();
 
             if (!SaveSystem.SoundOn) return;
 

@@ -245,6 +245,16 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 - [ ] Compile-checked against `tools/stubs/UnityStubs.cs` (add stubs
       for any new Unity API you touch).
 
+- **Haptics mark EVENTS, not movement** (user directive, 2026-09-21).
+  A buzzing phone during ordinary play — every jump, every hop, every
+  gem — is a rattle in the player's hands, not feedback. The hand is
+  reserved for moments that carry information: a streak milestone, a
+  checkpoint, a spare life, the lantern waking, a death, a win, the
+  finished game. Walking, jumping, skidding and picking up a single gem
+  are silent. The one sustained exception is the wind-ride texture,
+  which is a *state* (you are being carried) rather than a repeated
+  event. Before adding a haptic to a new feature, ask whether it tells
+  the player something they would otherwise miss.
 - **UIs are measured, not eyeballed.** Layout claims in this doc carry
   numbers: the win stars sit at anchor y 0.525 so their bottom edge
   clears the stats text top by ~25 units at every aspect (verified
