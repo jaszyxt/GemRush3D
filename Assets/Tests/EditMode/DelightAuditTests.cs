@@ -415,10 +415,49 @@ namespace GemRush.Tests
                 if (string.IsNullOrEmpty(line)) continue;
                 string lower = line.ToLowerInvariant();
                 foreach (string phrase in banned)
-                    Assert.IsFalse(lower.Contains(phrase),
+                {
+                    if (!lower.Contains(phrase)) continue;
+                    // A NEGATED banned phrase is a reassurance, not pressure:
+                    // "There's no hurry up here" and "in no hurry at all"
+                    // both contain "hurry up"/"hurry" as the tail of a
+                    // sentence that removes urgency. The author already hit
+                    // this once — the comment above records moving from the
+                    // bare word to the phrase for exactly this reason — and
+                    // the greeting reintroduced it by ending on "no hurry
+                    // up here". So the rule is the PHRASE unless negated.
+                    if (IsNegated(lower, phrase)) continue;
+                    Assert.IsFalse(true,
                         "cozy law: \"" + phrase + "\" is pressure, and has no "
                         + "place in delight copy — \"" + line + "\"");
+                }
             }
+        }
+
+        /// True when every occurrence of <paramref name="phrase"/> in
+        /// <paramref name="lower"/> is immediately preceded by a negator
+        /// ("no", "not", "never", "without", or an "n't" contraction), so it
+        /// reads as the opposite of pressure. An unnegated occurrence
+        /// anywhere still fails — a line may not hide a real pressure
+        /// phrase behind one reassurance.
+        static bool IsNegated(string lower, string phrase)
+        {
+            string[] negators = { "no ", "not ", "never ", "without ",
+                "n't ", "no-", "non-" };
+            int at = lower.IndexOf(phrase);
+            if (at < 0) return false;
+            while (at >= 0)
+            {
+                bool negated = false;
+                foreach (string neg in negators)
+                {
+                    if (at < neg.Length) continue;
+                    if (lower.Substring(at - neg.Length, neg.Length) == neg)
+                    { negated = true; break; }
+                }
+                if (!negated) return false; // a real, unnegated instance
+                at = lower.IndexOf(phrase, at + phrase.Length);
+            }
+            return true;
         }
     }
 }

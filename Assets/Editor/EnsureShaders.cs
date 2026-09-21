@@ -334,33 +334,7 @@ namespace GemRush.EditorTools
             string exe = System.IO.Path.Combine(installRoot, "GemRush3D.exe");
             try
             {
-                System.Type shellType =
-                    System.Type.GetTypeFromProgID("WScript.Shell");
-                if (shellType == null)
-                    throw new System.Exception("WScript.Shell unavailable");
-                object shell = System.Activator.CreateInstance(shellType);
-                try
-                {
-                    object shortcut = shellType.InvokeMember(
-                        "CreateShortcut",
-                        System.Reflection.BindingFlags.InvokeMethod, null,
-                        shell, new object[] { lnk });
-                    System.Type scType = shortcut.GetType();
-                    scType.InvokeMember("TargetPath",
-                        System.Reflection.BindingFlags.SetProperty, null,
-                        shortcut, new object[] { exe });
-                    scType.InvokeMember("WorkingDirectory",
-                        System.Reflection.BindingFlags.SetProperty, null,
-                        shortcut, new object[] { installRoot });
-                    scType.InvokeMember("Save",
-                        System.Reflection.BindingFlags.InvokeMethod, null,
-                        shortcut, null);
-                }
-                finally
-                {
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(
-                        shell);
-                }
+                WriteShortcutCom(lnk, exe, installRoot);
             }
             catch (System.Exception e)
             {
@@ -368,6 +342,104 @@ namespace GemRush.EditorTools
                     e.Message + ") — the game itself installed fine. Launch " +
                     exe + " directly.");
             }
+        }
+
+        /// Writes a .lnk through the Windows Script Host COM object,
+        /// falling back to a powershell.exe shell-out if COM activation is
+        /// unavailable.
+        ///
+        /// COM is preferred (rather than only shelling out, with the paths
+        /// pasted into a command string) because a profile path containing a
+        /// quote — C:\Users\O'Brien\ — could both break that command and land
+        /// in executable position. No shell, no command text, nothing to
+        /// escape.
+        ///
+        /// But COM is NOT reliable under Unity's Mono: the earlier version of
+        /// this method failed on six consecutive builds with "Unmanaged
+        /// activation is not supported" while only logging a warning, so the
+        /// desktop icon silently went stale. The same call succeeds in
+        /// PowerShell's .NET (verified), which is why it looked fine when
+        /// reasoned about and wrong when the build actually ran.
+        ///
+        /// So: try COM, and if it throws, fall back to the method that
+        /// demonstrably worked. The fallback passes the script as a
+        /// SINGLE-quoted PowerShell string built from escaped paths, which is
+        /// safe for a quote in the path (each ' becomes ''), so hardening the
+        /// primary path does not cost the fallback its correctness.
+        static void WriteShortcutCom(string lnk, string exe, string workDir)
+        {
+            try
+            {
+                WriteShortcutViaWsh(lnk, exe, workDir);
+                return;
+            }
+            catch (System.Exception)
+            {
+                // Fall through to the shell path below.
+            }
+            WriteShortcutViaShell(lnk, exe, workDir);
+        }
+
+        /// The COM route: late-bound through the WScript.Shell ProgID.
+        static void WriteShortcutViaWsh(string lnk, string exe, string workDir)
+        {
+            System.Type shellType = System.Type.GetTypeFromProgID(
+                "WScript.Shell", true);
+            object shell = System.Activator.CreateInstance(shellType);
+            try
+            {
+                object shortcut = shellType.InvokeMember(
+                    "CreateShortcut",
+                    System.Reflection.BindingFlags.InvokeMethod, null,
+                    shell, new object[] { lnk });
+                System.Type scType = shortcut.GetType();
+                scType.InvokeMember("TargetPath",
+                    System.Reflection.BindingFlags.SetProperty, null,
+                    shortcut, new object[] { exe });
+                scType.InvokeMember("WorkingDirectory",
+                    System.Reflection.BindingFlags.SetProperty, null,
+                    shortcut, new object[] { workDir });
+                scType.InvokeMember("Save",
+                    System.Reflection.BindingFlags.InvokeMethod, null,
+                    shortcut, null);
+            }
+            finally
+            {
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(shell);
+            }
+        }
+
+        /// The fallback: let PowerShell write the shortcut. Used only when
+        /// COM activation fails (Unity's Mono on this machine).
+        ///
+        /// Injection-safe despite being a shell-out, because the script is
+        /// passed as a SINGLE argument and every path is embedded in a
+        /// single-quoted PowerShell string with its quotes doubled — the
+        /// PowerShell literal-string escape. A path like
+        /// C:\Users\O'Brien\ therefore arrives intact instead of terminating
+        /// the string, which is the exact defect that motivated the COM
+        /// route in the first place.
+        static void WriteShortcutViaShell(string lnk, string exe,
+            string workDir)
+        {
+            string script =
+                "$ws = New-Object -ComObject WScript.Shell; " +
+                "$s = $ws.CreateShortcut(" + PsQuote(lnk) + "); " +
+                "$s.TargetPath = " + PsQuote(exe) + "; " +
+                "$s.WorkingDirectory = " + PsQuote(workDir) + "; " +
+                "$s.Save()";
+            System.Diagnostics.Process p = System.Diagnostics.Process.Start(
+                "powershell.exe",
+                "-NoProfile -ExecutionPolicy Bypass -Command " + PsQuote(script));
+            if (p != null) p.WaitForExit(15000);
+        }
+
+        /// A PowerShell single-quoted literal: wrap in ' and double any '
+        /// inside. Single-quoted PowerShell strings interpolate nothing, so
+        /// no other character needs escaping.
+        static string PsQuote(string s)
+        {
+            return "'" + s.Replace("'", "''") + "'";
         }
 
         /// Clear the read-only attribute on a file (a copied-in player can

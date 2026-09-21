@@ -184,8 +184,11 @@ namespace GemRush
         /// acknowledged once, and never again after their first jewel.
         public static bool IsBrandNew
         {
-            get { return UnlockedLevel <= 0 && TotalStars(
-                LevelLibrary.Levels.Length) == 0; }
+            get
+            {
+                return UnlockedLevel <= 0 && TotalStars(
+                LevelLibrary.Levels.Length) == 0;
+            }
         }
 
         /// The highest StarTrail tier the player has already been told
