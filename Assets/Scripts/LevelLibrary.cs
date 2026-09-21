@@ -142,10 +142,21 @@ namespace GemRush
             l.Movers.Add(new MoverSpec(0f, 2f, 34f, new Vector3(5f, 0f, 0f), 4f));
             l.Movers.Add(new MoverSpec(-5f, 7f, 84f, new Vector3(0f, 4f, 0f), 5f));
 
-            l.Spinners.Add(new SpinnerSpec(0f, 4.5f, 56f, 60f));
+            // The first guardian is a SLEEPER: it dozes at 12 deg/s and
+            // only wakes when Pip comes near. A brand-new player's first
+            // hazard should be gentle by construction - D-6's preferred
+            // shape for a guardian facing a young player - and 60 deg/s is
+            // already the slowest spinner in the game once it does wake.
+            l.Spinners.Add(new SpinnerSpec(0f, 4.5f, 56f, 60f, 7f, 12f));
 
+            // One checkpoint before the mover, one at the arena's mouth:
+            // the first death should cost a hop, not the 12-unit walk back
+            // from the last isle. A checkpoint carries a story beat (the
+            // design law pairs them), so the arena gets its own line.
             l.Checkpoints.Add(new Vector3(0f, 3.5f, 44f));
+            l.Checkpoints.Add(new Vector3(0f, 4.5f, 50.5f));
             l.StoryBeats.Add("The Sunstones hum when Pip gets close. Somewhere overhead, a very large storm flinches.");
+            l.StoryBeats.Add("The guardian ahead is only dozing. Walk softly and it will let Pip pass — it always does, for Pip.");
 
             l.Gems.Add(new Vector3(0f, 1.6f, 10f));
             l.Gems.Add(new Vector3(3f, 2.6f, 18f));
@@ -153,8 +164,11 @@ namespace GemRush
             l.Gems.Add(new Vector3(0f, 3.7f, 34f));     // over the mover's path
             l.Gems.Add(new Vector3(0f, 4.7f, 42f));
             l.Gems.Add(new Vector3(-3f, 4.7f, 46f));
-            l.Gems.Add(new Vector3(4.5f, 5.3f, 60.5f));
-            l.Gems.Add(new Vector3(-4.5f, 5.3f, 51.5f));
+            // The arena pair sits at the outer corners, off the arm's
+            // sweep: a new player should be invited ACROSS the arena, not
+            // into the hazard for a gem.
+            l.Gems.Add(new Vector3(4.8f, 5.3f, 60.5f));
+            l.Gems.Add(new Vector3(-4.8f, 5.3f, 51.5f));
             l.Gems.Add(new Vector3(5f, 6.7f, 68f));
             l.Gems.Add(new Vector3(4.5f, 12.3f, 90f));
 

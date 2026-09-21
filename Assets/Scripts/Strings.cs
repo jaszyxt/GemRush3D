@@ -64,6 +64,17 @@ namespace GemRush
 
         // ---------- Session recap ----------
 
+        /// Shown once, on the menu of a brand-new save, where the recap
+        /// normally sits. Its job is to say hello and hand over the
+        /// errand - no instructions to memorise, no form to fill in, no
+        /// tutorial to dismiss. The game teaches itself; this is the
+        /// introduction, not the lesson. Never shown again after the
+        /// player's first jewel.
+        public const string FirstVisitWelcome =
+            "Welcome, Pip. The sky realm has lost its light, and you are " +
+            "just the right size to get it back.\nPress PLAY whenever " +
+            "you're ready. There's no hurry up here.";
+
         public static string VisitRecapProgress(int stars, int medals)
         {
             return string.Format(
@@ -295,6 +306,18 @@ namespace GemRush
 
         public const string BellHint =
             "Ring the bell — its song builds the bridge.";
+
+        /// Shown once, at the start of the very first level, in the same
+        /// band the checkpoint beats use. The menu's instruction block is
+        /// easy to miss and useless mid-jump; this says the two things a
+        /// player actually needs in the moment they need them, then gets
+        /// out of the way for good.
+        public static string FirstStepsHint()
+        {
+            if (Input.touchSupported)
+                return "Drag the left side to move. Tap JUMP to jump.";
+            return "Move with WASD or the arrow keys. Jump with Space.";
+        }
 
         /// StarTrail milestones: the sparkle wake behind Pip changes colour
         /// as stars are earned. Each tier announces itself once per device

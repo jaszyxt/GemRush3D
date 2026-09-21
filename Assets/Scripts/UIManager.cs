@@ -1931,11 +1931,26 @@ namespace GemRush
                 // Voice-only: nothing on screen to dismiss.
                 introPanel.SetActive(false);
                 introAwaitInput = false;
+                MaybeShowFirstStepsHint(levelIndex);
                 return;
             }
             introTimer = BriefingBackstop;
             introPanel.SetActive(true);
             introAwaitInput = true;
+            MaybeShowFirstStepsHint(levelIndex);
+        }
+
+        /// The one non-repeating teaching line: on the very first level,
+        /// tell the player the two controls they need and then never
+        /// mention controls again. Fired through the story-toast band so
+        /// it costs no new UI and reads like the rest of the game's
+        /// asides. Only on level 1, and only while the save is still new,
+        /// so a returning player is never lectured.
+        void MaybeShowFirstStepsHint(int levelIndex)
+        {
+            if (levelIndex != 0) return;
+            if (!SaveSystem.IsBrandNew) return;
+            ShowStoryToast(Strings.FirstStepsHint());
         }
 
         /// Story beat band at the bottom of the screen, shown when a
@@ -2016,6 +2031,10 @@ namespace GemRush
             else if (gifts > 0)
                 visitRecap.text = Strings.VisitRecapGifts(gifts,
                     DailyGem.GiftAlreadyCollectedToday());
+            else if (SaveSystem.IsBrandNew)
+                // First run: the recap slot is empty anyway, so it says
+                // hello instead. Disappears the moment they earn anything.
+                visitRecap.text = Strings.FirstVisitWelcome;
             else
                 visitRecap.text = "";
         }

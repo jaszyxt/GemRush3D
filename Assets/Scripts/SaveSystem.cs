@@ -174,6 +174,20 @@ namespace GemRush
             VisitStartMedals = TotalMedals(count);
         }
 
+        /// True until the player has done anything at all: nothing
+        /// unlocked past the first level and not one star earned. Derived
+        /// rather than stored, so it needs no new save key and can never
+        /// desync from the progress it describes - a fresh install is not
+        /// a flag we set, it is a state we can read.
+        ///
+        /// Used for the one-time greeting: a brand-new player should be
+        /// acknowledged once, and never again after their first jewel.
+        public static bool IsBrandNew
+        {
+            get { return UnlockedLevel <= 0 && TotalStars(
+                LevelLibrary.Levels.Length) == 0; }
+        }
+
         /// The highest StarTrail tier the player has already been told
         /// about, so each new trail colour announces itself exactly once
         /// per device. 0 = none announced yet.
