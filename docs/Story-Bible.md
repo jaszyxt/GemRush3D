@@ -259,12 +259,11 @@ also carries the craft checklist the next pack must pass.
   before the packs shipped; unbuilt, and still good.)*
 
 **Before building any Movement Three pack:** the epilogue in `Story.cs`
-must be rewritten to include packs 11–13 (Renewal Law — it currently stops
-at the Mirror Skies and is out of date). Then write the new pack's script
-against the §3 checklist in Movement-Two-Story.md.
-  is lit. Feeling: renewal.
-- **The Migration** — weather develops seasons; the realm learns
-  goodbye-and-hello. Feeling: belonging.
+already covers packs 11–13 (the quiet week, the festival, the walk home) —
+the Renewal Law is satisfied, and it was verified rather than assumed.
+Write the new pack's script against the §3 checklist in
+Movement-Two-Story.md, and re-read the epilogue against the new pack's
+region before moving the completion screen.
 - **The Sky Library** — the hall where every run ever flown is a book;
   ghost-Pips are its readers. Feeling: being remembered. (Natural home
   for the ghost-run feature when it is built.)

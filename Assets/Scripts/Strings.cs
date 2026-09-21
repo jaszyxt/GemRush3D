@@ -332,10 +332,11 @@ namespace GemRush
         public const string TrailTier3 =
             "Forty-five stars — the wake glows aurora green, the sky's own colour.";
 
-        /// The menu's standing legend for the trail (shown once unlocked).
-        public const string TrailLegend =
-            "Pip's sparkle wake: fifteen stars for gold, thirty for pink, " +
-            "forty-five for the aurora's green.";
+        // (A "TrailLegend" line used to sit here, described as a menu
+        // legend shown once unlocked. Nothing ever displayed it — the
+        // comment promised behaviour that did not exist, and the string
+        // was unreachable. Removed rather than wired up: the three tier
+        // lines above already announce everything the legend restated.)
 
         public static string TrailTierLine(int tier)
         {

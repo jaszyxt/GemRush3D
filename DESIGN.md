@@ -36,7 +36,18 @@ Nintendo rhythm: **introduce → develop → combine**.
 | 4 | The Two Suns | bounce pads (launch) | story celebration |
 | 5 | The Far Isles | updraft columns (wind as platform) | pads, guardians |
 | 6 | bonus | play as Gloomfang (flight) | all verbs, no deaths |
-| 7+ | (planned) | see roadmap | everything |
+| 7 | The Sky Garden | sleeping guardians (wake on approach) | pads, wind |
+| 8 | Storm Chasers | tailwind gusts | guardians, gardens |
+| 9 | The Bell Towers | echo bells + hidden bridges | gusts, guardians |
+| 10 | Mirror Skies | mirror doors + a mirrored companion | bells, doors |
+| 11 | The B-Sides | nightfall remixes (optional branch) | existing regions |
+| 12 | The Long Winter | the sunstone lantern + ice gates | wind, movers |
+| 13 | The Aurora Festival | aurora ribbons | every shipped verb |
+| 14 | The Homecoming | see-saw planks | every shipped verb |
+
+Shipped state: 14 regions, 40 levels (DESIGN.md's older "planned" table
+stopped at pack 7; this one is current — verify against
+`LevelLibrary.Regions` before trusting either).
 
 Rule: a new pack's hardest moment must not exceed the previous pack's
 hardest moment. Difficulty comes from **combining** known verbs in new
@@ -143,7 +154,8 @@ grammar: introduced alone, developed with known verbs, combined last. The
 story is the delivery vehicle: every pack is another Sky-Keeper errand with
 Gloomfang along, so the world grows *because* the story grows.
 
-Planned expansion queue (one pack per session, order may shuffle):
+Expansion queue — packs 7–10 all SHIPPED (kept for the story/obstacle
+pairings, which are still the useful part):
 
 | Pack | Story beat | New obstacle | Feel |
 |---|---|---|---|
@@ -151,10 +163,15 @@ Planned expansion queue (one pack per session, order may shuffle):
 | 8 | Pip chases a rogue gust across the map | **Tailwind gusts** — telegraphed wind pulses that push and carry you | open-air |
 | 9 | The bell towers that once guided storms | **Echo bells** — ring them to reveal hidden gem trails and light the path | reverent |
 | 10 | A mirrored sky appears over the Far Isles | **Mirror doors** — paired portals that hop you across gaps | magical |
-| 11+ | The atlas keeps growing; Gloomfang's badge comes off probation | rotations, see-saws, rainbows, and whatever the story asks for | — |
 
-Milestone framing in-game: after each pack, the chart updates (toast/epilogue
-line) so the player *feels* the world growing under their feet.
+**Story authority has moved.** The badge arc is CLOSED — the review
+concluded at the end of Movement Two (level 40, The Homecoming) and
+Gloomfang is not probationary. Story direction, canon and the future
+queue now live in `docs/Story-Bible.md` §8 and are protected by
+`docs/User-Directives.md` D-7; this file keeps the systems and pacing law.
+
+Milestone framing in-game: each pack finale carries a `Milestone` line
+stamped on the win screen, so the player *feels* the atlas grow a page.
 
 ## The Weather Atlas — content masterplan
 

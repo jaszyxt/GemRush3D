@@ -139,8 +139,8 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 - **Guardians (spinners)** — stone post + red arm. The arm's emission
   tracks wakefulness (0.25 dozing → 1.0 awake): a sleeping guardian is
   *visibly* dim before it is audibly awake.
-- **Nim** (Storm Chasers) — never shown directly; she is petals,
-  giggles and a gust that arrives on the chord. Absence is her design.
+- **Nim** (Storm Chasers) — never shown directly; he is petals,
+  giggles and a gust that arrives on the chord. Absence is his design.
 
 ## 5. VFX grammar
 

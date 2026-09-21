@@ -48,14 +48,20 @@ except D11**) → this file.
   the stub exe).
 - **Tests are green at both levels, measured:**
   - **CI, every push:** three gates — stub compile, version-drift
-    check, and **30 level-audit tests headlessly**
-    (`tools/run-tests-headless.sh`, ~15 s, no Unity, no license).
-  - **Editor, full suite:** **76/76 pass** (8.7 s) — this is the
-    authoritative run and includes the 45 scene-dependent tests
-    (UI hierarchy, RectTransform, instantiated objects) that cannot
-    execute outside Unity.
+    check, and **42 headless tests** (`tools/run-tests-headless.sh`,
+    ~15 s, no Unity, no license). Covers LevelAuditTests and
+    ContrastAuditTests.
+  - **Editor, full suite:** **92 tests** across LevelAuditTests (35),
+    AudioAuditTests (19), UIAuditTests (14), DelightAuditTests (13),
+    ContrastAuditTests (7) and MenuNavTests (4) — this is the
+    authoritative run and includes the scene-dependent tests (UI
+    hierarchy, RectTransform, instantiated objects) that cannot execute
+    outside Unity.
   - Re-run after any test change: the headless script locally, and
-    GameCI on a tag (or the Test Runner window) for the full 76.
+    GameCI on a tag (or the Test Runner window) for the full suite.
+  - (These figures drift as parallel sessions add suites. Re-count with
+    `grep -rc '\[Test\]' Assets/Tests/EditMode/*.cs` before quoting
+    them, rather than trusting this file — it said 76 for a while.)
   - The count grew from 75 to 76 with the new
     `Regions_CoverEveryLevel_Exactly` guard.
 - **Deploy to every connected device with one command:**
@@ -405,10 +411,16 @@ except D11**) → this file.
   laptop auto-deployed.
 
 ## Open items (prioritized)
-1. **Install v1.17.0 on tablet + phone** (next USB; laptop + emulator
-   superseded — laptop is primary).
-2. **Gamepad hardware pass** (Xbox + DualSense via Windows exe).
-3. **D11 string table** — last open directives item.
+1. **Install the current build on tablet + phone** (next USB; laptop is
+   primary and auto-deploys). Run `bash tools/deploy.sh --status` first —
+   it prints each device's installed version beside the APK's, so the
+   drift is visible instead of guessed. (This line used to name a long
+   superseded version; do not hard-code one here again.)
+2. **Gamepad hardware pass** (Xbox + DualSense via Windows exe) — owed
+   before any Steam submission.
+3. **D11 string table — DONE** (all UI strings live in `Strings.cs`;
+   the UI/UX directives doc is fully closed). Kept here only so nobody
+   re-opens it as outstanding.
 4. **Audio ADAPT queue** (RESEARCH.md): checkpoint cadence, parameterized
    MusicSynth intensity, gust haptic texture. (Milestone chime: DONE.)
 5. **CONTENT PAUSED AT 40** (player directive). Improvement backlog for
