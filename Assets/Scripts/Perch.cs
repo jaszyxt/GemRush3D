@@ -36,6 +36,30 @@ namespace GemRush
         Vector3 spot;
         float calmFade; // eased 0..1, unscaled, so it never snaps
 
+        /// True while Pip is settling at a bench. PlayerController reads
+        /// this to fold the seated pose in early — the bench's whole point
+        /// is that standing next to it should read as "you could stop
+        /// here", and the game already HAS a seated pose (the idle
+        /// ladder's). This reuses it rather than inventing a second one.
+        ///
+        /// Frame-stamped rather than handshaked: the perch claims on the
+        /// frame it sees Pip, and the flag is simply stale (false) if no
+        /// perch claimed recently. That way a destroyed level, a missed
+        /// call or two overlapping benches can never leave Pip stuck
+        /// seated — the worst case is the sit ending a frame early.
+        static int claimedFrame = -1;
+
+        public static bool PipIsResting
+        {
+            get { return Time.frameCount - claimedFrame <= 1; }
+        }
+
+        /// Called by whichever bench currently has Pip in range.
+        void ClaimRest()
+        {
+            claimedFrame = Time.frameCount;
+        }
+
         /// Picks the level's calmest platform top. Pure — same level, same
         /// spot, every run (the golden gem's rule, for the same reason: a
         /// spot that moved would read as a bug, not a discovery).
@@ -211,6 +235,13 @@ namespace GemRush
                     new Vector3(player.position.x, spot.y, player.position.z),
                     new Vector3(spot.x, spot.y, spot.z)) < CalmRadius;
 
+            // Claim the rest for PlayerController's pose blend, but only
+            // when he is genuinely settled — in range, on the ground and
+            // not moving. Standing up mid-air or running past the bench
+            // should not put him in a seated pose.
+            if (near && player != null && IsSettled(player))
+                ClaimRest();
+
             // Unscaled: the calm must not break because the player paused
             // to look at it.
             float target = near ? 1f : 0f;
@@ -224,6 +255,20 @@ namespace GemRush
             // the audio agent's law, and a rest that ducked the score
             // would fight the adaptive music rather than support it.
             ApplyCalm(calmFade);
+        }
+
+        /// Grounded and essentially still — the precondition for sitting.
+        /// Read from the physics body rather than input so a walk-in, a
+        /// landing and a stand-still all read the same way.
+        static bool IsSettled(Transform player)
+        {
+            Rigidbody body = player.GetComponent<Rigidbody>();
+            if (body == null) return false;
+            Vector3 v = body.linearVelocity;
+            // Vertical slack allows the tail of a landing; horizontal
+            // slack keeps a slow drift from breaking the pose.
+            return Mathf.Abs(v.y) < 1.2f &&
+                new Vector2(v.x, v.z).magnitude < 1.2f;
         }
 
         void ApplyCalm(float k)

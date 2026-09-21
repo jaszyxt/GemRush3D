@@ -44,6 +44,7 @@ namespace GemRush
         float moteTimer;     // sleepy "z" motes while sitting / napping
         float gazeWeight;    // glance at the camera: pupils + shy body turn
         float sitWeight;     // sit/nap pose blend
+        bool idleEligible;   // this frame's ladder/perch precondition
         float breathDepth = 0.045f;
         float breathSpeed = 2.2f;
         float pupilSparkle;  // the wave: two bright pupil pulses
@@ -387,6 +388,11 @@ namespace GemRush
                 lastMoveInput.sqrMagnitude < 0.01f &&
                 rb.linearVelocity.sqrMagnitude < 1f;
 
+            // UpdateExpression runs after this block, outside the gate, and
+            // the perch's seated pose must obey the same conditions the
+            // ladder does. Publish the decision rather than recomputing it.
+            idleEligible = eligible;
+
             if (eligible)
             {
                 idleTime += dt;
@@ -501,6 +507,28 @@ namespace GemRush
                 breathDepth = 0.07f;  // deeper, slower napping breath
                 breathSpeed = 1.1f;
                 sitTarget = 1f;
+            }
+
+            // A bench asks for the same seated pose the ladder reaches on
+            // its own — the game already had one, so this reuses it rather
+            // than inventing a second. It applies unless the ladder has
+            // already gone PAST sitting (a nap the player earned by waiting
+            // should not be interrupted by a bench), and under the same
+            // conditions the ladder itself requires: grounded, settled past
+            // the spawn grace, unpaused. UpdateExpression runs outside the
+            // eligible gate above, so these are checked here rather than
+            // assumed — without them Pip could sit mid-jump.
+            //
+            // Neutral-or-earlier only: measured first with a strict
+            // "Neutral" test and it never fired, because arriving at a
+            // bench mid-wave (stage 2 of the ladder) blocked it. A glance
+            // or a wave should give way to the bench; a nap should not.
+            if (sitTarget == 0f && idleStage <= IdleStage.Wave &&
+                Perch.PipIsResting && idleEligible)
+            {
+                sitTarget = 1f;
+                breathDepth = 0.035f;  // settled, unhurried
+                breathSpeed = 1.6f;
             }
 
             sitWeight = Mathf.MoveTowards(sitWeight, sitTarget, dt * 2.5f);
