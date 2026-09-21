@@ -165,6 +165,68 @@ audio owner must know:
   Qwen3-TTS are Apache-2.0, Chatterbox MIT. CC0 voice libraries cannot
   voice custom prose.
 
+## 8c. Health pass (2026-09-24) — mix bugs, memory, feel
+
+Two deep studies (subsystem health; game feel) produced findings that were
+then re-verified against the code. What shipped:
+
+**Mix bugs (all verified before fixing)**
+
+- **`DuckFor` overwrote the duck fraction instead of taking the minimum.**
+  A voice line starting during a death sting therefore *raised* the music
+  mid-sting — the opposite of the intent. Now `Mathf.Min`, and voice ducks
+  to 0.18 (the comment claimed "deeper" while shipping a shallower 0.3).
+- **Ambience and the portal hum were never ducked**, so on Wind/Rain/
+  Winter levels the bed outlived the death sting documented to read "in
+  near silence". One shared `duckGain` now drives music, ambience and hum.
+- **Gust phase-lock died permanently after the first pause or hit-stop.**
+  `GustZone` keeps its own clock (`Time.deltaTime`, which freezes at
+  `timeScale = 0`) while the music DSP clock keeps running, and the
+  alignment was a one-time sample taken at spawn. `RelockToMusic()` now
+  re-anchors on resume and on hit-stop end (`AudioManager.OnClockResumed`).
+- Corrected two comments that had gone stale (`MusicLoopLength` is the
+  gust-hosting length, not "the" length; GustZone's "correct even after
+  pauses" was no longer true).
+
+**Memory + hitch (the largest low-end-Android risk)**
+
+- **Mood pads grew without bound** — a `static` dictionary held every mood
+  ever visited, and `Resources.UnloadUnusedAssets` could never reclaim
+  them. A full playthrough measured ~40 MB of unreclaimable PCM. Now a
+  bounded LRU of 3 that **destroys** what it evicts (purge is impossible
+  while the dictionary holds the only reference — that is why the bound
+  had to come with explicit `Object.Destroy`).
+- **The melody-stripped bed is now synthesized lazily.** It is only
+  audible when the melody ducks (two lives left, or game over), yet every
+  mood change rendered it up front, doubling the cost of every pad.
+- **`HumLoop` rendered inside `Update()`** — a 4-second clip synthesized on
+  the frame the player first approached a portal. Moved off the Update
+  path.
+- **`Instance` is now published at the end of `Awake`.** Assigning it
+  first meant an allocation failure partway through the ~36 eager clips
+  left a half-built singleton that NREd every frame.
+
+**Feel**
+
+- **Gem haptics** — the most repeated interaction in the game had none,
+  while `Haptics` already rate-limits same-class ticks for exactly it.
+  `Light()` per gem, `Medium()` on the 10-gem milestone, both outside the
+  Sound gate (a muted player still feels the run build). Also `Light()` on
+  bounce launches and on landings above 8 u/s.
+- **The gem streak now resets per level.** It was `static` and cleared
+  only on death, so a new level inherited the previous run's streak and
+  opened already at the octave cap — the rising ladder, the reward for a
+  clean trail, was never heard from its base note again.
+- **Footsteps.** The last major coverage gap: the only continuous "you are
+  moving on ground" feedback was absent. They are **gait-locked** (one step
+  per 2.3 units of ground distance, not per unit time), so they stay
+  physically honest across walking, sprinting and being carried, and can
+  never machine-gun. Three baked pitch variants plus jitter, level scaled
+  by speed, and the quietest voice in the game by design (−31 dBFS).
+- **Music / Ambience toggles.** One master "Sound" previously controlled
+  music, ambience and effects together; a parent can now mute the wind bed
+  while keeping the score (or the reverse).
+
 ## 8b. Gap pass (2026-09-24) — sounds that were missing entirely
 
 An audit swept every interactive moment against its audio (the inverse of

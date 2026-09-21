@@ -206,6 +206,26 @@ namespace GemRush
             return MakeClip(name, data);
         }
 
+        /// A footstep: a very short, very soft surface scuff — the quietest
+        /// thing in the game by design. It fires several times a second
+        /// while walking, so it must read as texture, never as an event:
+        /// low-passed noise with a fast decay and no tonal content at all.
+        /// pitchScale bakes variants so a run never sounds like a loop.
+        public static AudioClip Footstep(string name, float pitchScale)
+        {
+            float dur = 0.09f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            // The scuff: brief filtered noise, brighter the lighter the step.
+            NoiseVoice(data, 0f, 0.07f, 0.16f,
+                900f * pitchScale, 320f * pitchScale,
+                0.002f, 0.03f, 911, 1.8f);
+            // A whisper of body under it, so it has weight without pitch.
+            Voice(data, 95f * pitchScale, 0f, 0.05f, 0.16f,
+                new float[] { 1f }, new float[] { 1f }, new float[] { 1f },
+                0.002f, 2.2f);
+            return MakeClip(name, data);
+        }
+
         /// A skid: the scrape of a hard reversal at speed — a short, bright
         /// noise rub, faster and sharper the harder Pip was moving.
         public static AudioClip Skid(string name)
@@ -890,6 +910,10 @@ namespace GemRush
                 for (int i = 0; i < data.Length; i++) data[i] *= g;
             }
             AudioClip clip = AudioClip.Create(name, data.Length, 1, SampleRate, false);
+            // Create can return null (length or sample-rate constraints).
+            // Callers are null-guarded, so a failed clip degrades to
+            // silence rather than an NRE deep inside a builder.
+            if (clip == null) return null;
             clip.SetData(data, 0);
             return clip;
         }

@@ -191,6 +191,22 @@ namespace GemRush
             set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "sound", value ? 1 : 0); Save(); }
         }
 
+        /// The score. Under the master Sound gate; lets a player keep the
+        /// music while muting the wind and rumble beds (or the reverse).
+        public static bool MusicOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "music", 1) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "music", value ? 1 : 0); Save(); }
+        }
+
+        /// Ambient beds (wind, rumble, rain, snow) and the portal hum —
+        /// the atmospheric layer under the score.
+        public static bool AmbienceOn
+        {
+            get { MigrateIfNeeded(); return PlayerPrefs.GetInt(Prefix + "ambience", 1) == 1; }
+            set { MigrateIfNeeded(); PlayerPrefs.SetInt(Prefix + "ambience", value ? 1 : 0); Save(); }
+        }
+
         /// Voice narration. Defaults on and rides under the master Sound
         /// gate (no sound, no voice); the VoiceOver channel reads this.
         public static bool VoiceOn

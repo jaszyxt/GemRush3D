@@ -155,6 +155,7 @@ def build_clips():
     C["gust_swell"] = ("world", _noise_swell())
     C["mirror"] = ("world", _mirror())
 
+    C["footstep"] = ("movement", _footstep())
     C["skid"] = ("movement", _skid())
     C["seesaw_creak"] = ("world", _seesaw_creak())
     C["seesaw_spring"] = ("world", _seesaw_spring())
@@ -409,6 +410,14 @@ def _mirror():
     voice(d, 100.0, 0.36, 0.22, 0.3, [1, 0.5], [1, 0.4], [1, 0.8], 0.002, 1.8)
     return finalize(d)
 
+
+
+
+def _footstep():
+    d = [0.0] * (int(0.09 * SR) + 1)
+    noise_voice(d, 0, 0.07, 0.16, 900, 320, 0.002, 0.03, 911, 1.8)
+    voice(d, 95.0, 0, 0.05, 0.16, [1], [1], [1], 0.002, 2.2)
+    return finalize(d)
 
 
 def _skid():

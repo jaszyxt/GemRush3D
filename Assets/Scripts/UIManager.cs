@@ -968,13 +968,13 @@ namespace GemRush
             // this table (labels, values, toggling), so the grouping can be
             // reordered without anything silently pointing at the wrong row.
             settingsIds = touch
-                ? new SettingId[] { SettingId.Sound, SettingId.Voice,
-                    SettingId.MissionText, SettingId.Haptics,
-                    SettingId.TextSize,
+                ? new SettingId[] { SettingId.Sound, SettingId.Music,
+                    SettingId.Ambience, SettingId.Voice, SettingId.MissionText,
+                    SettingId.Haptics, SettingId.TextSize,
                     SettingId.Shake, SettingId.Shadows, SettingId.Lefty }
-                : new SettingId[] { SettingId.Sound, SettingId.Voice,
-                    SettingId.MissionText, SettingId.Haptics,
-                    SettingId.TextSize, SettingId.Fullscreen,
+                : new SettingId[] { SettingId.Sound, SettingId.Music,
+                    SettingId.Ambience, SettingId.Voice, SettingId.MissionText,
+                    SettingId.Haptics, SettingId.TextSize, SettingId.Fullscreen,
                     SettingId.Shake, SettingId.Shadows, SettingId.Lefty };
             string[] names = new string[settingsIds.Length];
             for (int i = 0; i < settingsIds.Length; i++)
@@ -1414,8 +1414,8 @@ namespace GemRush
         /// table.
         enum SettingId
         {
-            Sound, Voice, MissionText, Haptics, TextSize,
-            Fullscreen, Shake, Shadows, Lefty
+            Sound, Music, Ambience, Voice, MissionText, Haptics,
+            TextSize, Fullscreen, Shake, Shadows, Lefty
         }
 
         void ToggleSetting(int index)
@@ -1427,6 +1427,12 @@ namespace GemRush
             {
                 case SettingId.Sound:
                     SaveSystem.SoundOn = !SaveSystem.SoundOn;
+                    break;
+                case SettingId.Music:
+                    SaveSystem.MusicOn = !SaveSystem.MusicOn;
+                    break;
+                case SettingId.Ambience:
+                    SaveSystem.AmbienceOn = !SaveSystem.AmbienceOn;
                     break;
                 case SettingId.Voice:
                     SaveSystem.VoiceOn = !SaveSystem.VoiceOn;
@@ -1477,6 +1483,8 @@ namespace GemRush
             switch (id)
             {
                 case SettingId.Sound: return SaveSystem.SoundOn;
+                case SettingId.Music: return SaveSystem.MusicOn;
+                case SettingId.Ambience: return SaveSystem.AmbienceOn;
                 case SettingId.Voice: return SaveSystem.VoiceOn;
                 case SettingId.MissionText: return SaveSystem.MissionTextOn;
                 case SettingId.Haptics: return SaveSystem.HapticsOn;
@@ -1494,6 +1502,8 @@ namespace GemRush
             switch (id)
             {
                 case SettingId.Sound: return Strings.SettingSound;
+                case SettingId.Music: return Strings.SettingMusic;
+                case SettingId.Ambience: return Strings.SettingAmbience;
                 case SettingId.Voice: return Strings.SettingVoice;
                 case SettingId.MissionText: return Strings.SettingMissionText;
                 case SettingId.Haptics: return Strings.SettingHaptics;

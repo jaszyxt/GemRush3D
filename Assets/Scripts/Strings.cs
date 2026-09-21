@@ -154,6 +154,8 @@ namespace GemRush
         public const string SettingShadows = "Shadows";
         public const string SettingLefty = "Left-handed Controls";
         public const string SettingVoice = "Voice";
+        public const string SettingMusic = "Music";
+        public const string SettingAmbience = "Ambience";
         public const string SettingMissionText = "Mission Text";
         public const string SettingTextSize = "Text Size";
         public const string SettingFullscreen = "Fullscreen";

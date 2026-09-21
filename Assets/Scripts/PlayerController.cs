@@ -60,6 +60,14 @@ namespace GemRush
         // so a jittery stick can't machine-gun dust.
         const float SkidMinSpeed = 6f;
         const float SkidCooldown = 0.25f;
+
+        // Footsteps are gait-locked, not time-locked: the step fires once
+        // per stride DISTANCE, so a walk is sparse and a sprint is dense
+        // without ever machine-gunning. Below the floor Pip is barely
+        // moving, and the only ground feedback should be his own quiet.
+        const float StepStride = 2.3f;
+        const float StepMinSpeed = 1.6f;
+        float stepDistance;
         // Wind rides hold a touch of extra lens width (CameraFollow).
         const float WindFovHold = 5f;
         // Jump, land and skid puffs share one soft near-white.
@@ -701,6 +709,7 @@ namespace GemRush
             rb.linearVelocity = vel;
 
             UpdateSkid(vel, wishDir);
+            UpdateFootsteps(vel);
             UpdateWindRide(vel);
 
             gustPush = Vector3.zero;
@@ -712,6 +721,27 @@ namespace GemRush
         /// turn-around reads physical instead of a direction snap. The dot
         /// test is the multi-axis sign flip: the input now points against
         /// the motion.
+        /// Footfalls: accumulate ground distance and emit one step per
+        /// stride. Distance is the right clock — it stays physically honest
+        /// whether Pip is walking, sprinting or being carried by a mover,
+        /// and it is immune to frame-rate changes.
+        void UpdateFootsteps(Vector3 vel)
+        {
+            float speed = new Vector2(vel.x, vel.z).magnitude;
+            if (!grounded || speed < StepMinSpeed || flyMode)
+            {
+                // Airborne or idling: land the stride, so the next run
+                // starts fresh rather than firing on its first frame.
+                stepDistance = StepStride * 0.5f;
+                return;
+            }
+            stepDistance += speed * Time.fixedDeltaTime;
+            if (stepDistance < StepStride) return;
+            stepDistance = 0f;
+            AudioManager.Instance.PlayFootstep(
+                Mathf.InverseLerp(StepMinSpeed, moveSpeed, speed));
+        }
+
         void UpdateSkid(Vector3 vel, Vector3 wishDir)
         {
             if (!grounded || Time.time - lastSkidTime < SkidCooldown) return;

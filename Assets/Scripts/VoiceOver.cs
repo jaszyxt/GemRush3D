@@ -173,7 +173,8 @@ namespace GemRush
             source.clip = clip;
             source.Play();
             if (AudioManager.Instance != null)
-                AudioManager.Instance.DuckFor(entry.duration + 1.2f, 0.3f);
+                AudioManager.Instance.DuckFor(entry.duration + 1.2f,
+                    AudioManager.VoiceDuckFraction);
         }
 
         public void Stop()

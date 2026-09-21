@@ -232,6 +232,8 @@ namespace UnityEngine
     public static class Mathf
     {
         public const float PI = 3.14159265f;
+        public const float Deg2Rad = 0.0174532924f;
+        public const float Rad2Deg = 57.29578f;
         public static float Sin(float f) { return 0f; }
         public static float Cos(float f) { return 0f; }
         public static float Sqrt(float f) { return 0f; }
@@ -303,6 +305,7 @@ namespace UnityEngine
         public static float timeScale { get; set; }
         public static float unscaledDeltaTime { get { return 0f; } }
         public static float unscaledTime { get { return 0f; } }
+        public static int frameCount { get { return 0; } }
         public static float realtimeSinceStartup { get { return 0f; } }
     }
 

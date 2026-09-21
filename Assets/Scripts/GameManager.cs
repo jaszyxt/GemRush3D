@@ -251,6 +251,11 @@ namespace GemRush
             Lives = StartingLives;
             Elapsed = 0f;
             State = GameState.Playing;
+            // The pickup song is per LEVEL, not per session: without this a
+            // new level inherited the previous one's streak and opened
+            // already at the octave cap, so the rising ladder — the reward
+            // for a clean gem trail — was never heard from the bottom again.
+            AudioManager.ResetPickupStreak();
 
             GameBootstrap.BuildWorld(CurrentLevel);
             ui.ShowHUD();
@@ -288,6 +293,7 @@ namespace GemRush
             Time.timeScale = 1f;
             State = GameState.Playing;
             AudioManager.Instance.PlayResumeSound();
+            AudioManager.Instance.OnClockResumed();
             ui.HidePaused();
         }
 
@@ -420,7 +426,12 @@ namespace GemRush
         // it themselves, and restoring here could un-pause a paused game.
         void EndHitStop()
         {
+            // The freeze is over; gust zones kept their own clock frozen
+            // through it, so re-anchor them to the music they answer to.
+            bool wasActive = hitStopActive;
             hitStopActive = false;
+            if (wasActive && AudioManager.Instance != null)
+                AudioManager.Instance.OnClockResumed();
         }
 
         public void OnReachGoal()

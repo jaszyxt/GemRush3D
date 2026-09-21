@@ -25,11 +25,13 @@ namespace GemRush
         // ---- One-shot effects, synthesized once in Awake ----
         AudioClip[] jumpVariants;
         AudioClip[] landVariants;
+        AudioClip[] stepVariants;
 
         // Baked variant pitches (fatigue pass): the ear flags an identical
         // take faster than an identical loudness.
         static readonly float[] JumpPitches = { 0.96f, 1f, 1.05f };
         static readonly float[] LandPitches = { 0.94f, 1f, 1.06f };
+        static readonly float[] StepPitches = { 0.9f, 1f, 1.1f };
         AudioClip land;
         AudioClip pickup;
         AudioClip checkpoint;
@@ -79,11 +81,32 @@ namespace GemRush
         readonly Dictionary<int, AudioClip> noteCache =
             new Dictionary<int, AudioClip>();
 
+        /// Plays a clip that came out of the lazy cache, null-safe. These
+        /// paths used to call source.PlayOneShot directly, so a builder
+        /// that ever returned null would NRE on the gem-collect path
+        /// rather than simply falling silent.
+        void PlayCached(AudioClip clip, float volumeScale = 1f)
+        {
+            if (clip == null || !SaveSystem.SoundOn) return;
+            source.PlayOneShot(clip, volumeScale);
+        }
+
         // ---- Music / mood ----
+        // Mood pads are the largest resident audio in the game (an 8.8 s
+        // 44.1 kHz mono float clip is ~1.5 MB, and a full playthrough visits
+        // a dozen moods). A plain static dictionary grew without bound and
+        // Resources.UnloadUnusedAssets could never reclaim it, because the
+        // dictionary held the only reference. Hence: a small LRU that
+        // destroys what it evicts. Three moods covers menu -> level A ->
+        // level B with no re-synthesis, which is every realistic hop.
+        const int MoodCacheLimit = 3;
         static readonly Dictionary<int, AudioClip> moodLoops =
             new Dictionary<int, AudioClip>();
+        static readonly List<int> moodLru = new List<int>();
+
         static readonly Dictionary<int, AudioClip> moodBedLoops =
             new Dictionary<int, AudioClip>();
+
         static readonly Dictionary<int, AudioClip> ambienceLoops =
             new Dictionary<int, AudioClip>();
         SoundMood activeMood = SoundMood.Day;
@@ -93,7 +116,11 @@ namespace GemRush
 
         void Awake()
         {
-            Instance = this;
+            // NOTE: Instance is assigned at the END of Awake, after the
+            // sources and clips are built. Assigning it first meant an
+            // allocation failure partway through boot left a singleton
+            // whose sources were still null, so every later frame NREd in
+            // Update. Until the end, the manager is simply not published.
             source = gameObject.AddComponent<AudioSource>();
             source.playOnAwake = false;
             source.spatialBlend = 0f;
@@ -133,6 +160,9 @@ namespace GemRush
             landVariants = new AudioClip[LandPitches.Length];
             for (int i = 0; i < LandPitches.Length; i++)
                 landVariants[i] = SfxSynth.Land("sfx_land_" + i, LandPitches[i]);
+            stepVariants = new AudioClip[StepPitches.Length];
+            for (int i = 0; i < StepPitches.Length; i++)
+                stepVariants[i] = SfxSynth.Footstep("sfx_step_" + i, StepPitches[i]);
             pickup = SfxSynth.GemPickup("sfx_pickup", 880f);
             checkpoint = SfxSynth.CheckpointChime("sfx_checkpoint");
             win = SfxSynth.WinFanfare("sfx_win");
@@ -165,6 +195,9 @@ namespace GemRush
             resumeBlip = SfxSynth.PauseBlip("ui_resume", false);
             introSwoosh = SfxSynth.IntroSwoosh("ui_intro");
             pageTurn = SfxSynth.PageTurn("ui_page");
+
+            // Fully built; safe to publish.
+            Instance = this;
         }
 
         // ------------------------------------------------------------------
@@ -174,6 +207,61 @@ namespace GemRush
         /// Called when a level is built (or the menu is shown): switch the
         /// pad loop and ambience bed to the level's mood. Clips are
         /// synthesized lazily, once per mood, and cached statically.
+        /// True while the melody layer is faded out — the only time the
+        /// separate melody-stripped bed is audible. Set by the crossfade
+        /// below; read by SetMood so it never renders a bed nobody hears.
+        bool bedNeeded;
+
+        /// The melody-stripped bed for a mood, synthesized on demand and
+        /// cached alongside the pad. Distinct from MoodPad so the common
+        /// case (melody audible) never pays for it.
+        static AudioClip MoodBed(SoundMood mood)
+        {
+            if (moodBedLoops.TryGetValue((int)mood, out AudioClip bed))
+                return bed;
+            bed = MusicSynth.MoodLoop("music_bed_" + mood, mood, 0.13f,
+                withMotif: false);
+            moodBedLoops[(int)mood] = bed;
+            return bed;
+        }
+
+        /// A mood's full pad, held in a bounded LRU: the least recently
+        /// used mood is destroyed (AudioClip.Destroy, so the PCM actually
+        /// goes back) when a fourth mood is requested.
+        static AudioClip MoodPad(SoundMood mood)
+        {
+            int key = (int)mood;
+            if (moodLoops.TryGetValue(key, out AudioClip clip))
+            {
+                moodLru.Remove(key);
+                moodLru.Add(key);
+                return clip;
+            }
+            clip = MusicSynth.MoodLoop("music_" + mood, mood, 0.13f);
+            moodLoops[key] = clip;
+            moodLru.Add(key);
+            while (moodLru.Count > MoodCacheLimit)
+            {
+                int evict = moodLru[0];
+                moodLru.RemoveAt(0);
+                AudioClip evicted;
+                if (moodLoops.TryGetValue(evict, out evicted) &&
+                    evicted != null)
+                {
+                    moodLoops.Remove(evict);
+                    Object.Destroy(evicted);
+                }
+                // Its bed goes too — same mood, same memory class.
+                AudioClip bed;
+                if (moodBedLoops.TryGetValue(evict, out bed) && bed != null)
+                {
+                    moodBedLoops.Remove(evict);
+                    Object.Destroy(bed);
+                }
+            }
+            return clip;
+        }
+
         public void SetMood(SoundMood mood)
         {
             if (moodInitialized && activeMood == mood) return;
@@ -181,19 +269,13 @@ namespace GemRush
             moodInitialized = true;
 
             musicLoopLength = MusicSynth.MoodLoopLength(mood);
-            if (!moodLoops.TryGetValue((int)mood, out AudioClip loop))
-            {
-                loop = MusicSynth.MoodLoop("music_" + mood, mood, 0.13f);
-                moodLoops[(int)mood] = loop;
-            }
-            musicSource.clip = loop;
-            if (!moodBedLoops.TryGetValue((int)mood, out AudioClip bed))
-            {
-                bed = MusicSynth.MoodLoop("music_bed_" + mood, mood, 0.13f,
-                    withMotif: false);
-                moodBedLoops[(int)mood] = bed;
-            }
-            bedSource.clip = bed;
+            musicSource.clip = MoodPad(mood);
+
+            // The melody-stripped bed is only ever heard when the melody
+            // ducks (two lives left, or game over) — so it is synthesized
+            // on first actual need instead of doubling every mood's cost
+            // up front. Until then the full pad doubles as the bed.
+            bedSource.clip = bedNeeded ? MoodBed(mood) : musicSource.clip;
 
             // The mood's ambience bed sits under the pad on the wind
             // channel; updrafts and gusts pulse the same channel on top.
@@ -257,6 +339,8 @@ namespace GemRush
         // a few times a second, not every frame.
         float soundCheckTimer;
         bool lastSoundOn = true;
+        bool lastMusicOn = true;
+        bool lastAmbienceOn = true;
 
         // Death/win ducking: snap the pad down to a fraction of its level,
         // then ease it back on unscaled time — the sting reads in near
@@ -268,6 +352,15 @@ namespace GemRush
         const float MusicVolume = 0.26f;
         const float DuckFraction = 0.35f;
         const float DuckRestoreSeconds = 2.5f;
+
+        /// Voice sits deeper than a sting so narration clearly leads.
+        public const float VoiceDuckFraction = 0.18f;
+
+        /// Current duck gain (1 = unducked), recomputed each frame and read
+        /// by every bed — music, ambience and the portal hum alike. Ambience
+        /// holding full level through a death sting was why the sting failed
+        /// to read "in near silence" on wind and rain levels.
+        float duckGain = 1f;
         float duckTimer;
         float duckFraction = DuckFraction;
 
@@ -310,16 +403,33 @@ namespace GemRush
         {
             // One volume pass per frame: duck factor (death/win sting)
             // times the melody crossfade, applied to both layers.
-            float duck = 1f;
             if (duckTimer > 0f)
             {
                 duckTimer = Mathf.Max(0f, duckTimer - Time.unscaledDeltaTime);
                 float restore = Mathf.SmoothStep(0f, 1f,
                     1f - duckTimer / DuckRestoreSeconds);
-                duck = Mathf.Lerp(duckFraction, 1f, restore);
+                duckGain = Mathf.Lerp(duckFraction, 1f, restore);
             }
+            else
+            {
+                // Expired: return to full and forget the depth, so the next
+                // duck starts from a clean slate rather than inheriting the
+                // shallowest fraction ever requested.
+                duckGain = 1f;
+                duckFraction = DuckFraction;
+            }
+            float duck = duckGain;
             melodyFactor = Mathf.MoveTowards(melodyFactor, MelodyTarget,
                 Time.unscaledDeltaTime / MelodyFadeSeconds);
+            // The bed only becomes audible as the melody ducks; synthesize
+            // it at that moment rather than at every mood change.
+            bool needBed = MelodyTarget < 1f;
+            if (needBed && !bedNeeded && moodInitialized)
+            {
+                bedNeeded = true;
+                bedSource.clip = MoodBed(activeMood);
+                SyncMusic();
+            }
             bedSource.volume = MusicVolume * duck;
             musicSource.volume = MusicVolume * duck * melodyFactor;
 
@@ -333,9 +443,12 @@ namespace GemRush
             {
                 soundCheckTimer = 0.25f;
                 lastSoundOn = SaveSystem.SoundOn;
+                lastMusicOn = SaveSystem.MusicOn;
+                lastAmbienceOn = SaveSystem.AmbienceOn;
             }
 
-            bool shouldPlay = lastSoundOn &&
+            bool musicAllowed = lastSoundOn && lastMusicOn;
+            bool shouldPlay = musicAllowed &&
                               musicSource.clip != null &&
                               GameManager.Instance != null &&
                               (GameManager.Instance.State == GameState.Playing ||
@@ -380,14 +493,15 @@ namespace GemRush
         /// frame; the wind swells up and decays back to the mood bed.
         public void PulseWind()
         {
-            if (!SaveSystem.SoundOn) return;
+            if (!SaveSystem.SoundOn || !SaveSystem.AmbienceOn) return;
             if (windSource.clip == null) return;
             windPulseUntil = Time.unscaledTime + WindPulseHoldSeconds;
         }
 
         void UpdateWind()
         {
-            if (windSource.clip == null || !SaveSystem.SoundOn)
+            if (windSource.clip == null || !SaveSystem.SoundOn ||
+                !SaveSystem.AmbienceOn)
             {
                 if (windSource.volume > 0f && !windSource.isPlaying) return;
                 windSource.volume = 0f;
@@ -395,8 +509,11 @@ namespace GemRush
                 return;
             }
             bool pulsed = Time.unscaledTime < windPulseUntil;
+            // The bed rides the same duck as the music: a death sting has to
+            // read over the wind too, or it does not read at all on the
+            // wind and rain levels where the bed is loudest.
             float target = Mathf.Clamp01(
-                moodWindBase + (pulsed ? WindPulseLevel : 0f));
+                moodWindBase + (pulsed ? WindPulseLevel : 0f)) * duckGain;
             windSource.volume = Mathf.MoveTowards(windSource.volume, target,
                 WindFadeSpeed * Time.unscaledDeltaTime);
             if (windSource.volume > 0.005f && !windSource.isPlaying)
@@ -422,12 +539,24 @@ namespace GemRush
             humTarget = Mathf.Clamp01(proximity01);
         }
 
+        /// The portal hum clip, synthesized off the Update path. Rendering
+        /// it inside UpdateHum used to stall the frame the player first got
+        /// near a portal — the worst possible moment to hitch.
+        static AudioClip humClip;
+
+        static AudioClip HumClip()
+        {
+            if (humClip == null)
+                humClip = MusicSynth.HumLoop("amb_portal_hum", 1f);
+            return humClip;
+        }
+
         void UpdateHum()
         {
-            bool allowed = lastSoundOn && humTarget > 0.001f;
+            bool allowed = lastSoundOn && lastAmbienceOn && humTarget > 0.001f;
             if (allowed && humSource.clip == null)
-                humSource.clip = MusicSynth.HumLoop("amb_portal_hum", 1f);
-            float target = allowed ? humTarget * HumMaxVolume : 0f;
+                humSource.clip = HumClip();
+            float target = (allowed ? humTarget * HumMaxVolume : 0f) * duckGain;
             humSource.volume = Mathf.MoveTowards(humSource.volume, target,
                 HumFadeSpeed * Time.unscaledDeltaTime);
             if (humSource.volume > 0.005f && !humSource.isPlaying)
@@ -440,10 +569,11 @@ namespace GemRush
         // The music clock (gusts phase-lock to it)
         // ------------------------------------------------------------------
 
-        /// One full pad cycle: four chords; gust periods divide it so
-        /// onsets land on chord boundaries. Default 8.8 s (4 x 2.2) —
-        /// every gust-hosting mood keeps that length. Load-bearing — do
-        /// not change without re-checking the gust math.
+        /// The gust-hosting loop length: 8.8 s (4 x 2.2), the value every
+        /// mood that hosts a gust keeps so gust periods divide it evenly.
+        /// Moods that never host a gust (Menu 12.4 s, Winter 13.6 s, Rain /
+        /// Flight / Mirror 11.0 s) are free to differ — the live length is
+        /// set per mood in SetMood and read through GetMusicPhase.
         public const float MusicLoopLength = 8.8f;
 
         float musicLoopLength = MusicLoopLength;
@@ -508,6 +638,9 @@ namespace GemRush
             float strength = Mathf.Clamp01((impactSpeed - 2.5f) / 14f);
             PlayIfOn(landVariants[Random.Range(0, landVariants.Length)],
                 (0.45f + 0.55f * strength) * Jitter(0.94f, 1.06f));
+            // Only firm landings register tactually — a walk-off hop should
+            // not buzz, or the phone becomes a rattle during normal play.
+            if (impactSpeed > 8f) Haptics.Light();
         }
 
         // ------------------------------------------------------------------
@@ -536,6 +669,13 @@ namespace GemRush
             if (milestone && GameBootstrap.Player != null)
                 Fx.Ring(GameBootstrap.Player.transform.position, ArtLib.Gold);
 
+            // Haptics ride OUTSIDE the sound gate: the ladder is tactile as
+            // well as audible, and a muted player still feels the run build.
+            // The gem trail is the most repeated interaction in the game and
+            // Haptics already rate-limits same-class ticks for exactly this.
+            if (milestone) Haptics.Medium();
+            else Haptics.Light();
+
             if (!SaveSystem.SoundOn) return;
 
             // Every 10th chained gem sings a tiny fanfare on top — a
@@ -556,7 +696,7 @@ namespace GemRush
                 clip = SfxSynth.GemPickup("pickup_" + step, 880f * scale);
                 noteCache[100 + step] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// Cached bright triad for the every-10th-gem milestone.
@@ -567,7 +707,7 @@ namespace GemRush
                 clip = SfxSynth.MilestoneChime("sfx_milestone");
                 noteCache[9500] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// Zeros the pickup combo chain so the next gem sings the base note.
@@ -630,17 +770,18 @@ namespace GemRush
         /// in near-silence; Update eases it back over ~2.5 s.
         void DuckMusic()
         {
-            duckFraction = DuckFraction;
-            duckTimer = DuckRestoreSeconds;
-            musicSource.volume = MusicVolume * DuckFraction;
+            duckFraction = Mathf.Min(duckFraction, DuckFraction);
+            duckTimer = Mathf.Max(duckTimer, DuckRestoreSeconds);
         }
 
         /// While a voice line plays, duck deeper than a sting and hold for
-        /// the line's whole length (plus its breath). Extends an existing
-        /// duck rather than restarting it; the restore ramp is unchanged.
+        /// the line's whole length (plus its breath). The fraction takes the
+        /// MINIMUM with whatever duck is already active: a voice line
+        /// starting during a death sting must never raise the music back up
+        /// mid-sting, which is what a plain assignment did.
         public void DuckFor(float seconds, float fraction)
         {
-            duckFraction = Mathf.Clamp01(fraction);
+            duckFraction = Mathf.Min(duckFraction, Mathf.Clamp01(fraction));
             duckTimer = Mathf.Max(duckTimer, seconds);
         }
 
@@ -659,7 +800,7 @@ namespace GemRush
                 clip = SfxSynth.CompleteFanfare("sfx_complete");
                 noteCache[9000] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// A star landing on the win screen (0, 1, 2 = first..third star).
@@ -671,7 +812,7 @@ namespace GemRush
                 clip = SfxSynth.StarDing("ui_star_" + step, step);
                 noteCache[9100 + step] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// The photo-mode shutter — its own voice, not a borrowed star ding.
@@ -687,7 +828,7 @@ namespace GemRush
                 clip = SfxSynth.Shutter("ui_shutter");
                 noteCache[9950] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// New best time: a bright little flourish.
@@ -699,7 +840,7 @@ namespace GemRush
                 clip = SfxSynth.RecordFlourish("ui_record");
                 noteCache[9200] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// A shelf trophy appearing: a small glassy keepsake chime.
@@ -711,7 +852,7 @@ namespace GemRush
                 clip = SfxSynth.TrophyChime("sfx_trophy");
                 noteCache[9600] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// Crossing a star-trail mastery tier.
@@ -723,7 +864,7 @@ namespace GemRush
                 clip = SfxSynth.TrailTierSting("sfx_trail_tier");
                 noteCache[9700] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// A new level opening up: two bright notes that fan outward.
@@ -735,7 +876,7 @@ namespace GemRush
                 clip = SfxSynth.LevelUnlock("sfx_level_unlock");
                 noteCache[9800] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// Sky Garden: the bloom wave as a rising music-box run.
@@ -747,7 +888,7 @@ namespace GemRush
                 clip = SfxSynth.BloomRun("sfx_bloom");
                 noteCache[9300] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// The Long Winter: waking the sunstone lantern.
@@ -771,7 +912,7 @@ namespace GemRush
                 clip = SfxSynth.CrystalRun("sfx_crystal");
                 noteCache[9400] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// The Aurora Festival: the realm's concert under the win fanfare.
@@ -783,12 +924,14 @@ namespace GemRush
                 clip = SfxSynth.FestivalConcert("sfx_concert");
                 noteCache[9900] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         public void PlayBounce()
         {
             PlayIfOn(bounce);
+            // A launch is an impact-class event: the pad should be felt.
+            Haptics.Light();
         }
 
         // ------------------------------------------------------------------
@@ -812,7 +955,7 @@ namespace GemRush
                     bellFrequencies[safe], Mathf.Max(4f, toneSeconds + 1.5f), 0.30f);
                 noteCache[key] = clip;
             }
-            source.PlayOneShot(clip);
+            PlayCached(clip);
         }
 
         /// Legacy: six-second ring.
@@ -887,6 +1030,17 @@ namespace GemRush
 
         /// A hard reversal at speed: a scrape under the dust puff. Strength
         /// (0..1, from how fast Pip was moving) scales the volume.
+        /// A footfall while running. `speed01` is the fraction of top speed:
+        /// a walk is a whisper, a sprint is audible texture. The caller owns
+        /// the gait clock, so this can never machine-gun.
+        public void PlayFootstep(float speed01)
+        {
+            if (stepVariants == null) return;
+            float level = Mathf.Lerp(0.16f, 0.42f, Mathf.Clamp01(speed01));
+            PlayIfOn(stepVariants[Random.Range(0, stepVariants.Length)],
+                level * Jitter(0.9f, 1.1f));
+        }
+
         public void PlaySkid(float strength)
         {
             PlayIfOn(skid, (0.5f + 0.5f * Mathf.Clamp01(strength))
@@ -941,6 +1095,17 @@ namespace GemRush
         public void PlayUIToggle(bool on) { PlayIfOn(on ? uiToggleOn : uiToggleOff); }
         public void PlayPanel(bool open) { PlayIfOn(open ? panelOpen : panelClose); }
         public void PlayPauseSound() { PlayIfOn(pauseBlip); }
+        /// Called whenever the game clock resumes (unpause, hit-stop end).
+        /// World rhythms that keep their own accumulator freeze with
+        /// Time.timeScale while the music DSP clock does not, so they must
+        /// re-anchor or they drift out of musical step permanently.
+        public void OnClockResumed()
+        {
+            GustZone[] zones = Object.FindObjectsOfType<GustZone>();
+            for (int i = 0; i < zones.Length; i++)
+                zones[i].RelockToMusic();
+        }
+
         public void PlayResumeSound() { PlayIfOn(resumeBlip); }
         public void PlayIntro() { PlayIfOn(introSwoosh); }
         public void PlayPageTurn() { PlayIfOn(pageTurn); }

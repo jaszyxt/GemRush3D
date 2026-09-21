@@ -147,6 +147,7 @@ namespace GemRush.Tests
                 SfxSynth.Skid("audit"), SfxSynth.SeeSawCreak("audit"),
                 SfxSynth.SeeSawSpring("audit"), SfxSynth.TrophyChime("audit"),
                 SfxSynth.TrailTierSting("audit"), SfxSynth.LevelUnlock("audit"),
+                SfxSynth.Footstep("audit", 1f),
                 MusicSynth.MoodLoop("audit_mood", SoundMood.Day, 0.13f, true),
                 MusicSynth.WindLoop("audit_wind", 0.3f, 500f, 0.25f, 77),
                 MusicSynth.RumbleLoop("audit_rumble", 0.2f),
@@ -182,6 +183,69 @@ namespace GemRush.Tests
             Assert.AreEqual("f5615aa8", VoiceOver.Hash("audit"));
             Assert.AreEqual("6a8bfd45", VoiceOver.Hash("The end."));
             Assert.AreNotEqual(VoiceOver.Hash("audit"), VoiceOver.Hash("audi0"));
+        }
+
+        // ------------------------------------------------------------------
+        // Mix / memory invariants (health pass)
+        // ------------------------------------------------------------------
+
+        [Test]
+        public void DuckFraction_TakesTheMinimum_NeverRaises()
+        {
+            // A voice line starting during a death sting must DEEPEN the
+            // duck, never restore the music mid-sting. The bug was a plain
+            // assignment, which raised it.
+            float voiceDuck = (float)StaticField(typeof(AudioManager),
+                "VoiceDuckFraction");
+            Assert.Less(voiceDuck, 0.35f,
+                "voice duck must be deeper than the death/win sting's 0.35");
+            Assert.Greater(voiceDuck, 0f, "voice duck cannot silence the score");
+
+            string source = System.IO.File.ReadAllText(
+                Application.dataPath + "/Scripts/AudioManager.cs");
+            Assert.IsTrue(source.Contains(
+                "duckFraction = Mathf.Min(duckFraction, Mathf.Clamp01(fraction))"),
+                "DuckFor stopped taking the minimum — a voice line during a " +
+                "sting will raise the music again");
+        }
+
+        [Test]
+        public void MoodCache_IsBounded()
+        {
+            // Mood pads are the largest resident audio; an unbounded static
+            // dictionary is what made a full playthrough hold ~40 MB that
+            // UnloadUnusedAssets could never reclaim.
+            int limit = (int)StaticField(typeof(AudioManager), "MoodCacheLimit");
+            Assert.Greater(limit, 0);
+            Assert.LessOrEqual(limit, 4, "mood cache is not doing its job");
+
+            string source = System.IO.File.ReadAllText(
+                Application.dataPath + "/Scripts/AudioManager.cs");
+            Assert.IsTrue(source.Contains("Object.Destroy(evicted)"),
+                "eviction no longer destroys the clip it drops");
+        }
+
+        [Test]
+        public void Streak_ResetsPerLevel_NotJustOnDeath()
+        {
+            string source = System.IO.File.ReadAllText(
+                Application.dataPath + "/Scripts/GameManager.cs");
+            int playLevel = source.IndexOf("public void PlayLevel(int index)");
+            Assert.Greater(playLevel, 0, "PlayLevel not found");
+            string body = source.Substring(playLevel,
+                System.Math.Min(1400, source.Length - playLevel));
+            Assert.IsTrue(body.Contains("ResetPickupStreak"),
+                "a new level inherits the previous run's gem streak, so the " +
+                "rising song never restarts from its base note");
+        }
+
+        [Test]
+        public void Footsteps_HaveBakedVariation()
+        {
+            float[] steps = (float[])StaticField(typeof(AudioManager),
+                "StepPitches");
+            Assert.GreaterOrEqual(steps.Length, 2,
+                "footsteps have no baked variation — they will sound looped");
         }
 
         // ------------------------------------------------------------------

@@ -37,7 +37,8 @@ namespace GemRush
         Transform[] petals;
         Material streakMat;
         float t;
-        float phaseOffset;   // one-time musical alignment; see GustPhase
+        float phaseOffset;   // musical alignment; see GustPhase
+        float lockedMusicPhase; // music phase we were aligned at
         bool wasActive;
         bool wasTelegraph;
         float streakLength;
@@ -69,9 +70,9 @@ namespace GemRush
             // Align the first blow with the music once, at spawn (the pad
             // loop is 8.8s in the wind realms, so this reads as on-beat);
             // from then on the zone keeps its own strict beat, which is
-            // what guarantees it always blows.
-            if (AudioManager.Instance != null)
-                g.phaseOffset = -AudioManager.Instance.GetMusicPhase();
+            // what guarantees it always blows. Realigned after any pause —
+            // see RelockToMusic.
+            g.RelockToMusic();
 
             Material streak = ArtLib.Solid(ArtLib.Air, 0f);
             ArtLib.SetFade(streak, 0.22f);
@@ -145,6 +146,20 @@ namespace GemRush
         float GustPhase()
         {
             return Mathf.Repeat(t + phaseOffset, period);
+        }
+
+        /// Re-anchor the musical offset to the live music phase. The zone's
+        /// own clock (`t`) freezes with Time.timeScale while the music DSP
+        /// clock keeps running, so a pause or a hit-stop leaves the two out
+        /// of step FOREVER — after one pause the "gust lands on the chord"
+        /// feel was permanently lost, not just momentarily. Called at spawn
+        /// and on resume: `t` is the reference, so the shift is exact.
+        public void RelockToMusic()
+        {
+            if (AudioManager.Instance == null) return;
+            float music = AudioManager.Instance.GetMusicPhase();
+            phaseOffset = t - music;
+            lockedMusicPhase = music;
         }
 
         void Update()
