@@ -207,8 +207,8 @@ namespace GemRush
                     shard.localScale = new Vector3(0.55f, 1.4f, 0.55f) * 0.05f;
                 }
                 elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / 0.7f);
-                float pop = Mathf.Sin(t * Mathf.PI) * 0.35f;
+                float pop;
+                float t = Tweener.PopProgress(elapsed, out pop);
                 shard.localScale = new Vector3(0.55f, 1.4f, 0.55f)
                     * Mathf.Lerp(0.05f, 1f, t) * (1f + pop);
                 if (t >= 1f) enabled = false;

@@ -172,6 +172,10 @@ for cs in "$ROOT"/Assets/Scripts/*.cs; do
   printf '"%s"\n' "$(winpath "$cs")" >> "$SRC_RSP"
 done
 printf '"%s"\n' "$(winpath "$ROOT/Assets/Tests/EditMode/LevelAuditTests.cs")" >> "$SRC_RSP"
+# ContrastAuditTests is also pure data (ArtLib colours against the
+# level data's realm skies) - no scene objects - so it crosses too.
+printf '"%s"
+' "$(winpath "$ROOT/Assets/Tests/EditMode/ContrastAuditTests.cs")" >> "$SRC_RSP"
 echo "compiling $(wc -l < "$SRC_RSP") source files"
 
 # The test sources we run headlessly. LevelAuditTests is geometry and

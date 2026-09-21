@@ -43,8 +43,8 @@ namespace GemRush
                 return;
             }
             elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / 0.7f);
-            float pop = Mathf.Sin(t * Mathf.PI) * 0.35f; // a little bounce
+            float pop;
+            float t = Tweener.PopProgress(elapsed, out pop);
             transform.localScale = Vector3.one *
                 Mathf.Lerp(0.22f, 0.55f, t) * (1f + pop);
             mat.color = Color.Lerp(ArtLib.Bud, target, t);

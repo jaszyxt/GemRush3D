@@ -11,6 +11,11 @@ jobs:
         run: dotnet build tools/Check.csproj
       - name: Version drift check (VERSION vs docs)
         run: sh tools/check-version.sh
+      - name: Motion consistency (informational inventory)
+        # Reports the motion constants outside the shared helpers. Fails
+        # ONLY on a genuinely duplicated spring (the historical Pip/Flower
+        # copy-paste); everything else is printed for a reviewer.
+        run: sh tools/check-motion.sh
       - name: Protected user directives (docs/User-Directives.md)
         # Fails when a rule the USER set has been changed without their
         # explicit instruction (e.g. haptics creeping back onto the jump).

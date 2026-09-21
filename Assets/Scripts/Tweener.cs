@@ -48,6 +48,27 @@ namespace GemRush
             value += velocity * dt;
         }
 
+        /// The game's one-growth-pop: a thing appears by scaling up past
+        /// its rest size and settling back (the sine bulge peaks mid-way).
+        /// The garden bloom, the winter crystal shard and the raindrop
+        /// flower all express "something sprouted here", and all three
+        /// used to hand-roll this curve with the same 0.7 s and the same
+        /// 0.35 amplitude in three separate files — so retuning one would
+        /// silently desync the others.
+        ///
+        /// Returns the eased 0..1 progress; the caller maps it onto its own
+        /// scale range, which IS legitimately per-object (a bud and a
+        /// crystal shard do not grow to the same size).
+        public const float PopSeconds = 0.7f;
+        public const float PopBulge = 0.35f;
+
+        public static float PopProgress(float elapsed, out float bulge)
+        {
+            float t = Mathf.Clamp01(elapsed / PopSeconds);
+            bulge = Mathf.Sin(t * Mathf.PI) * PopBulge;
+            return t;
+        }
+
         public static void Value(float from, float to, float duration,
             Action<float> onUpdate, Action onDone = null)
         {
