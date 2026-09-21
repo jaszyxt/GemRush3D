@@ -46,6 +46,18 @@ difficulty.
   (levels teach themselves; delight moments especially).
 - **Evergreen law applies to joy, too.** No digits, statuses or level numbers in
   celebration strings; the completion screen is a chapter break, never a finale.
+- **Delight lives in detail that "didn't need to be there, but is anyway."**
+  This is the working definition the craft literature converges on (RDR2's
+  suspension that rocks, Spider-Man 2's rain that changes under an awning). The
+  test for any small addition is not "is it useful" but "would anyone have
+  missed it, and would they smile to find it".
+- **No checkbox interactions.** A rest spot that exists to be checked off is
+  worse than no rest spot — see the rejected list below. Optional moments must
+  be satisfying in themselves, with nothing attached.
+- **Reuse the pose, don't invent one.** Before adding a new animation or state,
+  check whether the game already reaches it by another route (the perch sits Pip
+  by driving the idle ladder's existing `sitWeight`, not by authoring a second
+  seated pose). Fewer motions means less to keep consistent.
 
 ## Delight systems inventory (where the juice lives)
 
@@ -67,7 +79,7 @@ Built and shipped — do not rebuild, extend instead:
 | Gloomfang giggle-raindrop bloom (10 s cooldown) | `Gloomfang`, `Fx` |
 | Golden-gem signal (mote trail, breathing glimmer, found outline, canon note) | `GoldenSignal`, `GoldenGem`, `Strings.GoldenNote` |
 | The Rest (slow win-drift, unrewarded, ShakeOn-gated) | `RestBeat` |
-| Perches (a bench on each level's calmest landing, derived not authored) | `Perch` |
+| Perches (a bench on each level's calmest landing; Pip sits on arrival) | `Perch`, `PlayerController` sit blend |
 
 ## Future queue (researched, ranked, mine to green-light)
 
@@ -116,7 +128,12 @@ scarcity of any kind. Delight here is abundant, unhurried, and kind.
 satisfying in itself, and "when the reward outweighs its gentle momentary
 pleasure, the activity becomes extrinsic and loses its cozy appeal"); quantified
 friendship/relationship scores (the "transactional kindness" anti-pattern);
-day/streak notifications of any kind.
+day/streak notifications of any kind; and a **sit prompt or button** — the
+literature is blunt that sitting-as-collectible fails ("Sitting in Places is a
+Boring Collectible": *"if I don't have a reason to sit outside of checking a
+box, I'd rather not be able to take a seat at all"*), while what players value
+is sitting that reads as expressive. The bench answers to proximity and
+stillness, never to input. **Do not add a prompt to it.**
 
 ## Source index
 
@@ -154,4 +171,24 @@ Added in the 2026-09-21 research pass ("The Kindness Layer"):
 - **Adaptive-music literature (Celeste FMOD analysis theses; DMuSe layer/intensity
   documentation)** — vertical layering, stingers, and quantized transitions;
   already implemented, retained as the reference for future music states.
+
+Added in the 2026-09-21 correctness pass ("Make the bench mean it"):
+
+- **"Sitting in Places is a Boring Collectible" (pentopixels)** — the argument
+  against rest interactions as checklist content: inconsistent visual language
+  makes seats unscannable, the reward is weak, and the author's verdict is *"No
+  thanks, I'd rather stand"*. Names what DOES work: sitting that is mechanically
+  necessary or carries emotional value. Source for the no-sit-prompt rule and
+  for making the bench answer to proximity instead of input.
+- **Player-sentiment discussion on scenery-gazing and benches (forum thread)** —
+  the counterweight: players actively want to sit and look at views, praise
+  `/sit`-anywhere freedom, and are put off by uniformly-placed, formulaic
+  benches. Source for deriving one bench per level from the level's own shape
+  rather than scattering them.
+- **Spider-Man 2 ambient/detail breakdowns (Insomniac technical discussion) and
+  the RDR2 "unnecessary detail" polish discourse** — the working definition of
+  polish as *"small details that didn't need to be there, but are anyway"*
+  (rain changing audibly under an awning, suspension that rocks). Source for the
+  detail rule above; also the caution that detail budgets are finite, which is
+  why every addition here is cheap and reuses an existing system.
 

@@ -12,17 +12,20 @@ namespace GemRush
     /// It is derived, not placed, on purpose: there is nothing to author,
     /// no spec type, no level-file edit, and therefore nothing for the
     /// from-scratch pack tests to police or for a future pack to forget.
-    /// Every level already contains a calmest spot — the platform furthest
-    /// from the route with room to stand — so the code finds it the same
-    /// way the golden gem finds its hiding place: deterministically, from
-    /// the level's own data, seeded by its name.
+    /// Every level already contains a calmest spot, so the code finds it
+    /// from the level's own data, seeded by its name, the way the golden
+    /// gem finds its hiding place. What "calmest" means was MEASURED, not
+    /// assumed — see PickSpot for the two metrics that failed first.
     ///
-    /// Attached to a platform top as a small wooden bench. Standing near
-    /// it is all that is required: ambient sound opens, the wind eases and
-    /// nothing else happens. Deliberately unrewarded — no counter, no
-    /// bonus, no completion state. A reward attached to a rest converts it
-    /// into a task, which is the one thing the cozy literature is
-    /// unanimous about.
+    /// What happens at a bench: it warms very slightly as Pip settles
+    /// beside it, and he eases into the seated pose (the same one the idle
+    /// ladder reaches on its own, just sooner). No prompt, no button, no
+    /// counter, no bonus, no completion state — the craft research is
+    /// explicit that sitting-as-a-collectible is the failure mode, and a
+    /// reward attached to a rest converts it into a task.
+    ///
+    /// The bench owns its OWN material instances: tinting the shared
+    /// ArtLib wood would warm every tree and platform in the level.
     public class Perch : MonoBehaviour
     {
         /// How close Pip must be for the spot to "open". Generous: this is
