@@ -151,13 +151,35 @@ namespace GemRush.EditorTools
                         Check("golden-has-a-trigger-collider",
                             col != null && col.isTrigger,
                             col != null ? col.GetType().Name : "none");
-                        // Put Pip exactly on the gem and let physics tick.
+                        // Put Pip exactly on the gem. The COLLECTION CHECK
+                        // must wait for real frames: frames(n) only sets a
+                        // counter that the next Step() decrements, so
+                        // checking on the following line reads the flag
+                        // BEFORE any physics step has run — which is how
+                        // this probe reported a working gem as broken.
+                        // Deferred to phase 5, after the wait.
                         player.TeleportTo(gem.transform.position);
+                        Physics.SyncTransforms();
                         frames(30);
-                        Check("golden-is-collectable",
-                            GemRush.SaveSystem.GoldenFound(19),
-                            "flag=" + GemRush.SaveSystem.GoldenFound(19));
+                        phase = 5;
+                        break;
                     }
+                    GemRush.GameManager.Instance.GoToMenu();
+                    frames(40);
+                    phase = 2;
+                    break;
+                }
+                case 5:
+                {
+                    // Runs AFTER the 30-frame wait, so a trigger that fired
+                    // has had its physics steps. This is the assertion that
+                    // matters: real collision, not a written flag.
+                    Check("golden-is-collectable",
+                        GemRush.SaveSystem.GoldenFound(19),
+                        "flag=" + GemRush.SaveSystem.GoldenFound(19));
+                    Check("golden-left-the-scene",
+                        GameObject.Find("GoldenGem") == null,
+                        "");
                     GemRush.GameManager.Instance.GoToMenu();
                     frames(40);
                     phase = 2;
