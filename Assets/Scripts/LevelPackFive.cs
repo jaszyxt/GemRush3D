@@ -176,7 +176,7 @@ namespace GemRush
             l.WindZones.Add(new WindSpec(0f, 15.5f, 115f, new Vector3(3f, 6f, 3f), 13f));
 
             l.Spinners.Add(new SpinnerSpec(0f, 4.5f, 48f, 90f));
-            l.Spinners.Add(new SpinnerSpec(0f, 15.5f, 104f, 105f));
+            l.Spinners.Add(new SpinnerSpec(0f, 15.5f, 104f, 90f));
 
             l.Checkpoints.Add(new Vector3(0f, 3.5f, 37f));
             l.Checkpoints.Add(new Vector3(0f, 14.5f, 93f));

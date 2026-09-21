@@ -158,7 +158,7 @@ namespace GemRush
             l.Movers.Add(new MoverSpec(-5f, 8f, 101f, new Vector3(0f, 4f, 0f), 4.5f));
 
             l.Spinners.Add(new SpinnerSpec(0f, 2.5f, 29f, 75f));
-            l.Spinners.Add(new SpinnerSpec(0f, 7.5f, 89f, 105f));
+            l.Spinners.Add(new SpinnerSpec(0f, 7.5f, 89f, 75f));
 
             l.Checkpoints.Add(new Vector3(0f, 4.5f, 59f));
             l.StoryBeats.Add("Guardian rule one: spin. Rule two: see rule one. Pip's rule one: be somewhere else.");

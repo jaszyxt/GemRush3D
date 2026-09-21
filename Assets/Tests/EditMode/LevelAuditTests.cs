@@ -1006,6 +1006,36 @@ namespace GemRush.Tests
         }
 
         [Test]
+        public void NoSpinner_IsFasterThanTheComfortCeiling()
+        {
+            // D-6 law: "i don't like the spinners so fast! i want the game
+            // to be fun with little difficulty only." Fast arms are the one
+            // mechanic the user named as unfun, so speed is capped at 90
+            // deg/s and lower is better.
+            //
+            // The game shipped with 11 spinners above the ceiling, including
+            // the maximum of 140 deg/s sitting in level 5 — the teaching arc,
+            // where a young player should meet the gentlest content. All are
+            // now 60-90.
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                foreach (SpinnerSpec s in l.Spinners)
+                {
+                    Assert.LessOrEqual(s.DegreesPerSecond,
+                        HazardTiming.MaxDegreesPerSecond,
+                        Label(i, l) + ": spinner at " + s.PlatformTop +
+                        " spins at " + s.DegreesPerSecond.ToString("F0") +
+                        " deg/s, over the " +
+                        HazardTiming.MaxDegreesPerSecond.ToString("F0") +
+                        " ceiling (D-6). Slow it down — difficulty must " +
+                        "never come from hazard speed.");
+                }
+                i++;
+            }
+        }
+
+        [Test]
         public void EverySpinner_IsReadableByAChild()
         {
             // The timing half of the difficulty contract. Everything else

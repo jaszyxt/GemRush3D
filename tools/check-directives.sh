@@ -28,7 +28,7 @@ if [ ! -f "$DIRECTIVES" ]; then
   exit 1
 fi
 
-for heading in "## D-1." "## D-2." "## D-3." "## D-4." "## D-5."; do
+for heading in "## D-1." "## D-2." "## D-3." "## D-4." "## D-5." "## D-6."; do
   if ! grep -q "^$heading" "$DIRECTIVES"; then
     echo "FAIL: $DIRECTIVES no longer contains '$heading'. A protected"
     echo "      directive was removed. Restore it, or update the file"

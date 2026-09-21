@@ -40,8 +40,8 @@ namespace GemRush
             l.Movers.Add(new MoverSpec(0f, 4f, 66f, new Vector3(5f, 0f, 0f), 2.5f));
             l.Movers.Add(new MoverSpec(0f, 4.5f, 74f, new Vector3(-4.5f, 0f, 0f), 3f));
 
-            l.Spinners.Add(new SpinnerSpec(0f, 3f, 47f, 95f));
-            l.Spinners.Add(new SpinnerSpec(0f, 6.5f, 93f, 105f));
+            l.Spinners.Add(new SpinnerSpec(0f, 3f, 47f, 75f));
+            l.Spinners.Add(new SpinnerSpec(0f, 6.5f, 93f, 75f));
 
             l.Checkpoints.Add(new Vector3(0f, 2f, 35f));
             l.Checkpoints.Add(new Vector3(-2f, 6f, 83f));
@@ -93,9 +93,9 @@ namespace GemRush
             l.Movers.Add(new MoverSpec(0f, 6f, 55f, new Vector3(0f, 3.5f, 0f), 4f)); // elevator 1
             l.Movers.Add(new MoverSpec(0f, 18f, 134f, new Vector3(0f, 4f, 0f), 5f)); // summit elevator
 
-            l.Spinners.Add(new SpinnerSpec(0f, 4.5f, 44f, 110f));
-            l.Spinners.Add(new SpinnerSpec(0f, 13.5f, 101f, 125f));
-            l.Spinners.Add(new SpinnerSpec(0f, 15.5f, 122f, 140f));
+            l.Spinners.Add(new SpinnerSpec(0f, 4.5f, 44f, 75f));
+            l.Spinners.Add(new SpinnerSpec(0f, 13.5f, 101f, 90f));
+            l.Spinners.Add(new SpinnerSpec(0f, 15.5f, 122f, 90f));
 
             l.Checkpoints.Add(new Vector3(0f, 3.5f, 34f));
             l.Checkpoints.Add(new Vector3(0f, 12.5f, 90f));

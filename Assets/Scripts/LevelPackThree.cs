@@ -117,8 +117,8 @@ namespace GemRush
             l.Movers.Add(new MoverSpec(0f, 6.5f, 57f, new Vector3(0f, 3f, 0f), 4.5f));  // lift
             l.Movers.Add(new MoverSpec(0f, 14f, 115f, new Vector3(5f, 0f, 0f), 2.8f));  // fast ferry
 
-            l.Spinners.Add(new SpinnerSpec(0f, 4.5f, 47f, 115f));
-            l.Spinners.Add(new SpinnerSpec(0f, 13.5f, 103f, 130f));
+            l.Spinners.Add(new SpinnerSpec(0f, 4.5f, 47f, 90f));
+            l.Spinners.Add(new SpinnerSpec(0f, 13.5f, 103f, 90f));
 
             l.Checkpoints.Add(new Vector3(0f, 3.5f, 36f));
             l.Checkpoints.Add(new Vector3(0f, 12.5f, 92f));
@@ -180,8 +180,8 @@ namespace GemRush
             l.Movers.Add(new MoverSpec(0f, 11.5f, 56f, new Vector3(0f, 4.5f, 0f), 5.5f));// lift 2
             l.Movers.Add(new MoverSpec(0f, 25f, 120f, new Vector3(0f, 3.5f, 0f), 6f));   // last lift
 
-            l.Spinners.Add(new SpinnerSpec(0f, 8.5f, 46f, 115f));
-            l.Spinners.Add(new SpinnerSpec(0f, 22f, 108f, 125f));
+            l.Spinners.Add(new SpinnerSpec(0f, 8.5f, 46f, 90f));
+            l.Spinners.Add(new SpinnerSpec(0f, 22f, 108f, 90f));
 
             l.Checkpoints.Add(new Vector3(0f, 5.5f, 20f));
             l.Checkpoints.Add(new Vector3(0f, 16.5f, 63f));

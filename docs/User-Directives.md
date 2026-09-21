@@ -132,6 +132,57 @@ the same defect plus a worse one (it could silently place nothing at all).
 
 ---
 
+## D-6. Little difficulty. Evolving variety instead.
+
+**Source: user, standing (stated 2026-09-21). Verbatim:** *"i dont want the
+game to be very difficult. i want it to be interesting and evolving. i
+don't like the spinners so fast! i want the game to be fun with little
+difficulty only."*
+
+This is the governing intent for every difficulty decision in this project,
+and it outranks any "the curve should rise" instinct an agent may hold.
+
+**The rule.**
+
+- **Difficulty stays LOW and roughly FLAT for the whole game.** It is not a
+  ramp to be climbed. A player who reaches the last region should not be
+  meeting harder play than the first region — they should be meeting
+  *newer* play.
+- **What evolves is VARIETY, not challenge.** Interest comes from new
+  mechanics, new combinations, new realms, new sights — never from tighter
+  timing, faster hazards, wider gaps or narrower platforms.
+- **Nothing may get harder than what came before it.** `DESIGN.md` already
+  says it: *"a new pack's hardest moment must not exceed the previous
+  pack's hardest moment."* That rule is now load-bearing law, not a
+  guideline. The historical spike (140°/s spinners in level 5, the game
+  maximum, in the teaching arc) is exactly the violation this forbids.
+- **Spinner speed ceiling: 90°/s, and lower is better.** Fast spinning arms
+  are the single mechanic the user named as unfun. Prefer 60–75. The
+  sleeping-guardian mechanic (idle 12°/s, waking only when approached) is
+  the preferred shape for any guardian facing a young player.
+- **Comfort beats spectacle.** When a choice exists between a more
+  thrilling moment and a kinder one, choose kinder. Deaths already cost
+  nothing (D-4, 5 lives, checkpoint respawn); do not reintroduce stakes via
+  hazard speed, hazard count, or narrower geometry.
+
+**What this means when building a new level or pack.** Add the new idea
+(mechanic, realm, prop, ride) and keep the pressure where it already is.
+A new pack that introduces three new mechanics at 60°/s is *better* by this
+directive than one that introduces none at 140°/s.
+
+**What it does not forbid.** Optional mastery for players who want it —
+medals, gem perfection, star chasing — because `DESIGN.md` keeps all of
+that opt-in beyond "finish the level". Difficulty may exist for those who
+seek it; it must never be required to progress, and it must never be
+imposed on a child who is just trying to reach the portal.
+
+**Enforcement:** the hazard instrument (`tools/LevelAudit/run.sh --hazards`)
+measures every spinner's read window against child reaction research, and
+`LevelAuditTests` asserts it. A spinner over 90°/s, or a level harder than
+its predecessor, should be treated as a bug.
+
+---
+
 ## Enforcement
 
 `tools/check-directives.sh` (run by CI on every push and pull request)

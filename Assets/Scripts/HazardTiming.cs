@@ -37,6 +37,13 @@ namespace GemRush
         /// hazard a child can read.
         public const float ChildResponseSeconds = 0.45f;
 
+        /// D-6: fast spinning arms are the one mechanic the user named as
+        /// unfun, so speed is capped. Comfort beats spectacle — interesting
+        /// and evolving, with little difficulty. 90 is the hard ceiling and
+        /// lower is better (60-75 preferred; the sleeping-guardian shape is
+        /// the kindest).
+        public const float MaxDegreesPerSecond = 90f;
+
         /// Above this fraction of a platform inside the sweep there is
         /// nowhere to stand and read the hazard — the arm owns the deck.
         public const float MaxExposure = 0.85f;
