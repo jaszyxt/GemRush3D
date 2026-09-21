@@ -123,15 +123,20 @@ namespace GemRush
 
         static void Spawn(GameObject golden, Vector3 spot)
         {
+            // The body lives on a CHILD and is the only thing that animates.
+            // The root keeps the trigger and stays still — see DailyStar.
             Material gold = ArtLib.Solid(ArtLib.Gold, 2.2f);
-            ArtLib.DecorSphere(golden.transform, Vector3.zero,
+            GameObject body = ArtLib.DecorSphere(golden.transform, Vector3.zero,
                 new Vector3(0.5f, 0.5f, 0.5f), gold);
-            BoxCollider trigger = golden.AddComponent<BoxCollider>();
+
+            SphereCollider trigger = golden.AddComponent<SphereCollider>();
             trigger.isTrigger = true;
-            trigger.size = Vector3.one * 1.3f;
+            trigger.radius = 1.5f;
+
             DailyStar star = golden.AddComponent<DailyStar>();
             star.today = Today();
-            star.transform.localPosition = spot;
+            star.body = body != null ? body.transform : null;
+            golden.transform.localPosition = spot;
         }
     }
 
@@ -139,13 +144,56 @@ namespace GemRush
     public class DailyStar : MonoBehaviour
     {
         public string today;
+        /// The visual child — the only thing that spins and bobs.
+        public Transform body;
         bool taken;
+        bool magnetized;
+        Vector3 bodyBase;
 
+        /// Same courtesy the ordinary gems extend (see GoldenGem): slide to
+        /// Pip once he is close, which is why a normal gem is never missed.
+        const float MagnetRadius = 2.2f;
+        const float MagnetSpeed = 9f;
+
+        void Start()
+        {
+            bodyBase = body != null ? body.localPosition : Vector3.zero;
+        }
+
+        /// The ROOT carries the trigger and must never move: this project
+        /// runs with Physics.autoSyncTransforms OFF, so a transform moved
+        /// in Update leaves its collider's physics position behind and the
+        /// pickup stops firing. The gift used to bob its root here, the
+        /// same defect that made every golden uncollectable. Only the
+        /// visual child animates.
         void Update()
         {
-            transform.Rotate(0f, 120f * Time.deltaTime, 0f);
-            transform.localPosition += Vector3.up *
-                (Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.003f);
+            if (taken) return;
+
+            if (body != null)
+            {
+                body.Rotate(0f, 120f * Time.deltaTime, 0f, Space.World);
+                body.localPosition = bodyBase + Vector3.up *
+                    (Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.14f);
+            }
+
+            if (!magnetized)
+            {
+                Transform pip = GameBootstrap.Player != null
+                    ? GameBootstrap.Player.transform : null;
+                if (pip != null && (pip.position - transform.position)
+                        .sqrMagnitude < MagnetRadius * MagnetRadius)
+                    magnetized = true;
+            }
+            if (magnetized)
+            {
+                Transform pip = GameBootstrap.Player != null
+                    ? GameBootstrap.Player.transform : null;
+                if (pip == null) return;
+                transform.position = Vector3.MoveTowards(
+                    transform.position, pip.position + Vector3.up * 0.6f,
+                    MagnetSpeed * Time.deltaTime);
+            }
         }
 
         void OnTriggerEnter(Collider other)

@@ -160,6 +160,11 @@ namespace GemRush
             golden.transform.localPosition = spot;
 
             // The familiar gem shape in the reward gold, a touch grander.
+            // The BODY is a child, and only the child animates: the root
+            // carries the trigger and must stay perfectly still (see the
+            // note on GoldenStar.Update — moving a collider-bearing
+            // transform in Update leaves its physics position stale,
+            // because this project runs with AutoSyncTransforms off).
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Object.Destroy(body.GetComponent<Collider>());
             body.name = "Body";
@@ -175,13 +180,18 @@ namespace GemRush
             GoldenSignal.Glimmer(golden.transform, bodyMat);
             GoldenSignal.Trail(level, spot, parent);
 
-            BoxCollider trigger = golden.AddComponent<BoxCollider>();
+            // A generous, forgiving pickup: ordinary gems have a 2.2-unit
+            // magnet that slides them into Pip, which is why they never
+            // miss — the golden had none, so walking past it collected
+            // nothing. Same radius, same courtesy.
+            SphereCollider trigger = golden.AddComponent<SphereCollider>();
             trigger.isTrigger = true;
-            trigger.size = Vector3.one * 1.4f;
+            trigger.radius = 1.6f;
 
-            golden.AddComponent<GoldenStar>().levelIndex = index;
-            golden.GetComponent<GoldenStar>().Note =
-                Strings.GoldenNote(level.Name);
+            GoldenStar star = golden.AddComponent<GoldenStar>();
+            star.levelIndex = index;
+            star.Note = Strings.GoldenNote(level.Name);
+            star.body = body.transform;
         }
 
         /// The collectible itself: spin, bob, and on touch — the save
@@ -194,20 +204,62 @@ namespace GemRush
             /// Strings.GoldenNote). Shown after the unlock line so the
             /// find reads as a discovery with a story, not a pickup.
             public string Note;
-            Vector3 basePosition;
+            /// The visual child. Only this animates — the root holds the
+            /// trigger and stays put.
+            public Transform body;
+
+            /// Same courtesy the ordinary gems extend: once Pip is close,
+            /// slide to him. This is why a normal gem is never missed.
+            const float MagnetRadius = 2.2f;
+            const float MagnetSpeed = 9f;
+
+            Vector3 bodyBase;
             bool taken;
+            bool magnetized;
 
             void Start()
             {
-                basePosition = transform.localPosition;
+                bodyBase = body != null ? body.localPosition : Vector3.zero;
             }
 
+            /// The visible bob lives on the CHILD. The root — which owns
+            /// the trigger — never moves, because this project runs with
+            /// Physics.autoSyncTransforms OFF: a transform moved in Update
+            /// does not re-sync its collider, so the trigger's physics
+            /// position drifts away from where the gem is drawn and the
+            /// pickup silently stops working. That is exactly what made
+            /// every golden in the game uncollectable.
             void Update()
             {
-                transform.Rotate(0f, 120f * Time.deltaTime, 0f,
-                    Space.World);
-                transform.localPosition = basePosition + Vector3.up *
-                    (Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.18f);
+                if (taken) return;
+
+                if (body != null)
+                {
+                    body.Rotate(0f, 120f * Time.deltaTime, 0f, Space.World);
+                    body.localPosition = bodyBase + Vector3.up *
+                        (Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.18f);
+                }
+
+                if (!magnetized)
+                {
+                    Transform pip = GameBootstrap.Player != null
+                        ? GameBootstrap.Player.transform : null;
+                    if (pip != null && (pip.position - transform.position)
+                            .sqrMagnitude < MagnetRadius * MagnetRadius)
+                        magnetized = true;
+                }
+                if (magnetized)
+                {
+                    Transform pip = GameBootstrap.Player != null
+                        ? GameBootstrap.Player.transform : null;
+                    if (pip == null) return;
+                    // Move the ROOT deliberately, in a path that reaches
+                    // the physics engine: Teleport-style assignment plus
+                    // the same radius test above keeps this reliable.
+                    transform.position = Vector3.MoveTowards(
+                        transform.position, pip.position + Vector3.up * 0.6f,
+                        MagnetSpeed * Time.deltaTime);
+                }
             }
 
             void OnTriggerEnter(Collider other)
