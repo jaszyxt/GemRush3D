@@ -63,7 +63,8 @@ namespace GemRush
             Lit = true;
 
             AudioManager.Instance.PlayLantern();
-            Haptics.Light();
+            // Waking the shrine turns the whole level: firm, earned.
+            Haptics.Medium();
             Fx.Burst(transform.position + new Vector3(0f, 1.5f, 0f),
                 ArtLib.Gold * 1.5f, 24);
             if (UIManager.Instance != null)
@@ -81,7 +82,7 @@ namespace GemRush
                 ? GameBootstrap.Player.transform : null;
             if (player != null)
             {
-                float bob = Mathf.Sin(Time.time * 2.4f) * 0.09f;
+                float bob = Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.09f;
                 flame.transform.position = player.position +
                     new Vector3(0.55f, 1.5f + bob, 0f);
             }

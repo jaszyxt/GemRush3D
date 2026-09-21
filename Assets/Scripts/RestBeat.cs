@@ -61,7 +61,14 @@ namespace GemRush
             GameManager gm = GameManager.Instance;
             if (gm == null || cam == null) return;
 
+            // The rest runs on unscaled time so it survives the win sting's
+            // hit-stop, which means it also survived a pause: opening
+            // Settings or photo mode from the win screen left the camera
+            // orbiting behind the panel. timeScale is the honest signal that
+            // the world is held, so the rest stands down with it.
+            bool held = Time.timeScale <= 0f;
             bool shouldRest = gm.State == GameState.Won
+                && !held
                 && SaveSystem.ShakeOn
                 && GameBootstrap.Player != null;
 

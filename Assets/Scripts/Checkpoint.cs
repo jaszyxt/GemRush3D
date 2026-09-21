@@ -62,7 +62,9 @@ namespace GemRush
             // Checkpoint cadence: the pad steps to the dominant chord, so
             // it resolves home to the tonic under the chime.
             AudioManager.Instance.RestartMusicAtDominant();
-            Haptics.Light();
+            // A checkpoint anchors the run: squarely between a pickup
+            // tick and a death thud.
+            Haptics.Medium();
 
             if (ringMaterial != null)
             {

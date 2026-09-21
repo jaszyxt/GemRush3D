@@ -50,7 +50,7 @@ namespace GemRush
         {
             transform.Rotate(0f, 90f * Time.deltaTime, 0f);
             transform.localPosition += Vector3.up *
-                (Mathf.Sin(Time.time * 2.4f) * 0.0015f);
+                (Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.0015f);
         }
 
         void OnTriggerEnter(Collider other)
@@ -61,7 +61,7 @@ namespace GemRush
 
             GameManager.Instance.OnHeartCollected();
             AudioManager.Instance.PlayHeart();
-            Haptics.Light();
+            Haptics.Medium(); // a spare life is a real gift
             Fx.Burst(transform.localPosition, ArtLib.Gold * 1.6f, 18);
 
             // Shrink out politely.

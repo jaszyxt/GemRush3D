@@ -75,6 +75,14 @@ namespace GemRush
             new Color(0.80f, 0.70f, 0.95f)
         };
 
+        /// One hover bob for everything that floats and waits to be
+        /// collected. Gems, golden gems, the daily star, hearts and the
+        /// lantern sunstone all used their own frequency (2.0-2.5), so two
+        /// collectibles in the same level drifted visibly out of phase and
+        /// read as unrelated objects. Amplitudes stay per-item (a big gem
+        /// and a small heart should not travel the same distance).
+        public const float HoverBobRate = 2.2f;
+
         static Shader standardShader;
 
         /// Lit material with an optional emission glow (emission &gt; 0).

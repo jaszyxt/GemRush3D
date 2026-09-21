@@ -166,6 +166,12 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 
 - **Panels**: dark navy-black scrims (0,0,0.05, ~0.55–0.8); mood-tinted
   only for emotional screens (win = green-black, game over = red-black).
+- **HUD band**: the four readouts have no panel — they sit on the world —
+  so a painted top-edge gradient scrim (`Fx.TopScrimSprite`, anchors
+  0.90→1.0, non-raycast) darkens the band beneath them. It reads as lens
+  falloff rather than a UI bar. Text keeps its outline on top of it.
+  **Do not remove the scrim**: without it the winter and sunset realms
+  drop white text to ~1.6:1 and the gold lives counter to ~1.02:1.
 - **Buttons**: the rounded 9-slice circle sprite, `onColor` green fill
   (0.16,0.55,0.32 — chosen so white bold text holds ≈4:1), white bold
   labels, press-dip feedback, one universal tick sound. Toggle-off is
@@ -246,6 +252,41 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
   line). When you move a reward icon, re-measure the clearance.
 
 ## 10. Change log
+
+- **2026-09-20 (art pass v4 — readability, haptics, motion, AV)** — study-driven
+  from three audits (motion/animation, audio-visual coupling, readability).
+  *(a)* **HUD readability (P1, verified visually):** the HUD panel was
+  `alpha 0` — the four readouts sat on bare sky behind a 2 px outline. On
+  the winter realm white text measured ~1.6:1 and the gold `Lives`
+  counter ~1.02:1; a capture showed the counter effectively vanishing.
+  Added `Fx.TopScrimSprite()` — a painted top-edge gradient, non-raycast,
+  behind every readout — and verified the band reads cleanly on the
+  worst-case realm. *(b)* **Haptics:** gem pickup (the core verb) had NO
+  haptic and `Haptics.Medium()` was dead code. Now: `Light` on gem / jump
+  / skid, impact-scaled `Light`/`Medium` on landing, `Medium` on
+  checkpoint / heart / lantern (the rung between a tick and a death
+  thud), `Fanfare` on completing the whole game — not just one level.
+  *(c)* **Motion:** two real pause leaks fixed — the checkpoint twirl kept
+  spinning behind the pause menu (verified: twirl clock holds at 0 through
+  a pause) and `RestBeat` orbited the camera behind the win-screen menus;
+  Pip's squash spring and `FlowerPoke`'s bounce now step one shared
+  `Tweener.StepSpring` instead of hand-copied constants; one
+  `ArtLib.HoverBobRate` replaces six hover frequencies that drifted out of
+  phase; `FocusFX` tweens instead of snapping (it was the most-triggered
+  motion and the only un-tweened one); three first-frame pops (crown, ice
+  shard, raindrop flower) now set their entry pose before activation.
+  *(d)* **Audio-visual:** photo mode has its own `Shutter` voice (it was
+  reusing a win-screen star ding); crossing a star line now *sounds* like
+  a milestone, not an ordinary gem; Winter gained a `Snow` ambience bed
+  (the one weather system with none). *(e)* **Contrast:** the ice gate
+  measured ~1.0:1 against the winter sky it lives in — fixed with an
+  opaque frost RIM (silhouette, not hue; the palette family is correct)
+  that melts with the pane. Verified NOT problems after in-engine checks:
+  the portal (bloom-backed), and the whole `Air` family against wind-realm
+  teal. *(f)* **Docs:** corrected the `GustZone` class comment (it still
+  claimed a music phase-lock the Festival-Finale fix deliberately
+  removed), the stale `OnTriggerStay` comment, and two `Audio-Design.md`
+  mix figures that disagreed with the code.
 
 - **2026-09-19 (art pass v3 — lens hygiene, win spacing, trail legibility)**
   — *(a)* **Lens:** new `CameraFollow.ResetLens()`, called by

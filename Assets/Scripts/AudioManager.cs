@@ -208,7 +208,8 @@ namespace GemRush
                 }
                 moodWindBase = amb == MusicSynth.AmbienceKind.Rumble ? 0.42f
                     : amb == MusicSynth.AmbienceKind.WindHigh ? 0.45f
-                    : amb == MusicSynth.AmbienceKind.Rain ? 0.50f : 0.55f;
+                    : amb == MusicSynth.AmbienceKind.Rain ? 0.50f
+                    : amb == MusicSynth.AmbienceKind.Snow ? 0.40f : 0.55f;
             }
             if (windSource.clip != moodBed)
             {
@@ -234,6 +235,11 @@ namespace GemRush
                     // (a soft steady hiss on the roofs), almost no swell.
                     return MusicSynth.WindLoop("amb_rain", 0.14f, 1700f,
                         0.08f, 79);
+                case MusicSynth.AmbienceKind.Snow:
+                    // Snow is a hush, not a hiss: very high and very still,
+                    // well under the rain bed so the two never read alike.
+                    return MusicSynth.WindLoop("amb_snow", 0.09f, 2600f,
+                        0.04f, 80);
                 default:
                     return null;
             }
@@ -663,6 +669,18 @@ namespace GemRush
             {
                 clip = SfxSynth.StarDing("ui_star_" + step, step);
                 noteCache[9100 + step] = clip;
+            }
+            source.PlayOneShot(clip);
+        }
+
+        /// The photo-mode shutter — its own voice, not a borrowed star ding.
+        public void PlayShutter()
+        {
+            if (!SaveSystem.SoundOn) return;
+            if (!noteCache.TryGetValue(9200, out AudioClip clip))
+            {
+                clip = SfxSynth.Shutter("ui_shutter");
+                noteCache[9200] = clip;
             }
             source.PlayOneShot(clip);
         }

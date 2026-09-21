@@ -48,6 +48,34 @@ namespace GemRush
                 new Vector3(spec.Size.x + 0.2f, 0.22f, spec.Size.z + 0.2f),
                 Quaternion.identity, ArtLib.Solid(ArtLib.Snow, 0.15f));
 
+            // Frost frame down both vertical edges. The gate is a pale
+            // translucent pane in the pale winter sky it lives in — measured
+            // at ~1.0:1 contrast, i.e. effectively invisible until you are
+            // close enough for its shimmer to move. The palette family is
+            // right (ice is pale blue), so the fix is a SILHOUETTE, not a
+            // hue: still Snow, but opaque and catching the sun, so the wall
+            // has a rim to read against any sky. Destroyed with the slab on
+            // melt so the remnant shrinks honestly.
+            Material rim = ArtLib.Solid(ArtLib.Snow, 0.25f);
+            float rimX = spec.Size.x * 0.5f;
+            float rimZ = spec.Size.z * 0.5f;
+            Transform rimL = ArtLib.DecorCube(go.transform,
+                new Vector3(-rimX, 0f, 0f),
+                new Vector3(0.14f, spec.Size.y, spec.Size.z + 0.06f),
+                Quaternion.identity, rim).transform;
+            Transform rimR = ArtLib.DecorCube(go.transform,
+                new Vector3(rimX, 0f, 0f),
+                new Vector3(0.14f, spec.Size.y, spec.Size.z + 0.06f),
+                Quaternion.identity, rim).transform;
+            Transform rimF = ArtLib.DecorCube(go.transform,
+                new Vector3(0f, 0f, -rimZ),
+                new Vector3(spec.Size.x + 0.06f, spec.Size.y, 0.14f),
+                Quaternion.identity, rim).transform;
+            Transform rimB = ArtLib.DecorCube(go.transform,
+                new Vector3(0f, 0f, rimZ),
+                new Vector3(spec.Size.x + 0.06f, spec.Size.y, 0.14f),
+                Quaternion.identity, rim).transform;
+
             BoxCollider blockCol = go.AddComponent<BoxCollider>();
             blockCol.size = spec.Size;
 
@@ -57,8 +85,11 @@ namespace GemRush
             gate.block = blockCol;
             gate.fullScale = spec.Size;
             gate.pulseSeed = Random.value * 10f;
+            gate.rims = new[] { rimL, rimR, rimF, rimB };
             all.Add(gate);
         }
+
+        Transform[] rims;
 
         /// Clear the level-lifetime registry between world rebuilds (the
         /// old gates die with the old world; their entries must not linger).
@@ -108,6 +139,20 @@ namespace GemRush
                 Mathf.Lerp(0.35f, 1f, shrink) * fullScale.x,
                 shrink * fullScale.y,
                 fullScale.z);
+            // The frost frame melts with the pane: a full-height rim around
+            // a sunken slab would read as a wall still standing.
+            if (rims != null)
+            {
+                for (int i = 0; i < rims.Length; i++)
+                {
+                    if (rims[i] == null) continue;
+                    Vector3 rs = rims[i].localScale;
+                    rims[i].localScale = new Vector3(rs.x, shrink * fullScale.y,
+                        rs.z);
+                    Vector3 rp = rims[i].localPosition;
+                    rims[i].localPosition = new Vector3(rp.x, 0f, rp.z);
+                }
+            }
 
             if (melt >= 1f)
             {
@@ -156,6 +201,10 @@ namespace GemRush
                         new Vector3(0f, 0.7f, 0f),
                         new Vector3(0.55f, 1.4f, 0.55f),
                         Quaternion.Euler(0f, 45f, 0f), crystal).transform;
+                    // Built at full size, so shrink it before it can be
+                    // drawn: the pop starts from a sprout, not from a
+                    // one-frame full-height shard.
+                    shard.localScale = new Vector3(0.55f, 1.4f, 0.55f) * 0.05f;
                 }
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / 0.7f);

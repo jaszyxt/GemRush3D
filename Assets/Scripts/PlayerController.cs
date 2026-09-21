@@ -230,6 +230,7 @@ namespace GemRush
                 rb.linearVelocity = vel;
                 squash = 0.28f;
                 AudioManager.Instance.PlayJump();
+                Haptics.Light();
                 if (!flyMode) Gloomfang.OnPipJumped(tr.position);
                 Vector3 feet = tr.position + Vector3.down * 0.9f;
                 Fx.Burst(feet, DustColor, 8);
@@ -300,12 +301,11 @@ namespace GemRush
             else if (grounded && speed < 0.6f)
                 target = Mathf.Sin(Time.time * 2.2f) * 0.045f; // idle breathing
             else target = 0f;
-            // Underdamped spring instead of a plain decay: the squash passes
-            // slightly past neutral on recovery — classic follow-through, so
-            // landings read as bouncy rather than damped.
-            squashVel += (-90f * (squash - target) - 12f * squashVel)
-                * Time.deltaTime;
-            squash += squashVel * Time.deltaTime;
+            // Underdamped spring (shared with the flowers): the squash
+            // passes slightly past neutral on recovery — classic
+            // follow-through, so landings read as bouncy rather than damped.
+            Tweener.StepSpring(ref squash, ref squashVel, target,
+                Time.deltaTime);
             if (!grounded && rb.linearVelocity.y > 2f && squash < 0.25f)
             {
                 squash = Mathf.Lerp(squash, 0.25f, 0.5f);
@@ -363,11 +363,18 @@ namespace GemRush
         void UpdateIdleLife(bool playing)
         {
             float dt = Time.deltaTime;
+            // Everything below advances on the paused-safe clock: a checkpoint
+            // twirl used to keep spinning behind the pause menu (it consumed
+            // raw dt before the eligibility gate) and then resumed from a
+            // stale yaw. Freezing it here covers the twirl and the motes in
+            // one place, matching UpdateExpression's existing treatment.
+            float liveDt = Time.timeScale > 0f ? dt : 0f;
 
-            // The checkpoint twirl is pure visual and runs through anything.
+            // The checkpoint twirl is pure visual and runs through anything
+            // except a pause.
             if (twirlTime >= 0f)
             {
-                twirlTime += dt;
+                twirlTime += liveDt;
                 float k = Mathf.Clamp01(twirlTime / TwirlSeconds);
                 twirlYaw = 360f * (1f - (1f - k) * (1f - k) * (1f - k));
                 if (k >= 1f) { twirlTime = -1f; twirlYaw = 0f; }
@@ -392,7 +399,7 @@ namespace GemRush
                     waveSecondPop = true;
                     squashVel = 1.8f;
                 }
-                if (idleStage >= IdleStage.Sit) TickSleepMotes(dt);
+                if (idleStage >= IdleStage.Sit) TickSleepMotes(liveDt);
             }
             else if (playing && !grounded && idleStage >= IdleStage.Sit)
             {
@@ -546,6 +553,10 @@ namespace GemRush
         {
             squash = Mathf.Clamp(-impactSpeed * 0.06f, -0.3f, 0f);
             AudioManager.Instance.PlayLand(impactSpeed);
+            // Hard landings land in the hand: the same impact scale the
+            // sound and dust already use, so all three agree.
+            if (impactSpeed > 8f) Haptics.Medium();
+            else if (impactSpeed > 3f) Haptics.Light();
             if (impactSpeed > 5f)
                 Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 10);
             if (!flyMode && Landed != null) Landed(tr.position, impactSpeed);
@@ -684,6 +695,7 @@ namespace GemRush
             Fx.Burst(tr.position + Vector3.down * 0.9f, DustColor, 6);
             // The scrape that belongs with the dust: cooldown and speed gate
             // are already handled above, so this cannot machine-gun.
+            Haptics.Light();
             AudioManager.Instance.PlaySkid(
                 Mathf.InverseLerp(SkidMinSpeed, moveSpeed, speed));
         }

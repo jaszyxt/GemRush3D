@@ -692,6 +692,25 @@ namespace GemRush
         {
             hudPanel = MakePanel(canvas, "HudPanel", new Color(0f, 0f, 0f, 0f));
 
+            // Top-band scrim: the readouts sit on bare sky, and the winter
+            // and pale-blue realms are bright enough that white text falls
+            // to ~1.6:1 and the gold lives counter to ~1.02:1 - unreadable
+            // on a phone outdoors. A painted gradient (not a solid bar)
+            // keeps the band reading as lens falloff. Non-raycast, added
+            // FIRST so every readout and the pause button draw over it.
+            GameObject scrim = new GameObject("HudScrim", typeof(RectTransform));
+            scrim.transform.SetParent(hudPanel.transform, false);
+            Image scrimImg = scrim.AddComponent<Image>();
+            scrimImg.sprite = Fx.TopScrimSprite();
+            scrimImg.type = Image.Type.Simple;
+            scrimImg.raycastTarget = false;
+            scrimImg.color = new Color(1f, 1f, 1f, 0.55f);
+            RectTransform scrimRect = scrimImg.rectTransform;
+            scrimRect.anchorMin = new Vector2(0f, 0.90f);
+            scrimRect.anchorMax = new Vector2(1f, 1f);
+            scrimRect.offsetMin = Vector2.zero;
+            scrimRect.offsetMax = Vector2.zero;
+
             // The four HUD readouts change constantly (the clock rebuilds
             // its mesh ~10x/s even when nothing else moves). uGUI dirties a
             // whole canvas when any of its graphics changes, so they get a
@@ -1750,7 +1769,7 @@ namespace GemRush
             {
                 photoStatus.text = Strings.PhotoSavedTo(path);
                 photoOpenFolder.gameObject.SetActive(true);
-                AudioManager.Instance.PlayStarDing(2);
+                AudioManager.Instance.PlayShutter();
             }
             else
             {
@@ -2158,6 +2177,11 @@ namespace GemRush
                     ((gems >= total && previous < total) ||
                      (gems * 2 >= total && previous * 2 < total));
                 PulseGemCounter(crossed);
+                // Crossing a star line is a real milestone; it used to look
+                // different and sound identical to any other gem. The same
+                // chime the every-10th streak uses, so milestone moments
+                // share one voice.
+                if (crossed) AudioManager.Instance.PlayMilestoneChime();
             }
             int decis = (int)(time * 10f);
             if (hudTime != null && decis != hudCacheDeciseconds)

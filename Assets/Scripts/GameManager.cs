@@ -481,6 +481,9 @@ namespace GemRush
             {
                 State = GameState.Complete;
                 AudioManager.Instance.PlayComplete();
+                // The whole game, finished: the strongest pulse in the game
+                // belongs here, not only on a single level's win screen.
+                Haptics.Fanfare();
                 ui.ShowComplete(SaveSystem.TotalStars(LevelLibrary.Levels.Length),
                     LevelLibrary.Levels.Length * 3);
             }

@@ -29,6 +29,25 @@ namespace GemRush
         static readonly List<Tween> active = new List<Tween>();
         static TweenerDriver driver;
 
+        /// The game's one spring: underdamped, so a squash or a bounce
+        /// passes slightly PAST its target and settles — classic follow-
+        /// through. Pip's body and the pokeable flowers both step it, and
+        /// they must feel like the same material, so the constants live
+        /// here rather than being copied into each caller (they were, and
+        /// the copy carried a comment claiming they matched).
+        public const float SpringStiffness = 90f;
+        public const float SpringDamping = 12f;
+
+        /// Advances a spring by one frame. Semantics: `value` is the
+        /// offset from the target (0 = at rest), `velocity` its rate.
+        public static void StepSpring(ref float value, ref float velocity,
+            float target, float dt)
+        {
+            velocity += (-SpringStiffness * (value - target)
+                - SpringDamping * velocity) * dt;
+            value += velocity * dt;
+        }
+
         public static void Value(float from, float to, float duration,
             Action<float> onUpdate, Action onDone = null)
         {

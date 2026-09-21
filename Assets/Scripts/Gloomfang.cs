@@ -394,7 +394,13 @@ namespace GemRush
             Gloomfang.DropInFlight = false;
             if (bead != null) bead.gameObject.SetActive(false);
             flower = Props.SproutFlower(transform.parent, end);
-            if (flower != null) flower.localScale = Vector3.one * 0.05f;
+            // Activation and scale are set in the same statement pair so the
+            // flower is never drawn at full size for a frame.
+            if (flower != null)
+            {
+                flower.localScale = Vector3.one * 0.05f;
+                flower.gameObject.SetActive(true);
+            }
             AudioManager.Instance.PlayRaindropBloom(
                 AudioManager.Falloff(end, 16f));
             Fx.PetalPuff(end + Vector3.up * 0.05f, ArtLib.Air, 3);

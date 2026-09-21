@@ -74,7 +74,7 @@ namespace GemRush
             {
                 transform.Rotate(Vector3.up, 120f * Time.deltaTime, Space.World);
                 Vector3 pos = basePosition;
-                pos.y += Mathf.Sin(Time.time * 2f + phase) * 0.22f;
+                pos.y += Mathf.Sin(Time.time * ArtLib.HoverBobRate + phase) * 0.22f;
                 transform.localPosition = pos;
             }
 
@@ -96,6 +96,7 @@ namespace GemRush
                 // The trail's own note replaces the generic pickup blip.
                 AudioManager.Instance.PlayNote(noteFrequency);
             }
+            Haptics.Light(); // the core verb answers in the hand too
             Fx.Burst(transform.position, ArtLib.GemPink * 1.6f, 18);
             // The "+1" ramps with the live streak: it grows and shifts
             // toward the reward gold as the chain climbs, so mastery is

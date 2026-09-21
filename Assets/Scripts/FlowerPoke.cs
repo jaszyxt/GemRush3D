@@ -102,9 +102,10 @@ namespace GemRush
 
         void Update()
         {
-            // Underdamped spring, the same constants as Pip's squash.
-            bounceVel += (-90f * bounce - 12f * bounceVel) * Time.deltaTime;
-            bounce += bounceVel * Time.deltaTime;
+            // The shared spring, so a poked flower and Pip's squash are
+            // the same material by construction, not by coincidence.
+            Tweener.StepSpring(ref bounce, ref bounceVel, 0f,
+                Time.deltaTime);
             transform.localScale = new Vector3(
                 1f + bounce * 0.5f, 1f + bounce, 1f + bounce * 0.5f);
             if (Mathf.Abs(bounce) < 0.004f && Mathf.Abs(bounceVel) < 0.02f)

@@ -223,6 +223,23 @@ namespace GemRush
         // Collecting
         // ------------------------------------------------------------------
 
+        /// The photo-mode shutter: a mechanical two-part click — a bright
+        /// noise snap for the mirror, then a softer body closing. Photo mode
+        /// used to reuse a win-screen star ding, which made a deliberate
+        /// player action sound like a reward it wasn't.
+        public static AudioClip Shutter(string name)
+        {
+            float dur = 0.18f;
+            float[] data = new float[(int)(dur * SampleRate) + 1];
+            // The snap: fast, bright, gone.
+            NoiseVoice(data, 0f, 0.022f, 0.34f, 5200f, 1800f, 0.001f, 0.02f, 881, 2.2f);
+            // The mechanism settling behind it.
+            NoiseVoice(data, 0.05f, 0.09f, 0.16f, 1400f, 600f, 0.003f, 0.05f, 882, 1.4f);
+            Voice(data, 220f, 0.045f, 0.09f, 0.14f,
+                new float[] { 1f }, new float[] { 1f }, new float[] { 1f }, 0.004f, 2f);
+            return MakeClip(name, data);
+        }
+
         /// A gem: bright chime; the combo ladder in AudioManager picks the
         /// pitch, so a gem run climbs the scale and becomes a riff.
         public static AudioClip GemPickup(string name, float freq)

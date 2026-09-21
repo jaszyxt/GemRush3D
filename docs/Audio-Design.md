@@ -84,7 +84,7 @@ Distance rule: one-shot world sounds scale by `AudioManager.Falloff`
 | Channel | Content | Level |
 |---|---|---|
 | `source` | all one-shots | per-clip synth volumes (UI ≈ 0.2, gameplay ≈ 0.3–0.5) |
-| `musicSource` | mood pad | 0.55 master × 0.13 synth; ducks to 35% on death/win, restores 2.5 s |
+| `musicSource` | mood pad | 0.26 master × 0.13 synth (measured: 0.55 sat as loud as the pickups); ducks to 35% on death/win, restores 2.5 s |
 | `windSource` | mood bed + updraft pulse | bed 0.09–0.5 by mood, pulse +0.75, decays 2.2/s |
 | `humSource` | portal proximity | ≤ 0.16, fades 1.4/s |
 
@@ -131,7 +131,7 @@ audio owner must know:
   or contradictory audio — the line just falls back to text-only.
 - **Mixing**: the voice is its own channel (`VoiceOver`, source priority
   0, loudness pre-normalized so no runtime volume rides). While it
-  speaks, `AudioManager.DuckFor(line + 1.2 s, 0.16)` holds the score
+  speaks, `AudioManager.DuckFor(line + 1.2 s, 0.3)` holds the score
   down; the existing sting duck (0.35 / 2.5 s) is untouched.
 - **Timing**: mission cards and story toasts keep their own timers but
   refill while their line plays (`holdIntroForVoice` / `holdToastForVoice`

@@ -207,7 +207,7 @@ namespace GemRush
                 transform.Rotate(0f, 120f * Time.deltaTime, 0f,
                     Space.World);
                 transform.localPosition = basePosition + Vector3.up *
-                    (Mathf.Sin(Time.time * 2f) * 0.18f);
+                    (Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.18f);
             }
 
             void OnTriggerEnter(Collider other)

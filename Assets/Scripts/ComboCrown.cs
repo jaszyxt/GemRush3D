@@ -68,14 +68,17 @@ namespace GemRush
         void PopIn()
         {
             showing = true;
-            gameObject.SetActive(true);
+            // Set the entry pose before activating: the tween starts at 1.3,
+            // and an active-then-scaled order can draw one full-alpha frame
+            // at the wrong size.
+            transform.localScale = new Vector3(1.3f, 1.3f, 1.3f);
             Color c = gold.color;
             c.a = 1f;
             gold.color = c;
+            gameObject.SetActive(true);
             // Land big, settle small — the same overshoot grammar as the
             // win screen's star slam and Pip's squash-and-stretch.
             Transform tr = transform;
-            tr.localScale = new Vector3(1.3f, 1.3f, 1.3f);
             ComboCrown self = this;
             Tweener.Value(1.3f, 1f, 0.24f, delegate (float k)
             {

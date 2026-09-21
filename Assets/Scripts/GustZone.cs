@@ -4,11 +4,18 @@ namespace GemRush
 {
     /// A tailwind gust: every Period seconds, a wall of wind blows along
     /// Direction for ActiveTime seconds, carrying Pip across the gap it
-    /// spans. Telegraphed by drifting petals; the streaks brighten while
-    /// the gust is live. Timing is phase-locked to the music pad — the
-    /// default period and active time divide the 8.8 s loop, so every
-    /// onset lands on a chord boundary — and each onset adds a wind swell
-    /// on the chord root.
+    /// spans. Telegraphed by drifting petals (Nim's giggle) half a second
+    /// before each blow; the streaks brighten while the gust is live, and
+    /// each onset adds a wind swell on the chord root.
+    ///
+    /// The cycle runs on the ZONE's own clock, not the music's. The music
+    /// only supplies a one-time offset at spawn so the first onset feels
+    /// like it lands with the pad. This is deliberate: the duty cycle must
+    /// be structural, because a phase derived from the pad breaks on any
+    /// mood whose chord length does not divide the period (the Festival's
+    /// 13.6 s loop against a 4.4 s period made the finale's crossing
+    /// uncrossable — see GustPhase). The swell at each onset keeps the
+    /// musical link audible without making gameplay depend on it.
     public class GustZone : MonoBehaviour
     {
         /// The canonical gust timing, exposed so the audit can assert the
@@ -223,8 +230,12 @@ namespace GemRush
 
         void OnTriggerStay(Collider other)
         {
-            // Re-derives the phase from the shared music clock rather than
-            // the frame-time accumulator: correct even after pauses.
+            // Reads the same phase the Update loop uses, so a body resting
+            // inside the volume is pushed only while the blow is genuinely
+            // live (OnTriggerStay would otherwise carry a still body
+            // forever). The phase is monotonic and pause-safe: it advances
+            // on scaled time, so a paused game holds the gust mid-blow and
+            // resumes exactly where it stopped.
             if (GustPhase() >= activeTime) return;
             PlayerController player = other.GetComponentInParent<PlayerController>();
             if (player == null) return;

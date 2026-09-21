@@ -9,6 +9,34 @@ namespace GemRush
         static Sprite cachedStar;
         static Texture2D cachedRing;
         static Texture2D cachedDisc;
+        static Sprite cachedTopScrim;
+
+        /// A top-edge scrim for the HUD band: opaque-ish dark at the very
+        /// top, fading to nothing at the bottom. The HUD sits on bare sky
+        /// with no panel, and against the brightest realms (winter 0.80,
+        /// 0.87, 0.95 / pale blue) white text measures ~1.6:1 and the gold
+        /// lives counter ~1.02:1 — effectively invisible on a phone in
+        /// daylight. A gradient reads as a lens falloff rather than a UI
+        /// bar, so it frames the view instead of boxing it.
+        public static Sprite TopScrimSprite()
+        {
+            if (cachedTopScrim != null) return cachedTopScrim;
+            int h = 64;
+            Texture2D tex = new Texture2D(4, h, TextureFormat.RGBA32, false);
+            for (int y = 0; y < h; y++)
+            {
+                // Row 0 = bottom of the sprite. Solid at the top, gone by
+                // the bottom edge, squared so it hugs the very top band.
+                float t = y / (float)(h - 1);
+                float a = t * t;
+                for (int x = 0; x < 4; x++)
+                    tex.SetPixel(x, y, new Color(0f, 0f, 0.03f, a));
+            }
+            tex.Apply();
+            cachedTopScrim = Sprite.Create(tex, new Rect(0f, 0f, 4f, h),
+                new Vector2(0.5f, 0.5f), 100f);
+            return cachedTopScrim;
+        }
 
         /// A soft-edged white disc with a 9-slice border, shared by
         /// particles, touch controls and UI (stretched = rounded rect).
