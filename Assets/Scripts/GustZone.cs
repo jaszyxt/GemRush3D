@@ -21,6 +21,7 @@ namespace GemRush
         Transform[] petals;
         Material streakMat;
         float t;
+        float phaseOffset;   // one-time musical alignment; see GustPhase
         bool wasActive;
         bool wasTelegraph;
         float streakLength;
@@ -49,6 +50,12 @@ namespace GemRush
             g.lift = lift;
             g.volumeSize = size;
             g.streakLength = Mathf.Max(size.x, size.z) * 1.4f;
+            // Align the first blow with the music once, at spawn (the pad
+            // loop is 8.8s in the wind realms, so this reads as on-beat);
+            // from then on the zone keeps its own strict beat, which is
+            // what guarantees it always blows.
+            if (AudioManager.Instance != null)
+                g.phaseOffset = -AudioManager.Instance.GetMusicPhase();
 
             Material streak = ArtLib.Solid(ArtLib.Air, 0f);
             ArtLib.SetFade(streak, 0.22f);
@@ -104,15 +111,24 @@ namespace GemRush
             }
         }
 
-        /// Gust phase within the period, read from the music clock so every
-        /// onset lands on a chord boundary (period and active time both
-        /// divide the 8.8 s pad loop). The clock keeps its own beat while
-        /// the music is silent, so the visuals never freeze.
+        /// Gust phase within the period. A gust must ALWAYS blow its
+        /// active slice of every cycle, so the cycle is driven by the
+        /// zone's own accumulated clock — the music only supplies a
+        /// one-time offset so onsets feel like they land with the pad.
+        ///
+        /// This used to read the raw music phase and wrap it by `period`,
+        /// which silently broke every mood whose chord length did not
+        /// divide the period: the Festival loop is 13.6s (4 x 3.4), not a
+        /// multiple of the 4.4s period, so the phase stepped 0 -> 4.4 ->
+        /// 8.8 -> 13.2 and only landed inside the 2.2s blow window on the
+        /// FIRST cycle. The Festival Finale's crossing became genuinely
+        /// uncrossable — the wind never blew again, however long the
+        /// player waited, and the giggle telegraph never matched a blow.
+        /// Locking to our own clock makes the duty cycle structural
+        /// instead of a happy accident of the music.
         float GustPhase()
         {
-            float clock = AudioManager.Instance != null
-                ? AudioManager.Instance.GetMusicPhase() : t;
-            return Mathf.Repeat(clock, period);
+            return Mathf.Repeat(t + phaseOffset, period);
         }
 
         void Update()

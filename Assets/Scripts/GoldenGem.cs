@@ -33,7 +33,73 @@ namespace GemRush
         /// candidate platforms score by distance to the nearest gem plus
         /// a slice of distance from spawn — the golden lands where the
         /// trail thins, same place every run. Pure: same level, same spot.
+        ///
+        /// A candidate too close to the portal is REJECTED outright. Both
+        /// scoring terms reward being far from the trail and far from
+        /// spawn, and on a linear course that maximises at the finish, so
+        /// the gem reliably landed on the exit pad: measured, 29 of 37
+        /// levels hid it within 12 units of the portal and several within
+        /// 1-2. A player running to the exit touches the portal, the level
+        /// completes, and the gem they walked past is never collected —
+        /// reported from play on The Silent Spire, where it sat 3.6 units
+        /// behind the exit. "Hidden off the beaten path" cannot mean "on
+        /// the way out".
+        public const float MinPortalDistance = 15f;
+
         public static Vector3 PickSpot(LevelDefinition level)
+        {
+            int seed = 0;
+            for (int i = 0; i < level.Name.Length; i++) seed += level.Name[i];
+            System.Random rng = new System.Random(seed);
+
+            float bestScore = -1f;
+            Vector3 best = level.Spawn + Vector3.up;
+            int found = 0;
+            for (int attempt = 0; attempt < 24; attempt++)
+            {
+                PlatformSpec p = level.Platforms[
+                    rng.Next(level.Platforms.Count)];
+                if (Mathf.Min(p.Size.x, p.Size.z) < 4f) continue;
+
+                float px = ((float)rng.NextDouble() * 2f - 1f) *
+                    (p.Size.x * 0.5f - 1f);
+                float pz = ((float)rng.NextDouble() * 2f - 1f) *
+                    (p.Size.z * 0.5f - 1f);
+                Vector3 spot = p.Center +
+                    new Vector3(px, p.Size.y * 0.5f + 1.2f, pz);
+
+                // Never hide the prize on the way out.
+                float toPortal = Vector3.Distance(
+                    new Vector3(spot.x, 0f, spot.z),
+                    new Vector3(level.Portal.x, 0f, level.Portal.z));
+                if (toPortal < MinPortalDistance) continue;
+
+                // Off the trail: far from every gem, and a nod toward the
+                // far end of the course.
+                float nearestGem = 999f;
+                for (int g = 0; g < level.Gems.Count; g++)
+                    nearestGem = Mathf.Min(nearestGem,
+                        Vector3.Distance(level.Gems[g], spot));
+                float fromSpawn = Vector3.Distance(level.Spawn, spot);
+                float score = nearestGem + fromSpawn * 0.3f;
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    best = spot;
+                    found++;
+                }
+            }
+            // Every candidate rejected (a very short level, or one whose
+            // whole course sits near its portal): fall back to the plain
+            // scoring so a golden still exists rather than silently
+            // vanishing, and let the test surface the crowding.
+            if (found == 0) return PickSpotIgnoringPortal(level);
+            return best;
+        }
+
+        /// The pre-fix scoring, kept as the fallback so the gate above can
+        /// never leave a level without its golden.
+        static Vector3 PickSpotIgnoringPortal(LevelDefinition level)
         {
             int seed = 0;
             for (int i = 0; i < level.Name.Length; i++) seed += level.Name[i];
@@ -54,8 +120,6 @@ namespace GemRush
                 Vector3 spot = p.Center +
                     new Vector3(px, p.Size.y * 0.5f + 1.2f, pz);
 
-                // Off the trail: far from every gem, and a nod toward the
-                // far end of the course.
                 float nearestGem = 999f;
                 for (int g = 0; g < level.Gems.Count; g++)
                     nearestGem = Mathf.Min(nearestGem,
