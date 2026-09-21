@@ -4,7 +4,7 @@ using UnityEngine;
 namespace GemRush
 {
     /// Pack eight — levels 20-22, "Storm Chasers". A runaway baby cloud —
-    /// Pip names it Nim — is giggling its way across the sky, and every
+    /// Pip names him Nim — is giggling his way across the sky, and every
     /// laugh is a tailwind gust. Ride the gusts to gaps no jump could
     /// cross, and find where the little one sleeps.
     public static class LevelPackEight

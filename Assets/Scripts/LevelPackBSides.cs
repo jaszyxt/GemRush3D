@@ -14,6 +14,7 @@ namespace GemRush
             Remixes.Remixed(LevelPackEight.Levels[0], l =>
             {
                 l.Name = "Gust Alley — Nightfall";
+                l.WinLine = "Gust Alley after dark, charted! The night lanes blow quieter, and Nim's snores keep the same steady tempo. Somebody has to check on him. It was always going to be Pip.";
                 l.DarkRealm = true;
                 l.SkyColor = new Color(0.10f, 0.14f, 0.30f);
                 l.FogColor = new Color(0.09f, 0.12f, 0.26f);
@@ -25,6 +26,7 @@ namespace GemRush
             Remixes.Remixed(LevelPackNine.Levels[0], l =>
             {
                 l.Name = "The Garden That Dreams";
+                l.WinLine = "The Garden That Dreams, charted! It kept the tune while it slept, and Pip kept to the beat. Nobody woke up. That was the whole trick.";
                 l.SkyColor = new Color(0.42f, 0.60f, 0.72f);
                 l.FogColor = new Color(0.38f, 0.56f, 0.66f);
                 l.Gusts.Add(new GustSpec(0f, 3.5f, 44f, new Vector3(5f, 4f, 10f),
@@ -39,6 +41,7 @@ namespace GemRush
             Remixes.Remixed(LevelLibrary.TheAscent(), l =>
             {
                 l.Name = "The Ascent — Nightfall";
+                l.WinLine = "The beacon route, climbed in the dark the way the first keepers did. From up here every portal Pip ever lit is still burning — and now the sky has one more, lit after hours.";
                 l.DarkRealm = true;
                 l.SkyColor = new Color(0.14f, 0.16f, 0.34f);
                 l.FogColor = new Color(0.12f, 0.14f, 0.30f);

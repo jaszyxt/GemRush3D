@@ -45,7 +45,7 @@ namespace GemRush
             "The guardians spin because nobody ever asked them to stop. Ask nicely.",
             "The Two Suns playground: no storm, no pressure, all bounce.",
             "The Far Isles: where the wind does the climbing.",
-            "Gloomfang's job title, officially: weather support. The probation got rained out.",
+            "Gloomfang's job title, officially: weather support. Tuesdays, mostly. He's very serious about Tuesdays.",
             "Nim's first word was a gust. There was weather everywhere. Gloomfang has never been prouder.",
             "The bell towers once sang storms home. Now they ring one in to work.",
             "Red Nine still dreams of being a carousel. On weekends, he practices.",

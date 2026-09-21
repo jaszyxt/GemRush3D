@@ -23,7 +23,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Stormcell Steps";
-            l.Mission = "Gloomfang retaliates. His stormcell elite ride the front line on platforms that never slow down, and the gaps come with no handrails. Time your rides, Pip — the storm does not do second chances.";
+            l.Mission = "Gloomfang retaliates. His stormcell elite ride the front line on platforms that never slow down, and the gaps come with no handrails. Time your rides, Pip — the storm is in no rush, and neither are you.";
             l.WinLine = "The stormcell elite have been downsized.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start
@@ -72,7 +72,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "Gloomfang's Garden";
-            l.Mission = "Past the gate lies Gloomfang's private garden, where the topiary spins at unsafe speeds and the stepping stones were placed by someone who hates you. Tiptoe through, Pip — and whatever you do, do not feed the guardians.";
+            l.Mission = "Past the gate lies Gloomfang's private garden, where the topiary spins at unsafe speeds and the stepping stones were placed by someone in a hurry to be somewhere else. Tiptoe through, Pip — and whatever you do, do not feed the guardians.";
             l.WinLine = "Three guardians pruned and one garden thoroughly disrespected.";
 
             l.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));      // start

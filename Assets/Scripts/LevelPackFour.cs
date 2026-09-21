@@ -113,7 +113,7 @@ namespace GemRush
             l.Checkpoints.Add(new Vector3(0f, 3.5f, 36f));
             l.Checkpoints.Add(new Vector3(0f, 13.5f, 91f));
 
-            l.StoryBeats.Add("The guardians learned to dance from watching Pip fall with style. They think that's dancing. Nobody corrected them.");
+            l.StoryBeats.Add("The guardians learned to dance from watching Pip land. They think that's dancing. Nobody corrected them.");
             l.StoryBeats.Add("Rain, it turns out, sounds like applause when it lands on Sunstones.");
 
             l.BouncePads.Add(new Vector3(3f, 0.5f, 3f));

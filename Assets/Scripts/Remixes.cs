@@ -21,6 +21,11 @@ namespace GemRush
             l.Name = baseLevel.Name;
             l.Mission = baseLevel.Mission;
             l.WinLine = baseLevel.WinLine;
+            // A remix keeps the parent's Mission as a starting point, but
+            // it MUST set its own WinLine: the inherited one names the
+            // parent level ("Gust Alley, charted!"), which reads as a
+            // leftover on a different course. Every B-side supplies one.
+            l.Milestone = baseLevel.Milestone;
             l.Spawn = baseLevel.Spawn;
             l.KillY = baseLevel.KillY;
             l.Portal = baseLevel.Portal;
@@ -37,6 +42,13 @@ namespace GemRush
             // Spec objects are shared by reference: mutations must never
             // mutate spec instances, only append to the lists or change the
             // level's own scalars.
+            //
+            // EVERY mechanic list must be copied here. A list left out is a
+            // silent content loss: remixing a Winter level would drop its
+            // lantern and ice gates, and nothing would fail — the level
+            // would simply be a different, emptier level. Today's B-sides
+            // happen to source courses that use none of the later
+            // mechanics, which is luck, not safety.
             l.Platforms = new List<PlatformSpec>(baseLevel.Platforms);
             l.Movers = new List<MoverSpec>(baseLevel.Movers);
             l.Spinners = new List<SpinnerSpec>(baseLevel.Spinners);
@@ -48,6 +60,12 @@ namespace GemRush
             l.Gusts = new List<GustSpec>(baseLevel.Gusts);
             l.Bells = new List<BellSpec>(baseLevel.Bells);
             l.EchoBridges = new List<EchoBridgeSpec>(baseLevel.EchoBridges);
+            l.MirrorDoors = new List<MirrorDoorSpec>(baseLevel.MirrorDoors);
+            l.Lanterns = new List<LanternSpec>(baseLevel.Lanterns);
+            l.IceGates = new List<IceGateSpec>(baseLevel.IceGates);
+            l.AuroraRibbons =
+                new List<AuroraRibbonSpec>(baseLevel.AuroraRibbons);
+            l.SeeSaws = new List<SeeSawSpec>(baseLevel.SeeSaws);
             l.StoryBeats = new List<string>(baseLevel.StoryBeats);
 
             mutate?.Invoke(l);
