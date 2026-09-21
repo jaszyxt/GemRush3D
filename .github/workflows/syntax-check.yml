@@ -11,6 +11,11 @@ jobs:
         run: dotnet build tools/Check.csproj
       - name: Version drift check (VERSION vs docs)
         run: sh tools/check-version.sh
+      - name: Protected user directives (docs/User-Directives.md)
+        # Fails when a rule the USER set has been changed without their
+        # explicit instruction (e.g. haptics creeping back onto the jump).
+        # If this fails, do NOT weaken the guard — see the file's header.
+        run: sh tools/check-directives.sh
       - name: Format check (see .editorconfig)
         # Fails if any file would be reformatted. Whitespace and brace
         # style only — it cannot change behaviour, and the rules are in

@@ -245,6 +245,11 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 - [ ] Compile-checked against `tools/stubs/UnityStubs.cs` (add stubs
       for any new Unity API you touch).
 
+- **Protected rules live in `docs/User-Directives.md`.** That file is the
+  user's law and outranks this one. The two clauses that touch art are D-1
+  (haptics mark events, never movement) and D-2 (palette families are
+  fixed; never "fix" contrast by changing a family's hue). CI enforces
+  them via `tools/check-directives.sh`.
 - **Haptics mark EVENTS, not movement** (user directive, 2026-09-21).
   A buzzing phone during ordinary play — every jump, every hop, every
   gem — is a rattle in the player's hands, not feedback. The hand is

@@ -1,6 +1,13 @@
 # HANDOFF — current state (update: v1.28.0 session, 2026-09-21)
 
-**Read first, in order:** `DESIGN.md` (expansion contract, pack grammar,
+**READ FIRST — `docs/User-Directives.md`.** That file holds the USER's
+protected decisions (haptics, palette families, user-edit authority,
+difficulty numbers). Nothing there may change without the user explicitly
+asking for that specific change. It outranks every other doc, including
+this one. `tools/check-directives.sh` enforces what can be enforced, and
+CI runs it — never weaken the guard to make it pass.
+
+**Then, in order:** `DESIGN.md` (expansion contract, pack grammar,
 character bible, pacing rules — the law) → `RESEARCH.md` (research pass:
 adopted / ADAPT backlog / SKIPPED — sources included) →
 `docs/UIUX-Multiplatform-Directives.md` (UI/UX work queue; **all done
