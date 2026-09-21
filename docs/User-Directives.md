@@ -100,6 +100,38 @@ is introduced alone before it is combined.
 
 ---
 
+## D-5. A reported bug is a CLASS, not an instance
+
+**Source: user, standing (stated 2026-09-21 after two reports).**
+
+When the user reports a bug, finding and fixing *that spot* is not the job
+done. Every report is treated as the visible instance of a pattern, and the
+whole game is swept for siblings before the work is called complete.
+
+Required shape of the response:
+
+1. **Name the class.** What general defect is this an instance of? (A reward
+   hidden where the player will not go? A mechanic trusting another system's
+   clock? A renderer with no mesh? A trigger too small to hit? A placement
+   score with no rule against the exit?)
+2. **Sweep every level and every system for the class** — not just the level
+   in the report, and not just the file that was named.
+3. **Fix all instances found**, and state plainly which areas were checked
+   and came back clean, so "clean" is a recorded finding rather than silence.
+4. **Add the assertion** that fails if the class returns, where the class is
+   mechanically checkable.
+
+**Also distrust the model first.** Every bug reported from play so far was
+invisible to the agent's own instruments — an invisible bridge, an uncrossing
+gust, a reward behind the exit. The instruments model geometry; the failures
+were rendering, a clock and placement scoring. When a report contradicts an
+audit that says "all clear", the *instrument* is the first suspect.
+
+Precedent: the golden gem (hidden at the exit) led to finding `DailyGem` had
+the same defect plus a worse one (it could silently place nothing at all).
+
+---
+
 ## Enforcement
 
 `tools/check-directives.sh` (run by CI on every push and pull request)
