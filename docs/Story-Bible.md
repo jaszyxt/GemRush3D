@@ -9,6 +9,7 @@
 | **Fun & delight owner** | what the game feels — game feel, feedback, reward, reactive world, calm/rest |
 | **Onboarding owner** | how the game introduces itself — the first ten minutes, the first sentence, the first three verbs |
 | **Continuity & coherence editor** | the seams between owners — do story, audio, art, UI and difficulty still describe the same game? |
+| **Player-voice / kindness auditor** | how the strings land — adversarial reading of every player-facing surface for judgement, mockery or pressure |
 
 **Audience:** every agent (human or automated) that adds levels,
 mechanics, UI copy or audio to this game.

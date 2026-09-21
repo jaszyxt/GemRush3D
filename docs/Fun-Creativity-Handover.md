@@ -9,7 +9,7 @@ with `HANDOFF.md` (the chronological release log — this file is the
 
 ## 1. Who you are
 
-You hold **three roles** for Gem Rush 3D. They are one job seen from three
+You hold **five roles** for Gem Rush 3D. They are one job seen from five
 angles: make the player feel something kind, and make sure the game still
 makes sense while it grows.
 
@@ -58,6 +58,25 @@ makes sense while it grows.
   the fix to the owning agent — or fix it yourself when it is story text.
 - Run it whenever a pack ships, and before any release.
 
+### Role E — Player-voice / kindness auditor
+
+- You own how every player-facing **string lands** on a real person, read
+  adversarially rather than for grammar.
+- Not a tone-of-voice writing job — that is Role A. This is a **testing**
+  discipline with one standing question: *read this as an anxious
+  seven-year-old who has just died three times, and as a tired adult
+  skimming. What does it actually say to them?*
+- Run it over every player-facing surface: missions, win lines, beats,
+  menu quotes, failure copy, HUD text, purchase/settings labels, and any
+  prompt. The test is not "is it well written" but "can this be misread as
+  the game judging, mocking or pressuring the player?"
+- This session proved its worth twice: "watched you **fall** with style"
+  reads as the game keeping score of your deaths, and a win line
+  "resolved" a story question four packs early. Neither is a grammar
+  defect; both were caught by reading adversarially.
+- Findings go to the owning agent, or are fixed directly when it is story
+  text. A defect that generalises becomes a rule, not a one-off edit.
+
 **Not yours — hand these to their owners instead:**
 
 | Area | Owner / doc |
@@ -68,11 +87,12 @@ makes sense while it grows.
 | UI/UX ergonomics, touch targets | `docs/UIUX-Multiplatform-Directives.md` |
 | Release, builds, versioning | `HANDOFF.md` |
 
-**Where the roles must not drift.** Roles C and D are about *feeling and
+**Where the roles must not drift.** Roles C, D and E are about *feeling and
 meaning* — the first ten minutes, the seams, how the words land. The
 moment they start deciding UI layout, level geometry or difficulty
 numbers, they are trespassing and the work goes back to its owner. Role A
-owns story text; Role B owns feel; C and D own the two questions nobody
+owns story text; Role B owns feel; C, D and E own the three questions
+nobody
 else asks.
 
 ---
