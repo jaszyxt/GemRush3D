@@ -131,9 +131,33 @@ namespace GemRush.EditorTools
                             golden2 != null
                                 ? golden2.transform.position.ToString("F2") : "?");
                     }
-                    int gemsBefore = GemRush.GameManager.Instance.GemsTotal;
-                    SetInt(Key19, 1); // simulate the collect's save write
-                    PlayerPrefs.Save();
+                    // THE ASSERTION THAT MATTERS, and the one this probe
+                    // spent its whole life faking: walk Pip INTO the gem
+                    // and require the pickup to fire from real collision.
+                    // The old version wrote the save flag directly
+                    // ("simulate the collect's save write"), so it reported
+                    // success for a gem that could not be collected at all.
+                    var gem = GameObject.Find("GoldenGem");
+                    var player = GemRush.GameBootstrap.Player;
+                    if (gem == null || player == null)
+                    {
+                        Check("golden-is-collectable", false,
+                            "gem=" + (gem != null) + " player=" +
+                            (player != null));
+                    }
+                    else
+                    {
+                        var col = gem.GetComponent<Collider>();
+                        Check("golden-has-a-trigger-collider",
+                            col != null && col.isTrigger,
+                            col != null ? col.GetType().Name : "none");
+                        // Put Pip exactly on the gem and let physics tick.
+                        player.TeleportTo(gem.transform.position);
+                        frames(30);
+                        Check("golden-is-collectable",
+                            GemRush.SaveSystem.GoldenFound(19),
+                            "flag=" + GemRush.SaveSystem.GoldenFound(19));
+                    }
                     GemRush.GameManager.Instance.GoToMenu();
                     frames(40);
                     phase = 2;
