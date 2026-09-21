@@ -150,6 +150,21 @@ namespace UnityEngine
         public RequireComponentAttribute(System.Type requiredType) { }
     }
 
+    /// The IL2CPP code-stripping attribute, stubbed so the offline compile
+    /// checks see it. It is LOAD-BEARING at runtime: a type created only via
+    /// AddComponent<T>() and held by no managed reference can be stripped
+    /// from the Android player, which is what made every golden gem
+    /// uncollectable on the phone while working on the laptop. A no-op here
+    /// is correct — the stub checker models syntax, not linking.
+    namespace Scripting
+    {
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct |
+            AttributeTargets.Method | AttributeTargets.Field |
+            AttributeTargets.Property | AttributeTargets.Constructor,
+            Inherited = false)]
+        public sealed class PreserveAttribute : Attribute { }
+    }
+
     // ---------- Math & geometry ----------
 
     public struct Vector2

@@ -556,6 +556,15 @@ namespace GemRush
     }
 
     /// Destroys its GameObject once the attached particle effect has finished.
+    ///
+    /// [Preserve] IS LOAD-BEARING — do not remove it. This component is
+    /// created ONLY through AddComponent<AutoDestroy>() and the type is
+    /// referenced nowhere else in managed code, so IL2CPP's linker is free to
+    /// strip it from the Android player. The consequence is quiet rather than
+    /// loud: the effect still plays, but nothing ever destroys it, so every
+    /// one-shot FX leaks a GameObject for the life of the level. See
+    /// GoldenStar for the full account of how this class fails.
+    [UnityEngine.Scripting.Preserve]
     public class AutoDestroy : MonoBehaviour
     {
         float remaining;

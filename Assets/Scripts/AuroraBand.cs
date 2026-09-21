@@ -53,6 +53,13 @@ namespace GemRush
 
     /// One band: a slow sideways serpentine plus a gentle brightness
     /// breathe, each band on its own phase.
+    ///
+    /// [Preserve] IS LOAD-BEARING — do not remove it. Created ONLY through
+    /// AddComponent<BandDrift>() and referenced nowhere else in managed code,
+    /// so IL2CPP's linker may strip it from the Android player. The aurora
+    /// would still render (the geometry is built elsewhere) but the bands
+    /// would hang motionless. See GoldenStar for how this class fails.
+    [UnityEngine.Scripting.Preserve]
     public class BandDrift : MonoBehaviour
     {
         public float seed;

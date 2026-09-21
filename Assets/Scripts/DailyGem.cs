@@ -141,6 +141,16 @@ namespace GemRush
     }
 
     /// The golden gem itself. Gentle spin, generous trigger, one gift.
+    ///
+    /// [Preserve] IS LOAD-BEARING — do not remove it. The daily gift is
+    /// created ONLY through AddComponent<DailyStar>() and the type is
+    /// referenced nowhere else in managed code, so IL2CPP's linker is free
+    /// to strip it from the Android player. When that happens the component
+    /// is gone from the build and the gift simply never collects — exactly
+    /// the failure that made every golden uncollectable on the phone while
+    /// working on the laptop, since Windows player builds run Mono, which
+    /// strips nothing. See GoldenStar for the full account.
+    [UnityEngine.Scripting.Preserve]
     public class DailyStar : MonoBehaviour
     {
         public string today;
