@@ -28,7 +28,7 @@ if [ ! -f "$DIRECTIVES" ]; then
   exit 1
 fi
 
-for heading in "## D-1." "## D-2." "## D-3." "## D-4." "## D-5." "## D-6." "## D-7."; do
+for heading in "## D-1." "## D-2." "## D-3." "## D-4." "## D-5." "## D-6." "## D-7." "## D-8."; do
   if ! grep -q "^$heading" "$DIRECTIVES"; then
     echo "FAIL: $DIRECTIVES no longer contains '$heading'. A protected"
     echo "      directive was removed. Restore it, or update the file"
@@ -130,26 +130,96 @@ else
   echo "ok (D-7):   no level counts in story prose"
 fi
 
+# Lives stated in evergreen story prose. Same class as the level count:
+# a menu quote shipped "Three lives" long after the game moved to five
+# lives (GameManager.StartingLives), and nothing caught it. The Story
+# Bible pre-registered the exception - "if lives change, that quote
+# changes with them" - so this guard is that promise, enforced.
+#
+# The check reads the REAL number out of GameManager rather than banning
+# lives-counts outright: a count that agrees with the constant is correct
+# copy (and the honest way to say "five lives"), while a count that
+# disagrees is drift. That is the actual rule; banning the phrase would
+# have failed on the corrected text and taught everyone to ignore the
+# guard.
+LIVES_RE='"[^"]*\b(one|two|three|four|five|six|seven|eight|nine|ten) lives\b'
+STARTING_LIVES="$(grep -oE 'StartingLives = [0-9]+' \
+    Assets/Scripts/GameManager.cs 2>/dev/null | grep -oE '[0-9]+' \
+    | head -1 || true)"
+if [ -z "$STARTING_LIVES" ]; then
+  echo "FAIL (D-7): could not read StartingLives from GameManager.cs."
+  echo "      The lives guard cannot verify story copy against a constant"
+  echo "      it cannot find - fix the pattern or the constant's name."
+  FAILED=1
+else
+  # Local echo of a word number, so the comparison needs no tooling.
+  WORD_TO_NUM() {
+    case "$1" in
+      one|One) echo 1 ;; two|Two) echo 2 ;; three|Three) echo 3 ;;
+      four|Four) echo 4 ;; five|Five) echo 5 ;; six|Six) echo 6 ;;
+      seven|Seven) echo 7 ;; eight|Eight) echo 8 ;; nine|Nine) echo 9 ;;
+      ten|Ten) echo 10 ;; *) echo "" ;;
+    esac
+  }
+  lives_bad=""
+  lives_ok=0
+  while IFS= read -r hit; do
+    [ -z "$hit" ] && continue
+    word="$(printf '%s' "$hit" | grep -ioE '\b(one|two|three|four|five|six|seven|eight|nine|ten) lives\b' | grep -oiE '^[a-z]+' | head -1)"
+    num="$(WORD_TO_NUM "$word")"
+    if [ "$num" != "$STARTING_LIVES" ]; then
+      lives_bad="${lives_bad}${hit}
+"
+    else
+      lives_ok=$((lives_ok + 1))
+    fi
+  done <<EOF
+$(grep -ihE "$LIVES_RE" Assets/Scripts/Story.cs Assets/Scripts/Strings.cs 2>/dev/null || true)
+EOF
+  if [ -n "$lives_bad" ]; then
+    echo "FAIL (D-7): story prose states a number of LIVES that is wrong."
+    echo "      The game gives $STARTING_LIVES (GameManager.StartingLives)."
+    echo "      A count that disagrees with the constant is drift - the copy"
+    echo "      must follow the design, not the other way round."
+    printf '%s' "$lives_bad" | sed 's/^/      /'
+    FAILED=1
+  else
+    echo "ok (D-7):   story lives counts agree with StartingLives=$STARTING_LIVES"
+  fi
+fi
+
 # The probationary gag was RESOLVED at level 40 (the badge is official).
 # Reintroducing it as current status reverses the ending.
-PROBATION_RE='weather support \(probationary\)'
-probation="$(grep -nE "$PROBATION_RE" Assets/Scripts/Story.cs \
-    Assets/Scripts/Strings.cs Assets/Scripts/LevelPackTwo.cs \
-    Assets/Scripts/LevelPackThree.cs Assets/Scripts/LevelPackFour.cs \
-    Assets/Scripts/LevelPackFive.cs Assets/Scripts/LevelPackSix.cs \
-    Assets/Scripts/LevelPackSeven.cs Assets/Scripts/LevelPackEight.cs \
-    Assets/Scripts/LevelPackNine.cs Assets/Scripts/LevelPackTen.cs \
-    Assets/Scripts/LevelPackEleven.cs Assets/Scripts/LevelPackTwelve.cs \
-    Assets/Scripts/LevelPackThirteen.cs 2>/dev/null || true)"
+#
+# This matches only CURRENT-STATUS phrasing: a line saying he IS
+# probationary, or asking for the word to be removed. It deliberately does
+# NOT match mere mentions of the word, because canon-sanctioned lines must
+# be able to ACKNOWLEDGE the resolution - the shipped milestone reads "the
+# word 'probationary' is gone", which is the ending working, not a
+# violation. An earlier draft banned every mention and so failed on
+# correct text; a guard that cries wolf on correct copy gets deleted.
+PROBATION_IS_RE='weather support \(probationary\)|probation[^"]*(be removed|pending|continues|remains|still on)'
+PROBATION_ASK_RE='request[^"]*remove[^"]*probation|remove[^"]*the word .probationary'
+probation="$(grep -inE "$PROBATION_IS_RE|$PROBATION_ASK_RE" \
+    Assets/Scripts/Story.cs Assets/Scripts/Strings.cs \
+    Assets/Scripts/LevelPackTwo.cs Assets/Scripts/LevelPackThree.cs \
+    Assets/Scripts/LevelPackFour.cs Assets/Scripts/LevelPackFive.cs \
+    Assets/Scripts/LevelPackSix.cs Assets/Scripts/LevelPackSeven.cs \
+    Assets/Scripts/LevelPackEight.cs Assets/Scripts/LevelPackNine.cs \
+    Assets/Scripts/LevelPackTen.cs Assets/Scripts/LevelPackEleven.cs \
+    Assets/Scripts/LevelPackTwelve.cs Assets/Scripts/LevelPackThirteen.cs \
+    2>/dev/null || true)"
 if [ -n "$probation" ]; then
-  echo "FAIL (D-7): the 'weather support (probationary)' gag is back."
+  echo "FAIL (D-7): a shipped string reinstates the probationary status."
   echo "      The badge review concluded at the end of Movement Two -"
-  echo "      Gloomfang is NOT probationary. See docs/Story-Bible.md"
+  echo "      Gloomfang is NOT probationary. The gag paid off and is"
+  echo "      retired; lines may note that it ENDED, but none may assert"
+  echo "      it is current or still pending. See docs/Story-Bible.md"
   echo "      (Canon amendments)."
   printf '%s\n' "$probation" | sed 's/^/      /'
   FAILED=1
 else
-  echo "ok (D-7):   the probation gag is not reinstated"
+  echo "ok (D-7):   the probationary status is not reinstated"
 fi
 
 # ---------------------------------------------------------------- done

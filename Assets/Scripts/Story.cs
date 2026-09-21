@@ -41,7 +41,7 @@ namespace GemRush
             "Gloomfang's diary, page 1: 'Today I stole the sun again. Still lonely.'",
             "The Sky-Keeper's review of Pip: 'small, determined, excellent at falling upward.'",
             "A storm's heart is a lantern nobody lit. Pip fixes that.",
-            "Three lives. One very apologetic storm. And the realm keeps growing.",
+            "Five lives. One very apologetic storm. And the realm keeps growing.",
             "The guardians spin because nobody ever asked them to stop. Ask nicely.",
             "The Two Suns playground: no storm, no pressure, all bounce.",
             "The Far Isles: where the wind does the climbing.",

@@ -8,7 +8,7 @@ from code. Even the app icon is painted procedurally at build time.
 
 ## Release build (already configured)
 
-`Builds/GemRush3D.apk` is a **release-signed** build (v1.15.0, IL2CPP,
+`Builds/GemRush3D.apk` is a **release-signed** build (v1.28.1, IL2CPP,
 arm64). Signing uses `tools/gemrush.keystore`; its password lives in
 `tools/signing.txt`. Both are git-ignored — back them up somewhere safe:
 all updates to a published game must be signed with the same key.
@@ -179,10 +179,12 @@ each:
     small island with a shelf. Gloomfang's badge stops saying
     "probationary". 14 gems + 2 hearts.
 
-Stars:Stars: **3** = all gems, **2** = half, **1** = finished. Best times and stars
-are saved on the device; clearing a level unlocks the next. Touching a red
-spinner arm (or falling) costs a life; you carry 3 per attempt — **heart
-pickups** in the tougher levels grant one back (up to 5). **Bounce pads**
+Stars: **3** = all gems, **2** = half, **1** = finished. Best times and stars
+are saved on the device; clearing a level unlocks the next (the B-Side
+remixes are optional extras, opened by finding a level's hidden golden
+gem — they never block progress). Touching a red
+spinner arm (or falling) costs a life; you carry 5 per attempt — **heart
+pickups** in the tougher levels grant one back (up to 8). **Bounce pads**
 launch Pip sky-high; gems at their apex are yours if you dare. **Updraft
 columns** in the Far Isles let Pip float to places jumps can't reach.
 **Sleeping guardians** in the Sky Garden only wake when you linger.

@@ -44,16 +44,39 @@ fi
 
 FAILED=0
 
-# check <file> <regex-with-one-capture-group> <human-label>
+# check <file> <regex-with-one-capture-group> <human-label> [required]
+#
+# By default a file that does not contain the pattern is a NOTE, not a
+# failure — some files legitimately need not state a version. Pass
+# "required" for a file that MUST advertise the current version: then a
+# missing match is a failure too.
+#
+# That distinction is the whole point of the third argument. README used
+# to be checked with a `bundleVersion = "..."` pattern it never contained,
+# so the pattern silently matched nothing, the note branch fired, and the
+# guard reported success — on the exact drift it exists to catch. A guard
+# whose "no match" case is indistinguishable from "correct" is not a guard.
 check() {
-  file="$1"; pattern="$2"; label="$3"
+  file="$1"; pattern="$2"; label="$3"; required="${4:-}"
   if [ ! -f "$file" ]; then
-    echo "skip: $file not present"
+    if [ "$required" = "required" ]; then
+      echo "FAIL: $required file $file is missing."
+      FAILED=1
+    else
+      echo "skip: $file not present"
+    fi
     return 0
   fi
   found="$(grep -oE "$pattern" "$file" | head -1 | sed -E "s/$pattern/\1/" || true)"
   if [ -z "$found" ]; then
-    echo "note: $file has no '$label' line to check"
+    if [ "$required" = "required" ]; then
+      echo "FAIL: $file must state $label but no '$label' line was found."
+      echo "      (A required file that cannot be read for the version is"
+      echo "       drift, not a pass — fix the file or this pattern.)"
+      FAILED=1
+    else
+      echo "note: $file has no '$label' line to check"
+    fi
     return 0
   fi
   if [ "$found" != "$VERSION" ]; then
@@ -67,8 +90,10 @@ check() {
 # HANDOFF's header names the session it belongs to.
 check HANDOFF.md '^# HANDOFF — .*v([0-9]+\.[0-9]+\.[0-9]+)' 'current version'
 
-# README advertises the shipped build.
-check README.md 'bundleVersion = "([0-9]+\.[0-9]+\.[0-9]+)"' 'bundleVersion'
+# README advertises the shipped build, in the form it actually writes:
+# "release-signed build (v1.2.3, IL2CPP". Required — the README is the
+# public face of the release and must not advertise a stale version.
+check README.md 'release-signed\*\*? build \(v([0-9]+\.[0-9]+\.[0-9]+)' 'the shipped build version' required
 
 if [ "$FAILED" -ne 0 ]; then
   echo

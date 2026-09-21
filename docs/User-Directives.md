@@ -260,7 +260,8 @@ guards the mechanically-checkable parts of this file:
 1. **D-2** — no inline colour literals for hazards/rewards outside ArtLib.
 2. **D-1** — no `Haptics.*` call inside the jump / skid / ordinary-landing
    code paths in `PlayerController.cs`.
-3. **D-7** — no level counts in evergreen story text, and no reinstated
+3. **D-7** — no level counts in evergreen story text, no lives count
+   that disagrees with `GameManager.StartingLives`, and no reinstated
    "probationary" as Gloomfang's current status.
 4. This file must not be deleted, and the directive headings must remain.
 
@@ -268,3 +269,31 @@ A failing guard means someone changed a protected decision without the
 user's explicit instruction. **Do not edit the guard to make it pass.**
 Either revert the change, or — if the user did ask for it — update this
 file in the same commit with the user's words, as described above.
+
+---
+
+## D-8. Print only what the user will read
+
+**Source: user, 2026-09-21** — *"you printed a lot. why?"* … *"don't do
+that again, you can do that in the background. please print only what i
+will read."*
+
+**Rule:** when reporting to the user, print only what they will actually
+read. Reasoning, exploration, intermediate findings, tool narration and
+session summaries belong in the working (background) process, not in the
+reply. Long recaps of already-completed work are not a status report —
+they are noise the user has to scroll past.
+
+**What to print:**
+- the outcome first, in one or two sentences
+- what changed, and whether it is verified
+- anything genuinely blocking, and the decision needed
+- anything that would change what the user does next
+
+**What not to print:** history they already know, files they did not ask
+about, restatements of the plan, exhaustive inventories, or a summary of
+a long session when a short answer was asked for.
+
+**Why it matters:** the user reads the replies. Volume costs them
+attention and buries the one line that needed a decision. A short reply
+that answers the question beats a complete record every time.
