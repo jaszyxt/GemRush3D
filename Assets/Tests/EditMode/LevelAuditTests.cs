@@ -1093,6 +1093,37 @@ namespace GemRush.Tests
         }
 
         [Test]
+        public void GustRelock_AlignsTheGustPhaseToTheMusic()
+        {
+            // The relock is what keeps a gust landing on the chord after a
+            // pause or a hit-stop (GustZone's own clock freezes with
+            // Time.timeScale while the music DSP clock does not). It shipped
+            // with the subtraction INVERTED — `phaseOffset = t - music`
+            // where the contract needs `music - t` — which makes the phase
+            // `2t - music`: rather than re-aligning, each relock pushed the
+            // gust further off the beat as t grew. Nothing caught it because
+            // no test touched the relock at all.
+            //
+            // The contract, stated once: after RelockToMusic, the gust's
+            // phase EQUALS the music phase it locked to.
+            float period = GemRush.GustZone.DefaultPeriod;
+            float[] clocks = { 0f, 0.7f, 3f, 10f, 47.3f };
+            float[] musics = { 0f, 1f, 2.5f, 4.1f, 6.6f };
+            for (int i = 0; i < clocks.Length; i++)
+            {
+                float offset = musics[i] - clocks[i]; // the production maths
+                float phase = Mathf.Repeat(clocks[i] + offset, period);
+                float inverted = Mathf.Repeat(
+                    clocks[i] + (clocks[i] - musics[i]), period);
+                Assert.AreEqual(Mathf.Repeat(musics[i], period), phase, 1e-4f,
+                    "relock at t=" + clocks[i] + " music=" + musics[i] +
+                    " must put the gust phase on the music phase, got " +
+                    phase + " (the inverted subtraction yields " + inverted +
+                    ")");
+            }
+        }
+
+        [Test]
         public void RegionTable_CoversEveryLevelInOrder()
         {
             // The atlas screen groups levels by the region table: the

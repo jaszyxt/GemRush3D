@@ -154,12 +154,29 @@ namespace GemRush
         /// of step FOREVER — after one pause the "gust lands on the chord"
         /// feel was permanently lost, not just momentarily. Called at spawn
         /// and on resume: `t` is the reference, so the shift is exact.
+        ///
+        /// The sign matters and was inverted at first. GustPhase() is
+        /// Repeat(t + phaseOffset, period) and the invariant is that the
+        /// gust's phase EQUALS the music's at the moment of locking, so
+        /// `t + phaseOffset == music` and therefore phaseOffset is
+        /// `music - t`. The first version wrote `t - music`, which makes
+        /// the phase `2t - music` — so instead of re-aligning, every
+        /// relock pushed the gust further off the beat as `t` grew. The
+        /// offset is negative whenever music < t (the common case), which
+        /// is fine — GustPhase wraps with Mathf.Repeat.
         public void RelockToMusic()
         {
             if (AudioManager.Instance == null) return;
             float music = AudioManager.Instance.GetMusicPhase();
-            phaseOffset = t - music;
+            phaseOffset = music - t;
             lockedMusicPhase = music;
+        }
+
+        /// The gust's phase, for callers that want to assert the lock
+        /// contract without reaching into a live zone's internals.
+        public float PhaseAt(float clock)
+        {
+            return Mathf.Repeat(clock + phaseOffset, period);
         }
 
         void Update()

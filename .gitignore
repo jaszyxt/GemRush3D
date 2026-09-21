@@ -67,3 +67,8 @@ tools/voice/build/
 # Voice generation local venv + ffmpeg bin (git-ignored tools)
 tools/voice/.venv/
 tools/voice/bin/
+
+# Unity Test Framework byproducts (recreated by every test run; a prior
+# commit removed the stale copies and nothing references them).
+/Assets/Resources/PerformanceTestRunInfo.json*
+/Assets/Resources/PerformanceTestRunSettings.json*

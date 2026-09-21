@@ -1001,12 +1001,35 @@ namespace GemRush
             // title and BACK, the step compresses into the space that does
             // exist. BACK is then placed from the ACTUAL last row, so it can
             // never be pushed off the bottom edge.
-            float targetHalf = TouchFloorUnits / 900f * 0.5f;
+            // The rows REQUEST 60 units tall but MakeButton floors every
+            // target through TouchTarget, so in the touch layout each row
+            // is actually TouchFloorUnits tall. Budget the grid against the
+            // height that will really be drawn: sizing it from the
+            // requested 60 let the fit step go under the true 120-unit
+            // height, and adding the Music/Ambience rows (10 rows -> five
+            // grid rows, was four) pushed the step to 0.1125 against a
+            // needed 0.1333 — an 18.8-unit overlap between row 0 and row 2,
+            // caught by Settings_TouchLayout_NoOverlap.
+            float rowHalfUnits = IsTouchLayout() ? TouchFloorUnits : 60f;
+            float targetHalf = rowHalfUnits / 900f * 0.5f;
             // BACK is a button too, so it floors like every other target.
             float backHalf = (IsTouchLayout() ? TouchFloorUnits : 64f) / 900f * 0.5f;
             float bandTop = 0.70f;    // below the title
             float bandBottom = 0.02f; // keep BACK clear of the screen edge
-            int gridRows = (names.Length + 1) / 2;
+            // Columns are DERIVED from what the band can actually hold. With
+            // the 120-unit touch floor, two columns fit four grid rows and no
+            // more: five rows need 5 x 120 = 600 units of a band that has
+            // ~450 above BACK, which is an 18.8-unit overlap (caught by
+            // Settings_TouchLayout_NoOverlap when the Music and Ambience
+            // rows took the touch list from 8 entries to 10). Three columns
+            // fit the same 10 rows in four, at 3 x 480 = 1440 of 1600 units
+            // wide — and every row keeps its full accessibility floor, which
+            // shrinking the targets to fit would have thrown away. Desktop
+            // rows request 60 units and are NOT floored, so the longer
+            // desktop list keeps its two columns (the extra column there
+            // would reflow a layout that already fits).
+            int columns = IsTouchLayout() && names.Length > 8 ? 3 : 2;
+            int gridRows = (names.Length + columns - 1) / columns;
             float rowStep = 0f;
             float gridTop = bandTop;
             float gridBackY = bandBottom + backHalf;
@@ -1029,10 +1052,11 @@ namespace GemRush
             for (int i = 0; i < names.Length; i++)
             {
                 int index = i;
-                int row = i / 2;
-                // An odd row count centers its last, lone row.
-                int inRow = (i == names.Length - 1 && i % 2 == 0) ? 1 : 2;
-                float x = 0.5f + (i % 2 - (inRow - 1) / 2f) * 0.42f;
+                int row = i / columns;
+                int col = i % columns;
+                // A short last row centers itself under the others.
+                int inRow = Mathf.Min(columns, names.Length - row * columns);
+                float x = 0.5f + (col - (inRow - 1) / 2f) * (columns == 3 ? 0.28f : 0.42f);
                 float y = gridTop - row * rowStep;
                 Button b = MakeButton(settingsPanel.transform, names[i],
                     new Vector2(x, y), new Vector2(0f, 0f),
@@ -1046,11 +1070,12 @@ namespace GemRush
                 new Vector2(0f, 0f),
                 new Vector2(260f, 64f), delegate { CloseSettings(); });
 
-            // Gamepad navigation (D5): both layouts are the 2-column grid now,
-            // so the wiring is the same either way. BACK sits below the grid
-            // and the last row drops into it.
-            MenuNav.Grid(settingsButtons, 2, null);
-            int lastRowStart = (settingsButtons.Length - 1) / 2 * 2;
+            // Gamepad navigation (D5): the wiring must use the SAME column
+            // count the grid was drawn with, or the D-pad walks a 2-column
+            // graph over a 3-column layout. BACK sits below the grid and the
+            // last row drops into it.
+            MenuNav.Grid(settingsButtons, columns, null);
+            int lastRowStart = (settingsButtons.Length - 1) / columns * columns;
             MenuNav.Set(settingsBackButton,
                 settingsButtons[lastRowStart], null, null, null);
             for (int i = lastRowStart; i < settingsButtons.Length; i++)
