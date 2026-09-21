@@ -49,10 +49,23 @@ namespace GemRush.EditorTools
             public string Name;
             public int Level;      // -1 = no level (menu)
             public bool WinScreen; // force the win panel instead of the world
+            /// Which UI screen to raise over the world, if any. These are
+            /// the UI agent's screens: the SAME pipeline that guards the art
+            /// guards the layout, so a moved button or a broken grid shows
+            /// up as a diff instead of waiting for someone to open the
+            /// screen and notice.
+            public UiScreen Ui;
+        }
+
+        enum UiScreen
+        {
+            None,
+            Settings, Pause, Atlas, Briefing, GameOver, Complete
         }
 
         static readonly Scene[] Scenes =
         {
+            // --- world/art scenes ---
             new Scene { Name = "menu", Level = -1 },
             new Scene { Name = "day-first-steps", Level = 0 },
             new Scene { Name = "undercloud", Level = 7 },
@@ -62,6 +75,13 @@ namespace GemRush.EditorTools
             new Scene { Name = "aurora-festival", Level = 33 },
             new Scene { Name = "bells", Level = 22 },
             new Scene { Name = "win-screen", Level = 0, WinScreen = true },
+            // --- UI screens (the layout half: a moved button is a diff) ---
+            new Scene { Name = "ui-settings", Level = 0, Ui = UiScreen.Settings },
+            new Scene { Name = "ui-pause", Level = 0, Ui = UiScreen.Pause },
+            new Scene { Name = "ui-atlas", Level = -1, Ui = UiScreen.Atlas },
+            new Scene { Name = "ui-briefing", Level = 0, Ui = UiScreen.Briefing },
+            new Scene { Name = "ui-gameover", Level = 0, Ui = UiScreen.GameOver },
+            new Scene { Name = "ui-complete", Level = 0, Ui = UiScreen.Complete },
         };
 
         // Thresholds. Mean channel delta is on a 0..1 scale; the changed
@@ -155,14 +175,18 @@ namespace GemRush.EditorTools
             {
                 SetupScene(scene);
                 // A settle window: level build, camera snap, particle ramp.
-                frames(scene.WinScreen ? 90 : 45);
+                // UI panels animate in over 0.2s, so they need a full second
+                // to reach their rest pose or the diff would chase the fade.
+                frames(scene.Ui != UiScreen.None ? 90
+                    : scene.WinScreen ? 90 : 45);
                 phase++;
                 return;
             }
 
-            // Capture: hide the HUD for world scenes so text changes (a
-            // timer ticking) cannot masquerade as art regressions, and the
-            // capture is of the ART, not the clock.
+            // Capture the frame as the player would see it. (An earlier
+            // comment here claimed the HUD was hidden for world scenes to
+            // keep the ticking clock out of the diff — it never was, and the
+            // HUD is part of what should be guarded anyway.)
             CaptureScene(scene);
             phase++;
         }
@@ -170,19 +194,60 @@ namespace GemRush.EditorTools
         static void SetupScene(Scene scene)
         {
             GameManager gm = GemRush.GameManager.Instance;
+            UIManager ui = GemRush.UIManager.Instance;
             if (scene.Level < 0)
             {
                 gm.GoToMenu();
-                return;
             }
-            gm.PlayLevel(scene.Level);
-            if (scene.WinScreen)
+            else
             {
-                // Force the win panel without playing the level through.
-                UIManager ui = GemRush.UIManager.Instance;
-                ui.ShowWin(scene.Level, 2, 42.5f, 55f, false, 7,
-                    LevelLibrary.Levels[scene.Level].GemCount);
+                gm.PlayLevel(scene.Level);
+                if (scene.WinScreen)
+                {
+                    // Force the win panel without playing the level through.
+                    ui.ShowWin(scene.Level, 2, 42.5f, 55f, false, 7,
+                        LevelLibrary.Levels[scene.Level].GemCount);
+                }
             }
+
+            // Raise a UI screen over whatever world is up. These use the
+            // manager's own entry points, so the capture is of the screen a
+            // player actually sees, laid out by the real code path.
+            switch (scene.Ui)
+            {
+                case UiScreen.Settings:
+                    Invoke(ui, "ShowSettings");
+                    break;
+                case UiScreen.Pause:
+                    gm.PauseGame();
+                    break;
+                case UiScreen.Atlas:
+                    ui.ShowAtlas();
+                    break;
+                case UiScreen.Briefing:
+                    // The briefing band is opt-in; force it on for the shot
+                    // so the band itself is guarded, then restore.
+                    bool wasOn = SaveSystem.MissionTextOn;
+                    SaveSystem.MissionTextOn = true;
+                    ui.ShowLevelIntro(scene.Level < 0 ? 0 : scene.Level);
+                    SaveSystem.MissionTextOn = wasOn;
+                    break;
+                case UiScreen.GameOver:
+                    ui.ShowGameOver();
+                    break;
+                case UiScreen.Complete:
+                    ui.ShowComplete(0, LevelLibrary.Levels.Length * 3);
+                    break;
+            }
+        }
+
+        static void Invoke(object target, string method)
+        {
+            System.Reflection.MethodInfo info = target.GetType().GetMethod(method,
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public |
+                System.Reflection.BindingFlags.NonPublic);
+            if (info != null) info.Invoke(target, null);
         }
 
         static void CaptureScene(Scene scene)

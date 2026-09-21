@@ -213,6 +213,154 @@ namespace GemRush.Tests
             }
         }
 
+
+        /// Walks up from the working directory to find the repo root (the
+        /// folder holding Assets/). The headless runner executes from a
+        /// build subdirectory, so a bare relative path silently pointed at
+        /// the wrong place and made both sweeps report "layout not found"
+        /// — an IGNORE that reads like a pass. Walking up is what makes
+        /// these gates actually run in CI.
+        static string RepoRoot()
+        {
+            var dir = new System.IO.DirectoryInfo(
+                System.IO.Directory.GetCurrentDirectory());
+            while (dir != null)
+            {
+                if (System.IO.Directory.Exists(
+                    System.IO.Path.Combine(dir.FullName, "Assets", "Scripts")))
+                    return dir.FullName;
+                dir = dir.Parent;
+            }
+            return null;
+        }
+
+        static readonly char[] NEWLINE_CHAR = new char[] { (char)10 };
+        static readonly char[] BACKSLASH_CHAR = new char[] { (char)92 };
+
+        /// The single quoted argument on a line, or null. Used for the
+        /// pinned list (one name per line) and returns null when the line
+        /// has no complete literal, so a multi-line string cannot leak.
+        static string SingleQuotedArg(string line)
+        {
+            int open = line.IndexOf('"');
+            if (open < 0) return null;
+            int close = line.IndexOf('"', open + 1);
+            if (close < 0) return null;
+            return line.Substring(open + 1, close - open - 1);
+        }
+
+        /// The shader name passed on this line, if the line is one of the
+        /// two call shapes that name a shader. Everything else is ignored.
+        static string ShaderNameOn(string line)
+        {
+            int at = line.IndexOf("Shader.Find(");
+            if (at < 0) at = line.IndexOf("UnlitMaterial(");
+            if (at < 0) return null;
+            int open = line.IndexOf('"', at);
+            if (open < 0) return null;
+            int close = line.IndexOf('"', open + 1);
+            if (close < 0) return null;
+            string name = line.Substring(open + 1, close - open - 1);
+            if (name.Length == 0 || name.Length > 60) return null;
+            if (name.IndexOf((char)92) >= 0) return null; // an escape, not a name
+            return name;
+        }
+
+        // ------------------------------------------------------------------
+        // D-5 CLASS SWEEP: a bug is a pattern, so the pattern is gated.
+        // ------------------------------------------------------------------
+
+        /// Class: **an object that renders as nothing.** The echo bridge
+        /// shipped building a Built-in `Standard` material, which URP does
+        /// not render and the build strips — so the bridge existed, was
+        /// solid, and was invisible. The class is "a Shader.Find name that
+        /// is not pinned", because a stripped shader is exactly how this
+        /// failure recurs.
+        ///
+        /// Sweep: every Shader.Find in Assets/Scripts must appear in the
+        /// build's Always-Included list. Reads both files as text — the
+        /// editor list is not available headless, and this is a static
+        /// property of the source either way.
+        [Test]
+        public void EveryShaderLookup_IsPinnedForTheBuild()
+        {
+            string root = RepoRoot();
+            Assert.IsNotNull(root,
+                "could not locate the repo root (a folder containing " +
+                "Assets/Scripts) — the sweep cannot run, which must not " +
+                "look like a pass");
+            string scripts = System.IO.Path.Combine(root, "Assets", "Scripts");
+            string ensure = System.IO.Path.Combine(root, "Assets", "Editor",
+                "EnsureShaders.cs");
+
+            // Pinned names from the editor list: quoted string literals.
+            string ensureText = System.IO.File.ReadAllText(ensure);
+            var pinned = new System.Collections.Generic.HashSet<string>();
+            foreach (string line in ensureText.Split(NEWLINE_CHAR))
+            {
+                string q = SingleQuotedArg(line);
+                if (q != null) pinned.Add(q);
+            }
+
+            // Every shader the game looks up. Scanned LINE BY LINE and only
+            // on the two call shapes that take a name — a whole-file quote
+            // scan produced a false positive on a multi-line JSON literal
+            // in CloudSaveMirror, which is exactly the kind of noisy gate
+            // that gets switched off.
+            var looked = new System.Collections.Generic.List<string>();
+            foreach (string file in System.IO.Directory.GetFiles(scripts, "*.cs"))
+            {
+                foreach (string line in
+                    System.IO.File.ReadAllText(file).Split(NEWLINE_CHAR))
+                {
+                    string q = ShaderNameOn(line);
+                    if (q != null && !looked.Contains(q)) looked.Add(q);
+                }
+            }
+
+            Assert.Greater(looked.Count, 0, "no shader lookups found — the " +
+                "sweep is not reading the right files, which is worse than " +
+                "a failure because it looks like a pass");
+
+            foreach (string name in looked)
+                Assert.IsTrue(pinned.Contains(name),
+                    "Shader.Find(\"" + name + "\") is not in " +
+                    "EnsureShaders.RequiredShaders — Unity strips it from " +
+                    "the build and the object renders as NOTHING on device. " +
+                    "(D-5 class: an object that renders as nothing.)");
+        }
+
+        /// Class: **a visual state machine on the wrong clock.** The
+        /// checkpoint twirl kept spinning behind the pause menu and the
+        /// raindrop kept falling, both because they advanced on raw
+        /// deltaTime while resolving into a real state (a yaw, a landing).
+        ///
+        /// Sweep: any timer in a gameplay script that gates a LANDING,
+        /// a RESOLVE or a POSITION SNAP must consult timeScale. Purely
+        /// decorative bobs are deliberately exempt — they freeze on pause
+        /// with everything else and resume correctly.
+        [Test]
+        public void ResolvingTimers_RespectPause()
+        {
+            string root = RepoRoot();
+            Assert.IsNotNull(root, "could not locate the repo root");
+            string gloom = System.IO.Path.Combine(root, "Assets", "Scripts",
+                "Gloomfang.cs");
+            string player = System.IO.Path.Combine(root, "Assets", "Scripts",
+                "PlayerController.cs");
+
+            // The two known instances: each must keep its timeScale gate.
+            string gloomText = System.IO.File.ReadAllText(gloom);
+            Assert.IsTrue(gloomText.Contains("Time.timeScale > 0f"),
+                "Gloomfang's raindrop advances on raw deltaTime again — it " +
+                "will land behind the pause menu. (D-5 class: wrong clock.)");
+
+            string playerText = System.IO.File.ReadAllText(player);
+            Assert.IsTrue(playerText.Contains("liveDt"),
+                "PlayerController's twirl lost its paused-safe clock — it " +
+                "will spin behind the pause menu. (D-5 class: wrong clock.)");
+        }
+
         // ------------------------------------------------------------------
         // THE REPORT: always passes, prints the table for a human to read.
         // ------------------------------------------------------------------

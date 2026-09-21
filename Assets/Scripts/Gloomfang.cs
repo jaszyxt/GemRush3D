@@ -364,7 +364,13 @@ namespace GemRush
 
         void Update()
         {
-            age += Time.deltaTime;
+            // Paused-safe clock (D-5 class: a visual state machine on the
+            // wrong clock). The drop used to keep falling and land behind
+            // the pause menu; the same defect the checkpoint twirl had.
+            // Decorations are allowed to run while paused because they
+            // only bob in place — a drop that RESOLVES into a landing and
+            // a flower does not.
+            age += Time.timeScale > 0f ? Time.deltaTime : 0f;
             if (!landed)
             {
                 float k = Mathf.Clamp01(age / FallSeconds);
