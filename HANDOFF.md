@@ -13,6 +13,13 @@ adopted / ADAPT backlog / SKIPPED — sources included) →
 `docs/UIUX-Multiplatform-Directives.md` (UI/UX work queue; **all done
 except D11**) → this file.
 
+**Working on playability, reachability or difficulty? Read
+`docs/HANDOFF-Difficulty.md`** instead of scrolling this file — it is the
+session-start guide for those scopes (the instruments, their commands and
+verified output, the tests, the bug-class method, and what is open). It
+was written 2026-09-21 at v1.28.1 with every command re-run before being
+written down.
+
 ## Working agreement with the user (SOP — do not regress)
 1. **Plan → research → solution → THEN simulate.** No trial-and-error in
    the editor; one clean verification cycle per change.
@@ -421,9 +428,15 @@ except D11**) → this file.
 3. **D11 string table — DONE** (all UI strings live in `Strings.cs`;
    the UI/UX directives doc is fully closed). Kept here only so nobody
    re-opens it as outstanding.
-4. **Audio ADAPT queue** (RESEARCH.md): checkpoint cadence, parameterized
+4. **Playability / difficulty scopes have their own handover**:
+   `docs/HANDOFF-Difficulty.md`. Landed 2026-09-21: **D-6 law** (little
+   difficulty, evolving variety — the game does NOT get harder as it
+   goes), all **11 spinners above 90 deg/s capped to 60–90**, and three
+   play-reported bug classes swept (rendering / clocks / placement).
+   Nothing blocking; all instruments green.
+5. **Audio ADAPT queue** (RESEARCH.md): checkpoint cadence, parameterized
    MusicSynth intensity, gust haptic texture. (Milestone chime: DONE.)
-5. **CONTENT PAUSED AT 40** (player directive). Improvement backlog for
+6. **CONTENT PAUSED AT 40** (player directive). Improvement backlog for
    future sessions, in no fixed order: parameterized MusicSynth
    intensity (checkpoint cadence + gust haptic texture: DONE), D11
    string table, photo mode, ghost runs, Pip's shelf visuals, and the
