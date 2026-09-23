@@ -46,6 +46,20 @@ namespace GemRush
         bool hitStopActive;
         float hitStopResumeRealtime;
 
+        // Deaths this attempt, used only to vary the comeback line so the
+        // fourth fall of a level is not the same sentence as the first.
+        int deathsThisAttempt;
+
+        // Seconds between dying and play resuming. The run timer stops for
+        // this window: the ghost recorder already excludes it (it must - a
+        // ghost that stood still at every death would show a broken route),
+        // and the medal was being judged on the same clock the ghost was
+        // not. Charging the player for downtime they did not cause meant a
+        // death could cost them a gold they had already earned.
+        //
+        // USER-AUTHORIZED change under D-4.
+        float respawnDowntime;
+
         UIManager ui;
 
         void Awake()
@@ -96,7 +110,12 @@ namespace GemRush
             TickHitStop();
             if (State == GameState.Playing)
             {
-                Elapsed += Time.deltaTime;
+                // Respawn downtime does not count toward the run. See the
+                // field comment: this is what the ghost already does.
+                if (respawnDowntime > 0f)
+                    respawnDowntime -= Time.deltaTime;
+                else
+                    Elapsed += Time.deltaTime;
                 ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
             }
 
@@ -245,11 +264,16 @@ namespace GemRush
             ghostRecorder = GhostRecorder.Create(GameBootstrap.World.transform);
             ghostRecorder.Begin();
             Time.timeScale = 1f;
-            ui.CloseQuitConfirm(); // the dialog lives over the menu only
+            ui.CloseQuitConfirm(); // defensive: never leave the confirm
+                                   // dialog up over a fresh level (RESTART
+                                   // closes it itself, but a rebuild from
+                                   // anywhere else must not inherit it)
             CurrentLevel = Mathf.Clamp(index, 0, LevelLibrary.Levels.Length - 1);
             GemsCollected = 0;
             Lives = StartingLives;
             Elapsed = 0f;
+            respawnDowntime = 0f;
+            deathsThisAttempt = 0;
             State = GameState.Playing;
             // The pickup song is per LEVEL, not per session: without this a
             // new level inherited the previous one's streak and opened
@@ -371,6 +395,7 @@ namespace GemRush
                 ArtLib.HazardRed * 1.5f, 26);
             GameBootstrap.CameraRig.Shake(0.35f, 0.25f);
 
+            bool refilled = false;
             if (Lives <= 0)
             {
                 // Never end the run. Running out refills the buffer and
@@ -381,15 +406,40 @@ namespace GemRush
                 // GameOver screen remains for compatibility but play no
                 // longer reaches it.)
                 Lives = StartingLives;
+                refilled = true;
                 ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal,
                     Lives, Elapsed);
             }
             else if (Lives == 1) AudioManager.Instance.PlayLivesLow();
 
+            // A refill is the biggest gift the game gives and used to be
+            // the quietest event in it: the counter jumped 0 -> 5 in
+            // silence while a single heart pickup got chime, haptic and
+            // burst. Nobody can tell a gift from a glitch like that.
+            if (refilled)
+            {
+                AudioManager.Instance.PlayHeart();
+                Haptics.Medium();
+                Fx.Ring(GameBootstrap.Player.transform.position, ArtLib.Gold);
+            }
+
             GameBootstrap.Player.TeleportTo(SpawnPoint);
             GameBootstrap.CameraRig.SnapToTarget();
             AudioManager.Instance.RestartMusicAtTonic();
             ui.UpdateHUD(CurrentLevel, GemsCollected, GemsTotal, Lives, Elapsed);
+
+            // Death used to be completely wordless — a burst, then a silent
+            // teleport — which left the most frequent event in the game
+            // unacknowledged. These lines never scold: failure is a nap,
+            // not a verdict. The counter varies the wording per attempt so
+            // the fourth fall is not the first sentence again.
+            deathsThisAttempt++;
+            ui.ShowStoryToast(Strings.ComebackLine(
+                refilled ? deathsThisAttempt : deathsThisAttempt - 1));
+
+            // Give the toast a beat to be read before the clock starts
+            // again, so the timer does not bill the player for reading it.
+            respawnDowntime = 1.6f;
         }
 
         public void OnPlayerDied()

@@ -86,6 +86,12 @@ namespace GemRush
         readonly Color starDim = new Color(0.3f, 0.3f, 0.34f);
         GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
         System.Action quitConfirmedAction;
+        Text quitConfirmTitle;   // set per use (quit vs restart)
+        Text quitButtonLabel;    // ditto
+        /// True when the current confirm should also exit the application —
+        /// only the QUIT use sets it, so RESTART (which shares this panel)
+        /// can never close the game.
+        bool confirmAlsoQuits;
 
         // Touch level select is paged (5x2 per page): once the packs grew
         // past four rows, 100-unit-tall touch buttons could no longer stack
@@ -1599,7 +1605,19 @@ namespace GemRush
             pauseRestartButton = MakeButton(pausePanel.transform, Strings.RestartLevel,
                 new Vector2(0.5f, rowY(1)), new Vector2(0f, 0f),
                 new Vector2(360f, 68f),
-                delegate { GameManager.Instance.PlayLevel(GameManager.Instance.CurrentLevel); });
+                delegate
+                {
+                    // Asks first: this wipes the gems and the run timer, and
+                    // it used to fire on one press while quitting the whole
+                    // application was carefully confirmed.
+                    ShowConfirm(Strings.RestartConfirmTitle,
+                        Strings.RestartConfirmYes,
+                        delegate
+                        {
+                            GameManager.Instance.PlayLevel(
+                                GameManager.Instance.CurrentLevel);
+                        });
+                });
 
             // Photo mode (photo postcards, DESIGN.md community plan): pause
             // the run, frame the sky, take the shot. Desktop-only for now —
@@ -2297,31 +2315,61 @@ namespace GemRush
         /// back/Escape stack closes Settings before any other back action.
         public bool SettingsOpen => settingsPanel != null && settingsPanel.activeSelf;
 
-        /// True while the quit-confirmation dialog is on screen; Enter and
-        /// the menu shortcuts must not fire underneath it.
+        /// True while the confirmation dialog is on screen; Enter and the
+        /// menu shortcuts must not fire underneath it.
         public bool QuitOpen =>
             quitConfirmPanel != null && quitConfirmPanel.activeSelf;
 
-        /// Shows the quit-confirmation dialog ("QUIT THE GAME?"). Quitting
+        /// Shows the confirmation dialog ("QUIT THE GAME?"). Quitting
         /// always goes through this dialog on desktop — Esc/back never quits
         /// instantly. QUIT invokes onConfirmed then quits; CANCEL (or the
         /// back stack) just closes the dialog.
         public void ShowQuitConfirm(System.Action onConfirmed)
         {
+            ShowConfirm(Strings.QuitTitle, Strings.Quit, onConfirmed,
+                alsoQuits: true);
+        }
+
+        /// The same dialog, generalised. Restarting a level wipes every gem
+        /// collected and the whole run timer, yet it fired on a single press
+        /// while *quitting the application* was carefully guarded — the
+        /// asymmetry was backwards. One implementation, parameterised, so
+        /// the two can never drift apart.
+        ///
+        /// `alsoQuits` is explicit rather than inferred. The first version
+        /// decided whether to exit by comparing the title text to
+        /// Strings.QuitTitle, which works only until a third caller happens
+        /// to reuse that wording — at which point confirming a harmless
+        /// dialog would close the game. The action already carries the
+        /// intent (the QUIT caller passes Application.Quit as its callback);
+        /// the flag just states it.
+        public void ShowConfirm(string title, string confirmLabel,
+            System.Action onConfirmed, bool alsoQuits = false)
+        {
             if (quitConfirmPanel == null) BuildQuitConfirm();
+            if (quitConfirmTitle != null) quitConfirmTitle.text = title;
+            if (quitButton != null && quitButtonLabel != null)
+                quitButtonLabel.text = confirmLabel;
             quitConfirmedAction = onConfirmed;
+            confirmAlsoQuits = alsoQuits;
             quitConfirmPanel.SetActive(true);
-            Focus(cancelButton); // safe default: focus never starts on QUIT
+            Focus(cancelButton); // safe default: focus never starts on the
+                                 // destructive button
             AudioManager.Instance.PlayPanel(true);
         }
 
-        /// Closes the quit-confirmation dialog if it is open. Returns true
+        /// Closes the confirmation dialog if it is open. Returns true
         /// when it was open (and is now closed), so the back stack can treat
         /// Esc/back as CANCEL; returns false when nothing was open.
         public bool CloseQuitConfirm()
         {
             if (quitConfirmPanel == null || !quitConfirmPanel.activeSelf) return false;
             quitConfirmPanel.SetActive(false);
+            // Clear the intent WITH the panel. Leaving it set would let a
+            // cancelled QUIT leak into the next confirm: cancel the quit
+            // dialog, then open RESTART, and confirming would exit the game.
+            confirmAlsoQuits = false;
+            quitConfirmedAction = null;
             AudioManager.Instance.PlayPanel(false);
             return true;
         }
@@ -2338,10 +2386,12 @@ namespace GemRush
                 Strings.QuitTitle, 64, Color.white, TextAnchor.MiddleCenter,
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.70f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
+            quitConfirmTitle = title;
 
             quitButton = MakeButton(quitConfirmPanel.transform, Strings.Quit,
                 new Vector2(0.5f - 0.13f, 0.38f), new Vector2(0f, 0f),
                 new Vector2(260f, 84f), delegate { ConfirmQuit(); });
+            quitButtonLabel = quitButton.GetComponentInChildren<Text>();
 
             cancelButton = MakeButton(quitConfirmPanel.transform, Strings.Cancel,
                 new Vector2(0.5f + 0.13f, 0.38f), new Vector2(0f, 0f),
@@ -2357,9 +2407,15 @@ namespace GemRush
         void ConfirmQuit()
         {
             System.Action action = quitConfirmedAction;
+            // Explicit flag, not the title text: inferring "should the game
+            // exit?" from displayed wording breaks the moment a third caller
+            // reuses that wording.
+            bool wasQuit = confirmAlsoQuits;
             CloseQuitConfirm();
             if (action != null) action.Invoke();
-            Application.Quit();
+            // Only the QUIT use of this dialog exits the application.
+            // RESTART shares the panel and must not close the game.
+            if (wasQuit) Application.Quit();
         }
 
         // ---------- Widget builders ----------

@@ -152,6 +152,11 @@ namespace GemRush
         public const string Paused = "PAUSED";
         public const string Resume = "RESUME";
         public const string RestartLevel = "RESTART LEVEL";
+        /// Restart wipes every gem and the whole run timer, so it asks
+        /// first — the same guard the QUIT path already had. Wording is
+        /// plain about the cost without being stern about it.
+        public const string RestartConfirmTitle = "START THIS LEVEL AGAIN?";
+        public const string RestartConfirmYes = "RESTART";
         public const string QuitTitle = "QUIT THE GAME?";
         public const string Quit = "QUIT";
         public const string Cancel = "CANCEL";
@@ -300,6 +305,34 @@ namespace GemRush
         }
 
         // ---------- World flavor (non-level story toasts) ----------
+
+        /// Shown briefly when Pip is knocked back to the checkpoint. Death
+        /// used to be completely silent — a burst, then a teleport with no
+        /// word — which left the most frequent event in the game
+        /// unacknowledged, especially for a child.
+        ///
+        /// These never scold and never grade: failure here is a nap, not a
+        /// verdict (the design law). Several lines so the fourth death of a
+        /// level is not the same sentence as the first. Picked by a stable
+        /// per-life counter rather than at random, so a retry does not
+        /// shuffle the words mid-run.
+        static readonly string[] ComebackLines =
+        {
+            "Pip is fine. Pip is always fine. The guardian is still spinning, though.",
+            "A short nap, a deep breath, and back up the hill.",
+            "Gloomfang pretends not to have seen that. He saw it. He's rooting for you.",
+            "The sky realm is patient. It has been waiting a thousand years; it can wait for a retry.",
+            "Down here, the only thing that breaks is the fall. Pip doesn't.",
+            "Take the run again. The gems will wait exactly where they were."
+        };
+
+        /// A comeback line for the given death count (0-based), stable for
+        /// a given life so the words do not change under the player.
+        public static string ComebackLine(int deathIndex)
+        {
+            if (deathIndex < 0) deathIndex = 0;
+            return ComebackLines[deathIndex % ComebackLines.Length];
+        }
 
         public const string LanternWake =
             "The sunstone wakes. Its warm little light hops up to travel with Pip.";

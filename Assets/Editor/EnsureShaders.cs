@@ -361,11 +361,16 @@ namespace GemRush.EditorTools
         /// PowerShell's .NET (verified), which is why it looked fine when
         /// reasoned about and wrong when the build actually ran.
         ///
-        /// So: try COM, and if it throws, fall back to the method that
-        /// demonstrably worked. The fallback passes the script as a
-        /// SINGLE-quoted PowerShell string built from escaped paths, which is
-        /// safe for a quote in the path (each ' becomes ''), so hardening the
-        /// primary path does not cost the fallback its correctness.
+        /// So: try COM, and if it throws, write the .lnk file DIRECTLY.
+        ///
+        /// The direct write is the reason this method no longer shells out.
+        /// The previous fallback launched powershell.exe with a constructed
+        /// command string. It escaped the paths correctly and was verified
+        /// against injection payloads, but a reviewer cannot confirm that
+        /// from the call site, and the security gate stopped it — correctly,
+        /// because a safer mechanism existed. Writing the shortcut bytes
+        /// involves no process, no shell and no command text, so there is
+        /// nothing to escape and nothing to inject into.
         static void WriteShortcutCom(string lnk, string exe, string workDir)
         {
             try
@@ -375,9 +380,82 @@ namespace GemRush.EditorTools
             }
             catch (System.Exception)
             {
-                // Fall through to the shell path below.
+                // Fall through to the direct file write below.
             }
-            WriteShortcutViaShell(lnk, exe, workDir);
+            WriteShortcutFile(lnk, exe, workDir);
+        }
+
+        /// Writes a .lnk by hand, byte for byte.
+        ///
+        /// A shortcut is a Shell Link binary: a 76-byte header followed by a
+        /// LinkTargetIDList and a set of optional StringData structures. We
+        /// emit only what Explorer needs to launch the game — the target
+        /// path, the working directory, and the "run normally" flag — and
+        /// deliberately omit the IDList (a zero-length item list is legal and
+        /// Explorer resolves the target from the path alone).
+        ///
+        /// This is the invariant that matters: every field is written as
+        /// LENGTH-PREFIXED BYTES. No value is ever interpreted as syntax by
+        /// anything, so a path containing quotes, spaces, semicolons or a
+        /// backtick is stored verbatim as data.
+        static void WriteShortcutFile(string lnk, string exe, string workDir)
+        {
+            using (System.IO.FileStream fs = new System.IO.FileStream(
+                lnk, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+            using (System.IO.BinaryWriter w = new System.IO.BinaryWriter(fs))
+            {
+                // --- ShellLinkHeader (exactly 76 bytes, MS-SHLLINK 2.1) ---
+                w.Write((uint)0x0000004C);   // HeaderSize
+                // LinkCLSID: a 16-byte GUID {00021401-0000-0000-C000-000000000046},
+                // written in GUID byte order (Data1 LE, Data2 LE, Data3 LE,
+                // Data4 as-is). Writing this as loose ushorts is an easy way
+                // to land 4 bytes over and produce a file Explorer ignores,
+                // so it is spelled out field by field.
+                w.Write((uint)0x00021401);   // Data1
+                w.Write((ushort)0x0000);     // Data2
+                w.Write((ushort)0x0000);     // Data3
+                w.Write((byte)0xC0);         // Data4[0]
+                w.Write((byte)0x00);
+                w.Write((byte)0x00);
+                w.Write((byte)0x00);
+                w.Write((byte)0x00);
+                w.Write((byte)0x00);
+                w.Write((byte)0x00);
+                w.Write((byte)0x46);
+                w.Write((uint)0x00000020);   // LinkFlags: HasName
+                w.Write((uint)0x00000080);   // FileAttributes: NORMAL
+                w.Write((long)0);            // CreationTime
+                w.Write((long)0);            // AccessTime
+                w.Write((long)0);            // WriteTime
+                w.Write((uint)0);            // FileSize
+                w.Write((int)0);             // IconIndex
+                w.Write((uint)1);            // ShowCommand: SW_SHOWNORMAL
+                w.Write((ushort)0);          // HotKey
+                w.Write((ushort)0);          // Reserved
+                w.Write((uint)0);            // Reserved2
+                w.Write((uint)0);            // Reserved3
+
+                // --- LinkTargetIDList: zero items (terminator only) ---
+                w.Write((ushort)0);
+
+                // --- StringData: NAME_STRING, RELATIVE_PATH, WORKING_DIR ---
+                WriteLinkString(w, exe);       // NAME_STRING
+                WriteLinkString(w, exe);       // RELATIVE_PATH
+                WriteLinkString(w, workDir);   // WORKING_DIR
+
+                // --- ExtraData: terminal block ---
+                w.Write((uint)0);
+            }
+        }
+
+        /// One StringData structure: a 16-bit character count followed by
+        /// UTF-16 code units, per the Shell Link spec. The count is of
+        /// CHARACTERS (not bytes) and excludes the terminator.
+        static void WriteLinkString(System.IO.BinaryWriter w, string value)
+        {
+            if (value == null) value = string.Empty;
+            w.Write((ushort)value.Length);
+            w.Write(System.Text.Encoding.Unicode.GetBytes(value));
         }
 
         /// The COM route: late-bound through the WScript.Shell ProgID.
@@ -409,39 +487,11 @@ namespace GemRush.EditorTools
             }
         }
 
-        /// The fallback: let PowerShell write the shortcut. Used only when
-        /// COM activation fails (Unity's Mono on this machine).
-        ///
-        /// Injection-safe despite being a shell-out, because the script is
-        /// passed as a SINGLE argument and every path is embedded in a
-        /// single-quoted PowerShell string with its quotes doubled — the
-        /// PowerShell literal-string escape. A path like
-        /// C:\Users\O'Brien\ therefore arrives intact instead of terminating
-        /// the string, which is the exact defect that motivated the COM
-        /// route in the first place.
-        static void WriteShortcutViaShell(string lnk, string exe,
-            string workDir)
-        {
-            string script =
-                "$ws = New-Object -ComObject WScript.Shell; " +
-                "$s = $ws.CreateShortcut(" + PsQuote(lnk) + "); " +
-                "$s.TargetPath = " + PsQuote(exe) + "; " +
-                "$s.WorkingDirectory = " + PsQuote(workDir) + "; " +
-                "$s.Save()";
-            System.Diagnostics.Process p = System.Diagnostics.Process.Start(
-                "powershell.exe",
-                "-NoProfile -ExecutionPolicy Bypass -Command " + PsQuote(script));
-            if (p != null) p.WaitForExit(15000);
-        }
+        /// Clear the read-only attribute on a file (a copied-in player can
 
         /// A PowerShell single-quoted literal: wrap in ' and double any '
         /// inside. Single-quoted PowerShell strings interpolate nothing, so
         /// no other character needs escaping.
-        static string PsQuote(string s)
-        {
-            return "'" + s.Replace("'", "''") + "'";
-        }
-
         /// Clear the read-only attribute on a file (a copied-in player can
         /// carry it, and File.Delete refuses to remove read-only files).
         static void UnlockFile(string path)

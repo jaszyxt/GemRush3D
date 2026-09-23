@@ -301,6 +301,32 @@ namespace GemRush.Tests
         // ------------------------------------------------------------------
 
         [Test]
+        public void NoStoryBeat_IsSilentlyDropped()
+        {
+            // LevelBuilder pairs beats to checkpoints BY INDEX:
+            //     string beat = i < level.StoryBeats.Count
+            //         ? level.StoryBeats[i] : null;
+            // so a beat written past the last checkpoint never reaches the
+            // player and nothing complains. A writer adding a line to a
+            // level with too few checkpoints would simply lose it.
+            //
+            // The count must not exceed the checkpoints. (The reverse is
+            // fine and common: a level may have a checkpoint with no line,
+            // which reads as silence rather than as a bug.)
+            int i = 0;
+            foreach (LevelDefinition l in AllLevels)
+            {
+                Assert.LessOrEqual(l.StoryBeats.Count, l.Checkpoints.Count,
+                    Label(i, l) + " has " + l.StoryBeats.Count + " story "
+                    + "beats but only " + l.Checkpoints.Count + " checkpoint"
+                    + (l.Checkpoints.Count == 1 ? "" : "s") + " — the extra "
+                    + "beat(s) are dropped at build time and never shown. "
+                    + "Add a checkpoint, or move the line.");
+                i++;
+            }
+        }
+
+        [Test]
         public void EveryLevel_HasAtLeastOneStoryBeat()
         {
             int i = 0;
