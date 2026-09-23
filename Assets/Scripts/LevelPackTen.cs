@@ -111,7 +111,7 @@ namespace GemRush
             l.Hearts.Add(new Vector3(2f, 11.6f, 85f));
 
             l.StoryBeats.Add("The door exits five floors up. Mirror physics: what goes in at walking height comes out where it was always going.");
-            l.StoryBeats.Add("Gloomfang's reflection floats on the wrong side of the sky, copying your moves perfectly. Slightly better than you, if you're honest.");
+            l.StoryBeats.Add("Gloomfang's reflection floats on the wrong side of the sky, copying your moves perfectly. It seems to know where you're going before you do.");
 
             l.Gems.Add(new Vector3(0f, 1.6f, 10f));
             l.Gems.Add(new Vector3(-2f, 2.6f, 18f));

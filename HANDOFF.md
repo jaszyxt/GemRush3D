@@ -1,4 +1,4 @@
-# HANDOFF — current state (update: v1.29.4 session, 2026-09-22)
+# HANDOFF — current state (update: v1.29.6 session, 2026-09-22)
 
 **READ FIRST — `docs/User-Directives.md`.** That file holds the USER's
 protected decisions (haptics, palette families, user-edit authority,
@@ -34,7 +34,7 @@ written down.
    UI/UX batch successfully); give each agent exclusive files.
 
 ## Current shipped state
-- **Code: v1.29.4** (versionCode 12904, derived). Version now lives in ONE
+- **Code: v1.29.6** (versionCode 12906, derived). Version now lives in ONE
   place: `GemRush.version` at the repo root. The build reads it and derives
   the Android versionCode automatically (`tools/check-version.sh` fails CI
   if a doc disagrees — it already caught real drift: this file said 1.19.0

@@ -149,7 +149,7 @@ namespace GemRush
         {
             LevelDefinition l = new LevelDefinition();
             l.Name = "The Blooming Gate";
-            l.Mission = "Every garden has a front gate, and this one has kept the sky realm's oldest promise: whoever tends it may pass. Three guardians. One of them is a light sleeper — the garden apologizes in advance. Ring the course with your steps and the gate will open in flowers.";
+            l.Mission = "Every garden has a front gate, and this one has kept the sky realm's oldest promise: whoever tends it may pass. Three guardians. One of them is a light sleeper — the garden apologizes in advance. Stay close and let the gate do the work.";
             l.WinLine = "The Blooming Gate opened in a wave of color you chose, gem by gem. The guardians clapped. Slowly. They're still waking up.";
             l.Milestone = "REGION CHARTED: THE SKY GARDEN. The page bloomed while it was drawn.";
 

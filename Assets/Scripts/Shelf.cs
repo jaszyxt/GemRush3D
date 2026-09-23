@@ -18,6 +18,8 @@ namespace GemRush
         const int TrophyLantern = 1 << 3;
         const int TrophyAurora = 1 << 4;
         const int TrophyGift = 1 << 5;
+        const int TrophyComplete = 1 << 6;
+        const int TrophyAllGems = 1 << 7;
         const string SeenKey = "shelf_seen";
 
         /// True when every level of the named region has been cleared at
@@ -77,7 +79,13 @@ namespace GemRush
             ArtLib.DecorCube(shelf.transform, new Vector3(0f, 1.42f, 0f),
                 new Vector3(1.85f, 0.07f, 0.6f), Quaternion.identity, woodDark);
 
-            // Earned trophies, in fixed slots (top plank, bottom plank).
+            // Earned trophies, in fixed slots (top plank, bottom plank,
+            // third plank). The shelf's design law is "always has room for
+            // one more" — this was contradicted when the first two planks
+            // held exactly six items with no room left. The third plank
+            // (y=0.18, below the bottom plank) provides two new slots so
+            // that finding everything never fills the shelf: there is
+            // always room above or beside the newest arrival.
             int mask = 0;
             if (SaveSystem.UnlockedLevel >= 9)
                 mask |= Place(shelf.transform, TrophyPlush,
@@ -99,6 +107,25 @@ namespace GemRush
             if (SaveSystem.Gifts > 0)
                 mask |= Place(shelf.transform, TrophyGift,
                     new Vector3(0f, 1.32f, 0f), BuildGift);
+
+            // Third plank: below the existing two, providing two more slots
+            // so the shelf is never geometrically full. The shelf's design
+            // law is "always has room for one more" — the first two planks
+            // held exactly six items, contradicting three texts that
+            // promise an open spot. A third plank at y=0.18 (above the
+            // home island, below the bottom plank) keeps the geometry
+            // honest.
+            ArtLib.DecorCube(shelf.transform, new Vector3(0f, 0.18f, 0f),
+                new Vector3(1.7f, 0.09f, 0.5f), Quaternion.identity, wood);
+
+            int allLevels = LevelLibrary.Levels.Length;
+            if (SaveSystem.UnlockedLevel >= allLevels)
+                mask |= Place(shelf.transform, TrophyComplete,
+                    new Vector3(-0.3f, 0.25f, 0f), BuildAtlas);
+            int goldens = SaveSystem.TotalGoldens(allLevels);
+            if (goldens > 0)
+                mask |= Place(shelf.transform, TrophyAllGems,
+                    new Vector3(0.3f, 0.25f, 0f), t => BuildGoldens(t, goldens));
 
             // New-trophy twinkle: each first arrival sparkles once.
             int seen = PlayerPrefs.GetInt(SeenKey, 0);
@@ -226,5 +253,40 @@ namespace GemRush
                 new Vector3(0.06f, 0.05f, 0.22f),
                 Quaternion.identity, ArtLib.Solid(ArtLib.Gold, 0f));
         }
+
+        /// The atlas: a small golden plaque on the shelf. Appears when
+        /// every level has been cleared — the map is complete.
+        static void BuildAtlas(Transform t)
+        {
+            // A flat, gold plaque — small but legible, the way a framed
+            // certificate would sit on a shelf.
+            ArtLib.DecorCube(t, new Vector3(0f, 0.06f, 0f),
+                new Vector3(0.35f, 0.08f, 0.05f),
+                Quaternion.identity, ArtLib.Solid(ArtLib.Gold, 0f));
+            ArtLib.DecorCube(t, new Vector3(0f, 0.06f, -0.03f),
+                new Vector3(0.39f, 0.12f, 0.01f),
+                Quaternion.identity, ArtLib.Solid(
+                    new Color(0.48f, 0.34f, 0.20f), 0f));
+        }
+
+        /// The golden gems: a small glowing sphere, one per golden found.
+        static void BuildGoldens(Transform t, int count)
+        {
+            // A single golden gem sits on a tiny shelf — a reminder the
+            // player went looking for hidden light.
+            int display = Mathf.Min(count, 3);
+            for (int i = 0; i < display; i++)
+            {
+                float x = (i - (display - 1) * 0.5f) * 0.08f;
+                GameObject g = GameObject.CreatePrimitive(
+                    UnityEngine.PrimitiveType.Sphere);
+                g.transform.SetParent(t, false);
+                g.transform.localPosition = new Vector3(x, 0.1f, 0f);
+                g.transform.localScale = Vector3.one * 0.055f;
+                g.GetComponent<Renderer>().material =
+                    ArtLib.Solid(ArtLib.Gold, 0f);
+            }
+        }
+
     }
 }

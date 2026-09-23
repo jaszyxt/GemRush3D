@@ -56,6 +56,21 @@ at one screenshot, alone, once. A baseline plus a numeric diff means a
 change to a realm nobody thought to check announces itself. It reports
 "this moved", never "this is worse" — the second is a human call.
 
+*Extended by the UI agent (2026-09-21)* with **six UI scenes** —
+`ui-settings`, `ui-pause`, `ui-atlas`, `ui-briefing`, `ui-gameover`,
+`ui-complete` — raised through the manager's own entry points and captured
+with the world behind them. Same reasoning, other half of the screen: the
+art scenes guard how the world looks, these guard how the interface looks,
+so a moved button or a broken grid shows up as a diff instead of waiting
+for someone to open the screen and notice. 15 scenes total (~90 s).
+
+Two things found while extending it: the file claimed to hide the HUD for
+world scenes "so text changes cannot masquerade as art regressions", but
+never did — the HUD is in fact captured, and worth guarding, so the
+comment is corrected rather than the behaviour implemented. And UI scenes
+need a longer settle (90 frames vs 45) because panels animate in over
+0.2 s; capturing early would chase the fade.
+
 **`BudgetProbe.cs`** — I cannot feel a phone's frame rate. I cannot even
 honestly estimate it from a desktop editor. What I *can* do is record the
 same numbers every release and watch them move.

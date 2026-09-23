@@ -236,7 +236,15 @@ namespace GemRush.EditorTools
                     ui.ShowGameOver();
                     break;
                 case UiScreen.Complete:
-                    ui.ShowComplete(0, LevelLibrary.Levels.Length * 3);
+                    // ShowComplete takes stars, max stars, medals AND
+                    // goldens. This probe only captures the screen's layout,
+                    // so zeros for the cumulative totals are correct — but
+                    // all four arguments are required. A stale 3-argument
+                    // call here broke the whole EDITOR compile, and because
+                    // Editor scripts are outside the offline stub check,
+                    // nothing caught it until a build reported the confusing
+                    // "Error building Player because scripts are compiling".
+                    ui.ShowComplete(0, LevelLibrary.Levels.Length * 3, 0, 0);
                     break;
             }
         }

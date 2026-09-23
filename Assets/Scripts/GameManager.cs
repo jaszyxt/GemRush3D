@@ -549,7 +549,9 @@ namespace GemRush
                 // belongs here, not only on a single level's win screen.
                 Haptics.Fanfare();
                 ui.ShowComplete(SaveSystem.TotalStars(LevelLibrary.Levels.Length),
-                    LevelLibrary.Levels.Length * 3);
+                    LevelLibrary.Levels.Length * 3,
+                    SaveSystem.TotalMedals(LevelLibrary.Levels.Length),
+                    SaveSystem.TotalGoldens(LevelLibrary.Levels.Length));
             }
             else
             {

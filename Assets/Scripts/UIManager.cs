@@ -1583,7 +1583,9 @@ namespace GemRush
             // is DERIVED from the target floor, so raising the floor cannot
             // make the rows collide (Pause_TouchLayout_NoOverlap pins it).
             bool touch = IsTouchLayout();
-            int stackRows = IsDesktopPlatform() ? 4 : 3;
+            // PHOTO is available on every platform (the save path adapts in
+            // ShowPhotoMode), so the stack always has four rows.
+            int stackRows = 4;
             float floorHalf = TouchFloorUnits / 900f * 0.5f;
             // Leave a small gap between rows beyond the target height.
             float minGap = floorHalf * 2f + 0.012f;
@@ -1620,12 +1622,9 @@ namespace GemRush
                 });
 
             // Photo mode (photo postcards, DESIGN.md community plan): pause
-            // the run, frame the sky, take the shot. Desktop-only for now —
-            // the save path (MyPictures) and OPEN FOLDER are desktop
-            // concepts; a mobile path via persistentDataPath is the
-            // documented future item.
-            if (IsDesktopPlatform())
-                pausePhotoButton = MakeButton(pausePanel.transform, Strings.Photo,
+            // the run, frame the sky, take the shot. The save path adapts
+            // per platform in ShowPhotoMode; OPEN FOLDER is desktop-only.
+            pausePhotoButton = MakeButton(pausePanel.transform, Strings.Photo,
                     new Vector2(0.5f, rowY(2)), new Vector2(0f, 0f),
                     new Vector2(360f, 60f), delegate { ShowPhotoMode(); });
 
@@ -1765,10 +1764,13 @@ namespace GemRush
             if (GameBootstrap.CameraRig == null ||
                 GameBootstrap.Player == null) return;
             HidePaused(); // the pause panel gets out of the shot
-            photoFolder = System.IO.Path.Combine(
-                System.Environment.GetFolderPath(
-                    System.Environment.SpecialFolder.MyPictures),
-                "GemRush3D");
+            photoFolder = IsDesktopPlatform()
+                ? System.IO.Path.Combine(
+                      System.Environment.GetFolderPath(
+                          System.Environment.SpecialFolder.MyPictures),
+                      "GemRush3D")
+                : System.IO.Path.Combine(
+                      Application.persistentDataPath, "GemRush3D");
             System.IO.Directory.CreateDirectory(photoFolder);
             photoStatus.text = Strings.PhotoHint;
             photoOpenFolder.gameObject.SetActive(false);
@@ -1830,7 +1832,10 @@ namespace GemRush
             if (TryWritePng(path, png))
             {
                 photoStatus.text = Strings.PhotoSavedTo(path);
-                photoOpenFolder.gameObject.SetActive(true);
+                // OPEN FOLDER only makes sense on desktop where a file
+                // manager is reliably available. On mobile the status
+                // text shows the path for reference.
+                photoOpenFolder.gameObject.SetActive(IsDesktopPlatform());
                 AudioManager.Instance.PlayShutter();
             }
             else
@@ -2133,10 +2138,26 @@ namespace GemRush
                 if (medal != "") medal = Strings.MedalBurst(medal);
                 winStats.text = Strings.WinStats(level + 1, FormatTime(time),
                     medal, gems, total, bestText);
+                // The ghost run is a translucent duplicate of Pip that races
+                // the player on replays. Without this line, it appears with
+                // zero explanation — the highest-severity discoverability
+                // gap found in the role-D audit. A ghost exists whenever a
+                // best time has been recorded (best >= 0).
+                if (best >= 0f)
+                    winStats.text += "\n" + Strings.GhostHint;
             }
             if (winStory != null)
+            {
                 winStory.text = LevelLibrary.Levels[
                     Mathf.Clamp(level, 0, LevelLibrary.Levels.Length - 1)].WinLine;
+                // The photo mode is only reachable by pausing, and nothing
+                // in the game ever says it exists — the highest-severity
+                // discoverability gap after the ghost. A 3-star clear is
+                // the natural time to mention it: the sky is worth framing,
+                // and the player has demonstrated they are paying attention.
+                if (stars >= 3)
+                    winStory.text += "\n" + Strings.PhotoFirstHint;
+            }
             LevelDefinition winDef = LevelLibrary.Levels[
                 Mathf.Clamp(level, 0, LevelLibrary.Levels.Length - 1)];
             // Narrate the win line, then the milestone once the voice is free.
@@ -2199,11 +2220,13 @@ namespace GemRush
             Focus(overTryButton);
         }
 
-        public void ShowComplete(int totalStars, int maxStars)
+        public void ShowComplete(int totalStars, int maxStars,
+            int totalMedals, int totalGoldens)
         {
             HideAll();
             if (completeStats != null)
-                completeStats.text = Strings.CompleteStats(totalStars, maxStars);
+                completeStats.text = Strings.CompleteStats(totalStars,
+                    maxStars, totalMedals, totalGoldens);
 
             // Story first: page through the epilogue, then the stats appear.
             epiloguePages = Story.Epilogue;

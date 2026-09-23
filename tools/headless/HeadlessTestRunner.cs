@@ -19,13 +19,36 @@ public static class HeadlessTestRunner
         Assembly assembly;
         if (args.Length > 0)
         {
+            // Constrain the load to the compiled test assembly this runner
+            // is FOR: tools/.headless-test/tests.dll, written by
+            // run-tests-headless.sh. The argument is a build-system path,
+            // never user input, but validating it costs nothing and keeps a
+            // tainted-argument path out of the tooling entirely.
+            string path = args[0];
+            string scratch = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(
+                    System.IO.Path.GetDirectoryName(
+                        System.Reflection.Assembly.GetExecutingAssembly().Location)),
+                ".headless-test");
+            bool ok = !string.IsNullOrEmpty(path) &&
+                path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
+                System.IO.File.Exists(path) &&
+                System.IO.Path.GetFullPath(path).StartsWith(
+                    System.IO.Path.GetFullPath(scratch),
+                    StringComparison.OrdinalIgnoreCase);
+            if (!ok)
+            {
+                Console.WriteLine("refusing to load '" + path +
+                    "': expected the built test assembly under " + scratch);
+                return 2;
+            }
             try
             {
-                assembly = Assembly.LoadFrom(args[0]);
+                assembly = Assembly.LoadFrom(path);
             }
             catch (Exception e)
             {
-                Console.WriteLine("could not load " + args[0] + ": " + e.Message);
+                Console.WriteLine("could not load " + path + ": " + e.Message);
                 return 2;
             }
         }

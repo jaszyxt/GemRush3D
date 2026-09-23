@@ -140,11 +140,37 @@ namespace GemRush
             "The storm has a job now. The map has room left.\n" +
             "Pip's shelf keeps one spot open — for whatever comes next.";
 
-        public static string CompleteStats(int totalStars, int maxStars)
+        /// Shown on the win screen when a ghost run exists. Without this,
+        /// a translucent duplicate of Pip appears on replay and the player
+        /// has no idea what it is — reads as a rendering bug.
+        public const string GhostHint =
+            "Your best run waits — race it back.";
+
+        /// First time the player takes a photo. The mode is always in the
+        /// pause menu but nobody ever says so — this puts one word there.
+        public const string PhotoFirstHint =
+            "Pause the game to take a photo of this view.";
+
+        public static string CompleteStats(int totalStars, int maxStars,
+            int totalMedals, int totalGoldens)
         {
-            return string.Format(
-                "All levels cleared!\nTotal stars  {0} / {1}",
-                totalStars, maxStars);
+            // The old version showed only "Total stars N / M" and nothing
+            // else — so the game's biggest moment was also its most
+            // unrecognising. Medals, goldens and the warmest framing of
+            // partial completion were all computed and unused.
+            string golds = totalGoldens >= 0
+                ? "\nGoldens found  " + totalGoldens : "";
+            string medals = totalMedals > 0
+                ? "\nMedals earned  " + totalMedals : "";
+            if (totalStars == maxStars)
+                return "All levels cleared — " + maxStars +
+                    " of " + maxStars + " stars, every one." +
+                    medals + golds;
+            if (totalStars >= maxStars * 0.8f)
+                return "Almost every star in the sky.\nTotal stars  " +
+                    totalStars + " / " + maxStars + medals + golds;
+            return "Total stars  " + totalStars + " / " + maxStars +
+                medals + golds;
         }
 
         // ---------- Pause / quit ----------

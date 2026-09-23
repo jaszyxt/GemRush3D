@@ -344,121 +344,51 @@ namespace GemRush.EditorTools
             }
         }
 
-        /// Writes a .lnk through the Windows Script Host COM object,
-        /// falling back to a powershell.exe shell-out if COM activation is
-        /// unavailable.
+        /// Writes a .lnk through the Windows Script Host COM object.
         ///
-        /// COM is preferred (rather than only shelling out, with the paths
-        /// pasted into a command string) because a profile path containing a
-        /// quote — C:\Users\O'Brien\ — could both break that command and land
-        /// in executable position. No shell, no command text, nothing to
-        /// escape.
+        /// If COM is unavailable, the existing shortcut is LEFT ALONE and a
+        /// warning is logged. It is never overwritten with anything this
+        /// method cannot verify.
         ///
-        /// But COM is NOT reliable under Unity's Mono: the earlier version of
-        /// this method failed on six consecutive builds with "Unmanaged
-        /// activation is not supported" while only logging a warning, so the
-        /// desktop icon silently went stale. The same call succeeds in
-        /// PowerShell's .NET (verified), which is why it looked fine when
-        /// reasoned about and wrong when the build actually ran.
+        /// That rule is the scar from two failed attempts:
         ///
-        /// So: try COM, and if it throws, write the .lnk file DIRECTLY.
+        /// 1. A powershell.exe shell-out with the paths pasted into a command
+        ///    string. Correct escaping (verified against injection payloads),
+        ///    but a reviewer cannot confirm that from the call site, and the
+        ///    security gate stopped it — rightly, since a safer form exists.
         ///
-        /// The direct write is the reason this method no longer shells out.
-        /// The previous fallback launched powershell.exe with a constructed
-        /// command string. It escaped the paths correctly and was verified
-        /// against injection payloads, but a reviewer cannot confirm that
-        /// from the call site, and the security gate stopped it — correctly,
-        /// because a safer mechanism existed. Writing the shortcut bytes
-        /// involves no process, no shell and no command text, so there is
-        /// nothing to escape and nothing to inject into.
+        /// 2. A hand-rolled .lnk, byte for byte, to remove the shell entirely.
+        ///    It wrote a syntactically valid Shell Link whose LinkFlags said
+        ///    HasArguments where the code meant HasName, so Windows read the
+        ///    name string as an argument list: TargetPath came back EMPTY.
+        ///    Worse, it OVERWROTE a working shortcut with that broken file —
+        ///    replacing a stale-but-usable icon with a dead one.
+        ///
+        /// The lesson: writing a binary format you cannot read back is not a
+        /// safe substitute for a mechanism you cannot call. COM is the only
+        /// path here that produces a shortcut this code can verify, so COM is
+        /// the only path that writes.
         static void WriteShortcutCom(string lnk, string exe, string workDir)
         {
             try
             {
                 WriteShortcutViaWsh(lnk, exe, workDir);
-                return;
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
-                // Fall through to the direct file write below.
-            }
-            WriteShortcutFile(lnk, exe, workDir);
-        }
-
-        /// Writes a .lnk by hand, byte for byte.
-        ///
-        /// A shortcut is a Shell Link binary: a 76-byte header followed by a
-        /// LinkTargetIDList and a set of optional StringData structures. We
-        /// emit only what Explorer needs to launch the game — the target
-        /// path, the working directory, and the "run normally" flag — and
-        /// deliberately omit the IDList (a zero-length item list is legal and
-        /// Explorer resolves the target from the path alone).
-        ///
-        /// This is the invariant that matters: every field is written as
-        /// LENGTH-PREFIXED BYTES. No value is ever interpreted as syntax by
-        /// anything, so a path containing quotes, spaces, semicolons or a
-        /// backtick is stored verbatim as data.
-        static void WriteShortcutFile(string lnk, string exe, string workDir)
-        {
-            using (System.IO.FileStream fs = new System.IO.FileStream(
-                lnk, System.IO.FileMode.Create, System.IO.FileAccess.Write))
-            using (System.IO.BinaryWriter w = new System.IO.BinaryWriter(fs))
-            {
-                // --- ShellLinkHeader (exactly 76 bytes, MS-SHLLINK 2.1) ---
-                w.Write((uint)0x0000004C);   // HeaderSize
-                // LinkCLSID: a 16-byte GUID {00021401-0000-0000-C000-000000000046},
-                // written in GUID byte order (Data1 LE, Data2 LE, Data3 LE,
-                // Data4 as-is). Writing this as loose ushorts is an easy way
-                // to land 4 bytes over and produce a file Explorer ignores,
-                // so it is spelled out field by field.
-                w.Write((uint)0x00021401);   // Data1
-                w.Write((ushort)0x0000);     // Data2
-                w.Write((ushort)0x0000);     // Data3
-                w.Write((byte)0xC0);         // Data4[0]
-                w.Write((byte)0x00);
-                w.Write((byte)0x00);
-                w.Write((byte)0x00);
-                w.Write((byte)0x00);
-                w.Write((byte)0x00);
-                w.Write((byte)0x00);
-                w.Write((byte)0x46);
-                w.Write((uint)0x00000020);   // LinkFlags: HasName
-                w.Write((uint)0x00000080);   // FileAttributes: NORMAL
-                w.Write((long)0);            // CreationTime
-                w.Write((long)0);            // AccessTime
-                w.Write((long)0);            // WriteTime
-                w.Write((uint)0);            // FileSize
-                w.Write((int)0);             // IconIndex
-                w.Write((uint)1);            // ShowCommand: SW_SHOWNORMAL
-                w.Write((ushort)0);          // HotKey
-                w.Write((ushort)0);          // Reserved
-                w.Write((uint)0);            // Reserved2
-                w.Write((uint)0);            // Reserved3
-
-                // --- LinkTargetIDList: zero items (terminator only) ---
-                w.Write((ushort)0);
-
-                // --- StringData: NAME_STRING, RELATIVE_PATH, WORKING_DIR ---
-                WriteLinkString(w, exe);       // NAME_STRING
-                WriteLinkString(w, exe);       // RELATIVE_PATH
-                WriteLinkString(w, workDir);   // WORKING_DIR
-
-                // --- ExtraData: terminal block ---
-                w.Write((uint)0);
+                Debug.LogWarning("[GemRush] Desktop shortcut not refreshed (" +
+                    e.Message + "). The EXISTING shortcut is untouched. If " +
+                    "the install path changes, recreate it by hand pointing " +
+                    "at " + exe + ".");
             }
         }
 
-        /// One StringData structure: a 16-bit character count followed by
-        /// UTF-16 code units, per the Shell Link spec. The count is of
-        /// CHARACTERS (not bytes) and excludes the terminator.
-        static void WriteLinkString(System.IO.BinaryWriter w, string value)
-        {
-            if (value == null) value = string.Empty;
-            w.Write((ushort)value.Length);
-            w.Write(System.Text.Encoding.Unicode.GetBytes(value));
-        }
-
-        /// The COM route: late-bound through the WScript.Shell ProgID.
+        /// The one route that writes: late-bound WScript.Shell via COM.
+        ///
+        /// It may throw "Unmanaged activation is not supported" under Unity's
+        /// Mono. That is expected and handled above — the shortcut is then
+        /// left as it is, which is strictly better than replacing a working
+        /// icon with a file we cannot verify.
         static void WriteShortcutViaWsh(string lnk, string exe, string workDir)
         {
             System.Type shellType = System.Type.GetTypeFromProgID(
@@ -487,11 +417,6 @@ namespace GemRush.EditorTools
             }
         }
 
-        /// Clear the read-only attribute on a file (a copied-in player can
-
-        /// A PowerShell single-quoted literal: wrap in ' and double any '
-        /// inside. Single-quoted PowerShell strings interpolate nothing, so
-        /// no other character needs escaping.
         /// Clear the read-only attribute on a file (a copied-in player can
         /// carry it, and File.Delete refuses to remove read-only files).
         static void UnlockFile(string path)
