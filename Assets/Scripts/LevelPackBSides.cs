@@ -28,6 +28,8 @@ namespace GemRush
                 l.Checkpoints.Add(new Vector3(0f, 0.5f, 47f));
                 l.StoryBeats.Add("Night wind is just day wind wearing a darker coat. Nim sleeps in this lane — his giggles became snores.");
                 l.Gems.Add(new Vector3(0f, 2.1f, 55f));
+                l.Checkpoints.Add(new Vector3(-2f, 7.5f, 100f));
+                l.StoryBeats.Add("The night wind carries every sound a little further. Pip's footsteps echo off the dark.");
             }),
             Remixes.Remixed(LevelPackNine.Levels[0], l =>
             {
@@ -47,6 +49,8 @@ namespace GemRush
                 // pair to checkpoints by index; the parent has only two).
                 l.Checkpoints.Add(new Vector3(0f, 3.5f, 64f));
                 l.StoryBeats.Add("The wind learned the garden's melody. Now the beds sway in time, and the guardians dream on the beat.");
+                l.Checkpoints.Add(new Vector3(0f, 6.5f, 105f));
+                l.StoryBeats.Add("Even the sleeping guardians are swaying now. The garden keeps dreaming, and the music keeps playing.");
             }),
             Remixes.Remixed(LevelLibrary.TheAscent(), l =>
             {

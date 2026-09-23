@@ -45,6 +45,8 @@ namespace GemRush
 
             l.Checkpoints.Add(new Vector3(0f, 2.5f, 38f));
             l.StoryBeats.Add("Rule of ribbons: they come to your shore, they wait a breath, and then they flow. Auroras have been waiting all season to show someone this.");
+            l.Checkpoints.Add(new Vector3(0f, 4.5f, 68f));
+            l.StoryBeats.Add("The ribbons carry more than weight. They carry the memory of every region Pip has ever crossed.");
 
             l.Gems.Add(new Vector3(0f, 1.6f, 10f));
             l.Gems.Add(new Vector3(0f, 2.1f, 19f));      // at the R1 shore

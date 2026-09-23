@@ -1,0 +1,126 @@
+# === github/gitignore Unity template (trimmed) ===
+.utmp/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]serSettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+*.log
+*.apk
+*.aab
+*.unitypackage
+sysinfo.txt
+mono_crash.*
+
+# Local verification artifacts (editor probes / play-mode smoke shots).
+# Evidence, not source: regenerate with the GemRush/*Probe menus or the
+# MCP screenshot path. Keeping them out of the repo keeps diffs about code.
+/Screenshots/
+
+# Visual-regression baselines: machine- and resolution-specific, and
+# regenerated with GemRush/Visual Baseline/Capture. A tracked baseline
+# would fail on any machine whose window size differs.
+/tools/visual-baseline/
+
+# IDE
+.vs/
+.idea/
+*.csproj
+*.sln
+*.user
+# ...except the CI compile-check project (deliberately tracked)
+!tools/Check.csproj
+!tools/headless/HeadlessTests.csproj
+
+# Unity test-runner scenes
+InitTestScene*.unity*
+
+# OS
+Thumbs.db
+.DS_Store
+
+# === project-specific ===
+tools/check.dll
+tools/out/
+# Headless test scratch (compiled dll, copied refs, response files).
+# tools/headless/refs IS tracked — CI needs those assemblies to run
+# the test suite without a Unity install.
+tools/.headless-test/
+tools/build-log*.txt
+tools/probe-log.txt
+tools/session-errors.log
+tools/csc-*.txt
+tools/*.png
+
+# Editor screenshot verification artifacts (kept locally, not in git)
+Assets/Screenshots/
+
+# Release signing secrets — never commit these
+tools/gemrush.keystore
+tools/signing.txt
+
+# ZCode session artifacts
+.zcode/
+
+# Voice pipeline build temps (clips under Assets/Resources/Voice are committed)
+tools/voice/build/
+
+# Voice generation local venv + ffmpeg bin (git-ignored tools)
+tools/voice/.venv/
+tools/voice/bin/
+
+# Unity Test Framework byproducts (recreated by every test run; a prior
+# commit removed the stale copies and nothing references them).
+/Assets/Resources/PerformanceTestRunInfo.json*
+/Assets/Resources/PerformanceTestRunSettings.json*
+
+# Python bytecode (was tracked by accident; regenerated on import)
+__pycache__/
+*.pyc
+
+# Mimosa security-scanner working state (its own hook/report/baseline cache).
+# Local tool scratch, never source. It was filling ~5,000 untracked files —
+# the scanner counts untracked non-ignored files against its own 5,000-file
+# census cap, so its cache was overflowing its own scan and forcing
+# `coverage: partial`, which fails closed and blocks every commit in the
+# repo with "findings" that are really just a truncated baseline. Ignoring
+# the cache keeps the census on real source; the gate itself is untouched.
+.mimosa/
+
+# Headless test-runner build intermediates
+tools/obj/
+
+# ===== ↑ 以上同步自 .gitignore（「从 .gitignore 同步」只重写以上部分）=====
+.git/
+.hg/
+.svn/
+node_modules/
+bower_components/
+jspm_packages/
+site-packages/
+venv/
+coverage/
+htmlcov/
+lcov-report/
+cmakefiles/
+cmake-build-*/
+bazel-*/
+pods/
+deriveddata/
+storybook-static/
+playwright-report/
+test-results/
+allure-results/
+allure-report/
+cdk.out/
+*.egg-info/
+*.dist-info/
+eggs/
+pip-wheel-metadata/
+wheels/
+# ----- ↑ 以上为 ZCode 默认排除规则（自定义规则请写在本行下方，不会被同步/恢复改动）-----
+# 自定义规则写在下方（本行提示可删除）

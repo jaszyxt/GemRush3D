@@ -45,6 +45,8 @@ namespace GemRush
 
             l.Checkpoints.Add(new Vector3(-2f, 2.5f, 38f));
             l.StoryBeats.Add("The lantern doesn't light the way so much as warm it. The ice steps aside politely. Ice is very patient.");
+            l.Checkpoints.Add(new Vector3(0f, 4.5f, 74f));
+            l.StoryBeats.Add("The lantern hums a tune it learned from the glacier. Gloomfang listens from above, very quiet.");
 
             l.Gems.Add(new Vector3(0f, 1.6f, 10f));
             l.Gems.Add(new Vector3(2f, 1.6f, 17f));
