@@ -250,9 +250,10 @@ is authored wordless), the Aurora Ribbon ride (it is a mover, and movers
 are silent by convention), **`RestBeat`** (its whole design is "nothing
 is asked of them, nothing is timed" — sound would contradict the beat),
 **`GoldenSignal`'s hint layer**, and — most notably — **Winter's ambience
-bed**: `SoundMood.Winter` has no bed while every other realm does. The
-code documents it as "the quietest pack", so the silence under the pad
-is intent; a snow bed would contradict it. Left as-is.
+bed**: `SoundMood.Winter` *does* have a bed (`AmbienceKind.Snow`, a high
+still hush distinct from the wind realm's moving air). The earlier claim
+that it was silent was wrong; the code shipped a snow bed alongside the
+hushed chords. Left as-is — it works.
 
 On `GoldenSignal` specifically (decided 2026-09-24): the golden gem's
 *pickup* plays `PlayGift`, so the discovery beat is voiced. The hint —

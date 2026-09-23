@@ -165,6 +165,7 @@ namespace GemRush
         Text atlasHeader;
         Text atlasStarsTotal;
         Text atlasMilestone;
+        Text atlasFlavour;
         Text atlasPageLabel;
         Button[] atlasRows;
         Button atlasPrev;
@@ -1129,6 +1130,15 @@ namespace GemRush
                 new Vector2(0.14f, 0.60f), new Vector2(0.86f, 0.68f), 0f, 0f, 0f, 0f);
             atlasMilestone.fontStyle = FontStyle.Italic;
 
+            // Per-region flavour: a short identity line so the atlas
+            // doesn't look identical for every region. The story says the
+            // map is drawn in Pip's handwriting — now each region has its
+            // own note in that handwriting.
+            atlasFlavour = MakeText(atlasPanel.transform, "RegionFlavour", "",
+                18, new Color(0.65f, 0.70f, 0.80f), TextAnchor.MiddleCenter,
+                new Vector2(0.14f, 0.54f), new Vector2(0.86f, 0.60f), 0f, 0f, 0f, 0f);
+            atlasFlavour.fontStyle = FontStyle.Italic;
+
             // Three level rows; regions with fewer deactivate the spares.
             atlasRows = new Button[3];
             float[] rowY = { 0.48f, 0.34f, 0.20f };
@@ -1288,6 +1298,8 @@ namespace GemRush
             atlasMilestone.text = string.IsNullOrEmpty(milestone)
                 ? Strings.AtlasUncharted
                 : milestone;
+            if (atlasFlavour != null)
+                atlasFlavour.text = Strings.AtlasRegionFlavour(region.Name);
             atlasPageLabel.text = Strings.AtlasPage(atlasRegion + 1,
                 LevelLibrary.Regions.Length);
 
@@ -1831,6 +1843,12 @@ namespace GemRush
             // shot into memory and reported success without saving a file.
             if (TryWritePng(path, png))
             {
+                // Push to the device gallery so the photo is visible in the
+                // system Photos / Gallery app, not just in the app's private
+                // storage.  The file is already written; this is best-effort
+                // and fails silently on platforms where gallery access is
+                // unavailable.
+                GallerySave.AddToGallery(path);
                 photoStatus.text = Strings.PhotoSavedTo(path);
                 // OPEN FOLDER only makes sense on desktop where a file
                 // manager is reliably available. On mobile the status
@@ -2004,7 +2022,11 @@ namespace GemRush
         {
             if (storyToastPanel == null || string.IsNullOrEmpty(line)) return;
             if (storyToastText != null) storyToastText.text = line;
-            storyToastTimer = 4f;
+            // Scale hold time to text length so longer beats get more
+            // read-time. Short quips still get the 4 s floor; multi-line
+            // story beats (up to ~120 chars at 24 pt) need ~9-10 s.
+            // VO hold already extends this when narration is playing.
+            storyToastTimer = Mathf.Max(4f, line.Length * 0.08f);
             storyToastPanel.SetActive(true);
             holdToastForVoice = false;
             if (voId != null && VoiceOver.Instance != null)

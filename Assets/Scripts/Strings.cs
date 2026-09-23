@@ -256,6 +256,46 @@ namespace GemRush
 
         public const string AtlasUncharted =
             "Charted skies, drawn in Pip's small, determined handwriting.";
+
+        /// A short identity line per atlas region, shown under the region
+        /// header. Every region looked identical before these — the story
+        /// says the map is hand-drawn, but nothing was drawn.
+        public static string AtlasRegionFlavour(string regionName)
+        {
+            switch (regionName)
+            {
+                case "The Storm":
+                    return "Where it all started. The first spark of a very small hero.";
+                case "The Rematch":
+                    return "Gloomfang brought his best, and Pip brought snacks.";
+                case "The Undercloud":
+                    return "Down is just a direction. Here, it was a hiding place.";
+                case "The Two Suns":
+                    return "Two suns, one Tuesday, and the sky remembering what it was for.";
+                case "The Far Isles":
+                    return "Where the wind holds you up and nobody hurries.";
+                case "Gloomfang's Day Off":
+                    return "One level, one storm, and a sunset that asked for nothing.";
+                case "The Sky Garden":
+                    return "The garden that grew because someone finally sang.";
+                case "Storm Chasers":
+                    return "Where the smallest weather does the most running.";
+                case "The Bell Towers":
+                    return "Towers that remember every storm they ever sang.";
+                case "Mirror Skies":
+                    return "A sky that copies you, then gets there first.";
+                case "The B-Sides":
+                    return "After dark, the same places look different — and so does the work.";
+                case "The Long Winter":
+                    return "Snow holds still. Pip holds the lantern. Both are patient.";
+                case "The Aurora Festival":
+                    return "The sky said thank you, and it meant every colour.";
+                case "The Homecoming":
+                    return "The road home was worth the atlas it took to find.";
+                default:
+                    return "";
+            }
+        }
         public const string StampCharted = "REGION CHARTED";
         public const string StampPerfect = "PERFECT CHART";
 
