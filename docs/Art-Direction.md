@@ -281,6 +281,9 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
   *(e)* **Backdrop silhouettes** now read as craggy floating islands
   rather than blue rectangles: each silhouette gains a lighter turf cap
   and 0–2 peak cubes breaking the flat horizon line.
+  *(f)* **Undercloud gems** boost to 2.4 emission in DarkRealm levels,
+  reading as lanterns in the gloom. *(g)* **RestBeat** camera exit eases
+  back via the follow rig's own smoothing (same treatment as PhotoMode).
 
 - **2026-09-22 (motion pass v5 — panel transitions, trail bloom, photo ease)**
 
