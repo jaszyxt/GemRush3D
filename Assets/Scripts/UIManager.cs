@@ -87,7 +87,7 @@ namespace GemRush
         float winTitlePopTimer;
         bool introHiding;
         bool epilogueCrossfading;   // AnimateHide in progress — prevents
-                            // re-triggering while the tween runs.
+                                    // re-triggering while the tween runs.
         bool toastHiding;    // same pattern for the story toast.
         GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
         System.Action quitConfirmedAction;
@@ -340,12 +340,12 @@ namespace GemRush
                 if (winTitlePopTimer <= 0f && titleRect != null)
                 {
                     RectTransform tr = titleRect;
-                    Tweener.Value(1f, 1.12f, 0.15f, delegate(float k)
+                    Tweener.Value(1f, 1.12f, 0.15f, delegate (float k)
                     {
                         tr.localScale = new Vector3(k, k, 1f);
                     }, delegate
                     {
-                        Tweener.Value(1.12f, 1f, 0.2f, delegate(float k2)
+                        Tweener.Value(1.12f, 1f, 0.2f, delegate (float k2)
                         {
                             tr.localScale = new Vector3(k2, k2, 1f);
                         });
@@ -986,7 +986,7 @@ namespace GemRush
                 string newText = epiloguePages[epiloguePage];
                 string vo = epiloguePages[epiloguePage];
                 int gen = PanelGeneration(completeStory.gameObject, true);
-                Tweener.Value(1f, 0f, 0.1f, delegate(float k)
+                Tweener.Value(1f, 0f, 0.1f, delegate (float k)
                 {
                     if (gen != PanelGeneration(completeStory.gameObject, false)) return;
                     cg.alpha = k;
@@ -996,7 +996,7 @@ namespace GemRush
                     completeStory.text = newText;
                     if (VoiceOver.Instance != null)
                         VoiceOver.Instance.Play(VoiceIds.Epilogue(epiloguePage), vo);
-                    Tweener.Value(0f, 1f, 0.1f, delegate(float k2)
+                    Tweener.Value(0f, 1f, 0.1f, delegate (float k2)
                     {
                         if (gen != PanelGeneration(completeStory.gameObject, false)) return;
                         cg.alpha = k2;
