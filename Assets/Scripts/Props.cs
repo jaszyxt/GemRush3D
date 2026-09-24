@@ -100,7 +100,8 @@ namespace GemRush
         {
             float minSide = Mathf.Min(size.x, size.z);
             if (minSide < 4f) return rng.Next(2);
-            if (minSide >= 8f) return 3 + rng.Next(4);
+            if (minSide >= 10f) return 6 + rng.Next(4); // large arenas feel furnished
+            if (minSide >= 8f) return 4 + rng.Next(4);
             float area = size.x * size.z;
             float t = Mathf.Clamp01((area - 12f) / 44f);
             return 1 + (int)(t * 3.99f);
