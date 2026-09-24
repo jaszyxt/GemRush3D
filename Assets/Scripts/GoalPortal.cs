@@ -25,7 +25,8 @@ namespace GemRush
             ArtLib.DecorCube(portal.transform, new Vector3(0f, 3.75f, 0f),
                 new Vector3(3.3f, 0.5f, 0.5f), Quaternion.identity, frame);
 
-            // Shimmering fill.
+            // Shimmering fill: a radial gradient so the gateway glows from
+            // its heart rather than reading as a flat decorated rectangle.
             GameObject fill = GameObject.CreatePrimitive(PrimitiveType.Cube);
             fill.name = "PortalFill";
             Object.Destroy(fill.GetComponent<Collider>());
@@ -38,6 +39,7 @@ namespace GemRush
                 ? new Material(fillShader)
                 : ArtLib.Solid(ArtLib.PortalCyan, 0.5f);
             fillMat.color = new Color(0.2f, 0.9f, 0.95f, 0.45f);
+            fillMat.mainTexture = Fx.RadialGlowTexture();
             fill.GetComponent<MeshRenderer>().sharedMaterial = fillMat;
 
             // Trigger volume.

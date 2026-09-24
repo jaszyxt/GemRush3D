@@ -138,6 +138,7 @@ namespace GemRush
             }
 
             if (level.SkyGarden) ScatterBuds(level, parent);
+            if (level.DarkRealm) ScatterGlowStones(level, parent);
 
             GoalPortal.Create(parent, level.Portal);
 
@@ -175,6 +176,10 @@ namespace GemRush
 
             ApplyAtmosphere(level);
 
+            // Ambient realm motes: subtle atmospheric life for the realms
+            // that warrant it (Garden, Sunset, Undercloud, Aurora).
+            AmbientMotes.Create(level, parent, courseLength);
+
             BuildBackdrop(level, parent, cloudMat, stone);
 
             GameManager.Instance.ConfigureLevel(level);
@@ -205,6 +210,57 @@ namespace GemRush
             }
         }
 
+        /// The Undercloud's glowing stones: small emissive crystals set
+        /// into large platforms' sides, so the dark realm carries points
+        /// of warmth the story already promised ("He carried every one of
+        /// them down himself"). Deterministic per level, like buds.
+        static void ScatterGlowStones(LevelDefinition level, Transform parent)
+        {
+            int seed = 0;
+            for (int i = 0; i < level.Name.Length; i++) seed += level.Name[i];
+            System.Random rng = new System.Random(seed + 4177);
+            Material stoneMat = ArtLib.Solid(ArtLib.GloomStone, 1.8f);
+
+            foreach (PlatformSpec p in level.Platforms)
+            {
+                if (Mathf.Min(p.Size.x, p.Size.z) < 5f) continue;
+                // 2–3 stones per large platform, placed on the SIDE faces
+                // (not the top) so they read as set into the walls, not
+                // scattered on the ground — the story describes walls.
+                int count = 2 + (int)(rng.NextDouble() * 1.99);
+                for (int g = 0; g < count; g++)
+                {
+                    // Pick a side face (±x or ±z) and a height within the
+                    // platform's body, slightly below the top surface.
+                    int side = (g + seed) % 4;
+                    float along = (((g * 37 + seed) % 7) - 3f) * 0.8f;
+                    float height = p.Size.y * (0.2f + 0.3f * (float)rng.NextDouble());
+                    Vector3 pos = p.Center;
+                    Vector3 scale = new Vector3(0.14f, 0.22f, 0.14f);
+                    Quaternion rot = Quaternion.Euler(0f, 45f, 0f);
+                    float out_ = 0.06f; // how far the stone protrudes
+                    if (side == 0) // +x face
+                    {
+                        pos += new Vector3(p.Size.x * 0.5f + out_, height - p.Size.y * 0.5f, along);
+                    }
+                    else if (side == 1) // -x face
+                    {
+                        pos += new Vector3(-p.Size.x * 0.5f - out_, height - p.Size.y * 0.5f, along);
+                    }
+                    else if (side == 2) // +z face
+                    {
+                        pos += new Vector3(along, height - p.Size.y * 0.5f, p.Size.z * 0.5f + out_);
+                    }
+                    else // -z face
+                    {
+                        pos += new Vector3(along, height - p.Size.y * 0.5f, -p.Size.z * 0.5f - out_);
+                    }
+                    ArtLib.DecorCube(parent, pos, scale, rot, stoneMat)
+                        .name = "GloomStone";
+                }
+            }
+        }
+
         /// Fog, sky, sun and ambient light per level. The Undercloud pack
         /// runs dim and indigo; everything else keeps the bootstrap's
         /// daylight defaults. Ambient follows the mood too, or dark levels
@@ -215,9 +271,11 @@ namespace GemRush
             RenderSettings.fogDensity =
                 level.DarkRealm ? 0.013f :
                 level.LongWinter ? 0.011f :
-                level.RainyDay ? 0.010f : 0.008f;
+                level.RainyDay ? 0.010f :
+                level.MirrorSkies ? 0.010f : 0.008f;
 
             RenderSettings.ambientMode = AmbientMode.Trilight;
+            bool isSunset = level.Mood == SoundMood.Sunset;
             if (level.DarkRealm)
             {
                 RenderSettings.ambientSkyColor = new Color(0.20f, 0.24f, 0.38f);
@@ -239,6 +297,25 @@ namespace GemRush
                 RenderSettings.ambientSkyColor = new Color(0.48f, 0.56f, 0.70f);
                 RenderSettings.ambientEquatorColor = new Color(0.42f, 0.48f, 0.58f);
                 RenderSettings.ambientGroundColor = new Color(0.36f, 0.39f, 0.44f);
+            }
+            else if (isSunset)
+            {
+                // Golden hour: warm amber ambient that matches the peach
+                // sky. Without this branch the Two Suns realms had an
+                // amber sky under harsh noon light — the warmth was skin
+                // deep, the light itself didn't know it was sunset.
+                RenderSettings.ambientSkyColor = new Color(0.72f, 0.58f, 0.42f);
+                RenderSettings.ambientEquatorColor = new Color(0.60f, 0.48f, 0.38f);
+                RenderSettings.ambientGroundColor = new Color(0.42f, 0.36f, 0.30f);
+            }
+            else if (level.MirrorSkies)
+            {
+                // Mirror Skies: cool and even, like light arriving through
+                // glass. Slightly desaturated so the realm reads as
+                // "slightly wrong" without being gloomy.
+                RenderSettings.ambientSkyColor = new Color(0.52f, 0.58f, 0.72f);
+                RenderSettings.ambientEquatorColor = new Color(0.44f, 0.50f, 0.62f);
+                RenderSettings.ambientGroundColor = new Color(0.36f, 0.38f, 0.42f);
             }
             else
             {
@@ -271,6 +348,23 @@ namespace GemRush
                     sun.intensity = 1.15f;
                     sun.color = new Color(0.82f, 0.88f, 1f);
                     sun.transform.rotation = Quaternion.Euler(55f, -35f, 0f);
+                }
+                else if (isSunset)
+                {
+                    // Golden hour: the sun sits low and warm, so the
+                    // platforms catch long amber light instead of the
+                    // default high noon.
+                    sun.intensity = 1.35f;
+                    sun.color = new Color(1f, 0.72f, 0.45f);
+                    sun.transform.rotation = Quaternion.Euler(22f, -35f, 0f);
+                }
+                else if (level.MirrorSkies)
+                {
+                    // Mirror light: cool and even, a reflection of the sun
+                    // rather than the sun itself.
+                    sun.intensity = 1.5f;
+                    sun.color = new Color(0.88f, 0.94f, 1f);
+                    sun.transform.rotation = Quaternion.Euler(48f, -35f, 0f);
                 }
                 else
                 {

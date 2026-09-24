@@ -43,6 +43,11 @@ namespace GemRush
         /// shower at a glance.
         public static readonly Color Rain = new Color(0.72f, 0.82f, 0.95f);
         public static readonly Color IceBlue = new Color(0.62f, 0.85f, 0.98f);
+        /// The Undercloud's glowing stones: the story says Gloomfang carried
+        /// every one down himself. Pale cyan-white, cooler than the portal
+        /// and dimmer than a gem, so in the dark realm they read as the only
+        /// human warmth in the gloom — lanterns someone left behind.
+        public static readonly Color GloomStone = new Color(0.60f, 0.85f, 0.95f);
         public static readonly Color FrostedLeaf = new Color(0.72f, 0.80f, 0.80f);
         public static readonly Color FrostedRock = new Color(0.84f, 0.87f, 0.92f);
         /// Props families: trunk/leaf/rock dress every platform, the pale

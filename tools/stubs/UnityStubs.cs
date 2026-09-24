@@ -237,6 +237,7 @@ namespace UnityEngine
         public Color(float r, float g, float b) { this.r = r; this.g = g; this.b = b; this.a = 1f; }
         public Color(float r, float g, float b, float a) { this.r = r; this.g = g; this.b = b; this.a = a; }
         public static Color white { get { return new Color(); } }
+        public static Color clear { get { return new Color(); } }
         public static Color black { get { return new Color(); } }
         public static Color red { get { return new Color(); } }
         public static Color green { get { return new Color(); } }
@@ -289,6 +290,7 @@ namespace UnityEngine
         public static bool HasKey(string key) { return false; }
         public static void DeleteKey(string key) { }
         public static void Save() { }
+        public static void DeleteAll() { }
     }
 
     public class AnimationCurve

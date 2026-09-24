@@ -10,6 +10,35 @@ namespace GemRush
         static Texture2D cachedRing;
         static Texture2D cachedDisc;
         static Sprite cachedTopScrim;
+        static Texture2D cachedRadialGlow;
+
+        /// A radial gradient texture: white at the centre fading to
+        /// transparent at the edges. Applied to the portal fill so the
+        /// gateway glows from its heart rather than reading as a flat
+        /// rectangle. Cached like every other procedural sprite.
+        public static Texture2D RadialGlowTexture()
+        {
+            if (cachedRadialGlow != null) return cachedRadialGlow;
+            int size = 128;
+            Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            float half = size * 0.5f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f - half) / half;
+                    float dy = (y + 0.5f - half) / half;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy);
+                    // Bright core (d < 0.3), quick falloff to the edges.
+                    float a = Mathf.Clamp01(1f - d);
+                    a = a * a; // steeper falloff so the edges are clean
+                    tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+                }
+            }
+            tex.Apply();
+            cachedRadialGlow = tex;
+            return tex;
+        }
 
         /// A top-edge scrim for the HUD band: opaque-ish dark at the very
         /// top, fading to nothing at the bottom. The HUD sits on bare sky
