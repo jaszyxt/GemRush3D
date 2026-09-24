@@ -101,6 +101,16 @@ namespace GemRush
             return string.Format("Gems  {0} / {1}", gems, total);
         }
 
+        /// Gem counter with a streak suffix. Only visible at streak ≥ 2 —
+        /// the first gem in a chain reads as a normal pickup; from the
+        /// second, the multiplier tells the player their chain is alive.
+        public static string HudGemsCombo(int gems, int total, int streak)
+        {
+            if (streak <= 1) return HudGems(gems, total);
+            return string.Format("Gems  {0} / {1}  \u00D7{2}",
+                gems, total, streak);
+        }
+
         public static string HudLives(int lives)
         {
             return string.Format("Lives  {0}", lives);
@@ -201,6 +211,9 @@ namespace GemRush
         public const string SettingMissionText = "Mission Text";
         public const string SettingTextSize = "Text Size";
         public const string SettingFullscreen = "Fullscreen";
+        public const string SettingResetProgress = "Reset Progress";
+        public const string ResetConfirmTitle = "START OVER?";
+        public const string ResetConfirmYes = "START OVER";
         public const string On = "ON";
         public const string Off = "OFF";
         public const string TextSizeNormal = "NORMAL";

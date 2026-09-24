@@ -358,6 +358,39 @@ namespace GemRush
             CloudSaveMirror.Snapshot();
         }
 
+        /// Wipes all gameplay progress (unlocked levels, stars, best times,
+        /// gifts, aurora, ghost data) while keeping player SETTINGS (sound,
+        /// haptics, text size, etc.) untouched. Called behind the
+        /// double-confirmation Reset Progress dialog so a parent can start
+        /// the game over for a sibling without re-typing every preference.
+        public static void WipeProgress()
+        {
+            MigrateIfNeeded();
+            // Capture settings before wiping so they survive the reset.
+            bool sSound = SoundOn, sHaptics = HapticsOn, sShake = ShakeOn,
+                sShadows = ShadowsOn, sLefty = LeftyOn,
+                sTextLarge = TextLargeOn, sMissionText = MissionTextOn,
+                sVoice = VoiceOn, sMusic = MusicOn, sAmbience = AmbienceOn,
+                sFullscreen = FullscreenOn;
+
+            // The prefix is the one namespace the game owns; deleting every
+            // key under it is safe because settings are restored right after.
+            PlayerPrefs.DeleteAll();
+
+            SoundOn = sSound;
+            HapticsOn = sHaptics;
+            ShakeOn = sShake;
+            ShadowsOn = sShadows;
+            LeftyOn = sLefty;
+            TextLargeOn = sTextLarge;
+            MissionTextOn = sMissionText;
+            VoiceOn = sVoice;
+            MusicOn = sMusic;
+            AmbienceOn = sAmbience;
+            FullscreenOn = sFullscreen;
+            Save();
+        }
+
         // ---------- Windows hive migration (one-time) ----------
 
         // v1.25.0 changed companyName DefaultCompany -> PipStudio for exe

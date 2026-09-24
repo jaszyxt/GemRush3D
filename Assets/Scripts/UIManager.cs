@@ -28,6 +28,7 @@ namespace GemRush
         Text winStats;
         Text winStory;
         Text winMilestone;
+        Text winMedalText;
         Text completeStats;
         RectTransform titleRect;
         Image[] winStars;
@@ -42,6 +43,11 @@ namespace GemRush
         // True while the briefing band is waiting for the player's first
         // move. The band is dismissed by input, not by a clock alone.
         bool introAwaitInput;
+        // A kid's first instinctive swipe erases the mission text before
+        // they've read it. The grace period keeps dismissal dormant until
+        // they've had time to look — then any input still dismisses.
+        float introGraceTimer;
+        const float BriefingGracePeriod = 1.5f;
 
         /// The briefing band's backstop lifetime: long enough that a player
         /// who reads slowly is never rushed, short enough that an idle
@@ -140,6 +146,7 @@ namespace GemRush
         int hudCacheTotal = -1;
         int hudCacheLives = -1;
         int hudCacheDeciseconds = -1;
+        int hudCacheStreak = -1;
 
         // Delight feedback state: the gem-counter pulse (token-guarded so a
         // fast chain restarts the tween instead of stacking tweens) and the
@@ -294,11 +301,13 @@ namespace GemRush
                 }
                 else holdIntroForVoice = false;
                 introTimer -= Time.unscaledDeltaTime;
-                // Dismiss on the player's first move, not on a clock: the
-                // briefing gets out of the way the moment they take control
-                // — or when the backstop expires, so an idle player is
-                // never left pinned under the band.
+                // Grace period: a kid's first instinctive swipe erases the
+                // mission text before they've read it. Dismissal stays
+                // dormant until the grace expires, then any input dismisses.
+                if (introGraceTimer > 0f)
+                    introGraceTimer -= Time.unscaledDeltaTime;
                 bool tookControl = introAwaitInput &&
+                    introGraceTimer <= 0f &&
                     GameManager.Instance != null &&
                     GameManager.Instance.State == GameState.Playing &&
                     PlayerHasInput();
@@ -851,6 +860,16 @@ namespace GemRush
                 Color.white, TextAnchor.UpperCenter,
                 new Vector2(0f, 0.36f), new Vector2(1f, 0.46f), 0f, 0f, 0f, 0f);
 
+            // The medal badge sits between the stats and the stars, in its
+            // own colour — gold, silver and bronze previously rendered as
+            // identical white text inside the stats line, so a GOLD felt
+            // no different from a BRONZE. Hidden when no medal was earned.
+            winMedalText = MakeText(winPanel.transform, "MedalBadge", "", 32,
+                starGold, TextAnchor.MiddleCenter,
+                new Vector2(0.3f, 0.465f), new Vector2(0.7f, 0.52f), 0f, 0f, 0f, 0f);
+            winMedalText.fontStyle = FontStyle.Bold;
+            winMedalText.gameObject.SetActive(false);
+
             winStory = MakeText(winPanel.transform, "Story", "", 26,
                 new Color(0.75f, 0.82f, 0.95f), TextAnchor.UpperCenter,
                 new Vector2(0.08f, 0.30f), new Vector2(0.92f, 0.38f), 0f, 0f, 0f, 0f,
@@ -1040,11 +1059,13 @@ namespace GemRush
                 ? new SettingId[] { SettingId.Sound, SettingId.Music,
                     SettingId.Ambience, SettingId.Voice, SettingId.MissionText,
                     SettingId.Haptics, SettingId.TextSize,
-                    SettingId.Shake, SettingId.Shadows, SettingId.Lefty }
+                    SettingId.Shake, SettingId.Shadows, SettingId.Lefty,
+                    SettingId.ResetProgress }
                 : new SettingId[] { SettingId.Sound, SettingId.Music,
                     SettingId.Ambience, SettingId.Voice, SettingId.MissionText,
                     SettingId.Haptics, SettingId.TextSize, SettingId.Fullscreen,
-                    SettingId.Shake, SettingId.Shadows, SettingId.Lefty };
+                    SettingId.Shake, SettingId.Shadows, SettingId.Lefty,
+                    SettingId.ResetProgress };
             string[] names = new string[settingsIds.Length];
             for (int i = 0; i < settingsIds.Length; i++)
                 names[i] = NameOf(settingsIds[i]);
@@ -1493,6 +1514,14 @@ namespace GemRush
                     if (timg != null)
                         timg.color = SaveSystem.TextLargeOn ? onColor : offColor;
                 }
+                else if (id == SettingId.ResetProgress)
+                {
+                    // An action, not a toggle: no ON/OFF suffix, no tint.
+                    // Always shows as a plain, warm, non-threatening label.
+                    label.text = NameOf(id);
+                    Image rimg = label.transform.parent.GetComponent<Image>();
+                    if (rimg != null) rimg.color = offColor;
+                }
                 else
                 {
                     ApplyLabel(label, NameOf(id), CurrentValue(id));
@@ -1523,7 +1552,7 @@ namespace GemRush
         enum SettingId
         {
             Sound, Music, Ambience, Voice, MissionText, Haptics,
-            TextSize, Fullscreen, Shake, Shadows, Lefty
+            TextSize, Fullscreen, Shake, Shadows, Lefty, ResetProgress
         }
 
         void ToggleSetting(int index)
@@ -1577,6 +1606,18 @@ namespace GemRush
                     if (TouchControls.Instance != null)
                         TouchControls.Instance.ApplySide();
                     break;
+                case SettingId.ResetProgress:
+                    // Reset is an action, not a toggle: show the
+                    // double-confirmation dialog (same pattern as Quit and
+                    // Restart Level). CANCEL is the safe default focus.
+                    ShowConfirm(Strings.ResetConfirmTitle,
+                        Strings.ResetConfirmYes,
+                        delegate
+                        {
+                            SaveSystem.WipeProgress();
+                            RefreshSettings();
+                        });
+                    return; // no toggle blip, no RefreshSettings until confirmed
             }
             // A flipped setting answers with its own blip: up when it turned
             // on, down when it turned off. Read AFTER the flip (and after
@@ -1619,6 +1660,7 @@ namespace GemRush
                 case SettingId.Fullscreen: return Strings.SettingFullscreen;
                 case SettingId.Shake: return Strings.SettingShake;
                 case SettingId.Shadows: return Strings.SettingShadows;
+                case SettingId.ResetProgress: return Strings.SettingResetProgress;
                 default: return Strings.SettingLefty;
             }
         }
@@ -2035,6 +2077,7 @@ namespace GemRush
             introHiding = false;
             AnimateShow(introPanel);
             introAwaitInput = true;
+            introGraceTimer = BriefingGracePeriod;
             MaybeShowFirstStepsHint(levelIndex);
         }
 
@@ -2153,6 +2196,7 @@ namespace GemRush
             hudCacheTotal = -1;
             hudCacheLives = -1;
             hudCacheDeciseconds = -1;
+            hudCacheStreak = -1;
             hudPanel.SetActive(true); // in-play: instant, never a transition
             // A streak carried across a portal re-crowns the fresh Pip.
             ComboCrown.Notify(AudioManager.CurrentStreak);
@@ -2213,11 +2257,20 @@ namespace GemRush
                 if (best < 0f) bestText = Strings.FirstClear;
                 else bestText = Strings.BestPrefix + FormatTime(best) +
                         (newRecord ? Strings.NewRecordSuffix : "");
-                string medal = LevelLibrary.Levels[
+                string rawMedal = LevelLibrary.Levels[
                     Mathf.Clamp(level, 0, LevelLibrary.Levels.Length - 1)].MedalFor(time);
-                if (medal != "") medal = Strings.MedalBurst(medal);
+                string medal = rawMedal != "" ? Strings.MedalBurst(rawMedal) : "";
                 winStats.text = Strings.WinStats(level + 1, FormatTime(time),
                     medal, gems, total, bestText);
+                // Medal badge in its own colour: gold, silver and bronze
+                // previously rendered as identical white text in the stats
+                // line, so a GOLD felt no different from a BRONZE.
+                if (winMedalText != null)
+                {
+                    winMedalText.text = rawMedal;
+                    winMedalText.color = MedalColor(rawMedal);
+                    winMedalText.gameObject.SetActive(rawMedal != "");
+                }
                 // The ghost run is a translucent duplicate of Pip that races
                 // the player on replays. Without this line, it appears with
                 // zero explanation — the highest-severity discoverability
@@ -2350,12 +2403,19 @@ namespace GemRush
                 hudCacheLevel = level;
                 hudLevel.text = Strings.HudLevel(level + 1);
             }
-            if (hudGems != null && (gems != hudCacheGems || total != hudCacheTotal))
+            if (hudGems != null &&
+                (gems != hudCacheGems || total != hudCacheTotal ||
+                 AudioManager.CurrentStreak != hudCacheStreak))
             {
                 int previous = hudCacheGems;
+                int streak = AudioManager.CurrentStreak;
                 hudCacheGems = gems;
                 hudCacheTotal = total;
-                hudGems.text = Strings.HudGems(gems, total);
+                hudCacheStreak = streak;
+                // The streak suffix ("×N") appears at chain ≥ 2 so the
+                // player sees their run building without a separate HUD
+                // element. It resets silently when the chain breaks.
+                hudGems.text = Strings.HudGemsCombo(gems, total, streak);
                 // Same star math the win screen uses: a pickup that crosses
                 // the 2-star or 3-star line makes the counter pop harder.
                 // Still change-cached — this only runs when the count moved.
@@ -2412,6 +2472,21 @@ namespace GemRush
             int minutes = (int)(t / 60f);
             float seconds = t - minutes * 60f;
             return string.Format("{0}:{1:00.0}", minutes, seconds);
+        }
+
+        /// Medal name to badge colour. The win screen and the atlas both
+        /// use this mapping so GOLD always reads gold, SILVER silver,
+        /// BRONZE bronze — never the default white that made them
+        /// indistinguishable.
+        static Color MedalColor(string medal)
+        {
+            switch (medal)
+            {
+                case "GOLD": return ArtLib.Gold;
+                case "SILVER": return new Color(0.78f, 0.80f, 0.84f);
+                case "BRONZE": return new Color(0.80f, 0.55f, 0.30f);
+                default: return Color.white;
+            }
         }
 
         // ---------- Back-stack support (D4) ----------
