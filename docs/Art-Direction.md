@@ -268,6 +268,20 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 
 ## 10. Change log
 
+- **2026-09-24 (art pass v6 — realm identity, ambient life, portal glow)**
+  *(a)* **Sunset and Mirror realms** now have their own light branches in
+  `ApplyAtmosphere` — Sunset was an amber sky under noon light; Mirror had
+  zero identity beyond the sky colour. *(b)* **Undercloud glow stones**
+  (`ArtLib.GloomStone`, 1.8 emission on DarkRealm platform sides) — the
+  story promised them; the game now delivers. *(c)* **`AmbientMotes`**
+  gives Garden (pink pollen), Sunset (gold dust), Undercloud (cold
+  wisps) and Aurora (violet shimmer) subtle atmospheric life at 15
+  particles max. *(d)* **Portal radial glow** (`Fx.RadialGlowTexture`)
+  makes the gateway read as a gateway, not a decorated wall.
+  *(e)* **Backdrop silhouettes** now read as craggy floating islands
+  rather than blue rectangles: each silhouette gains a lighter turf cap
+  and 0–2 peak cubes breaking the flat horizon line.
+
 - **2026-09-22 (motion pass v5 — panel transitions, trail bloom, photo ease)**
 
   *Panel transitions:* four panels that previously snapped on/off now use

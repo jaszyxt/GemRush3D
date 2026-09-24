@@ -55,13 +55,23 @@ namespace GemRush
             return mat;
         }
 
-        /// Builds a rig of blocky island silhouettes spread along the course.
+        /// Builds a rig of island silhouettes spread along the course.
+        /// Each silhouette is a body slab plus a lighter "turf" cap and
+        /// 0–2 peak cubes, so the horizon reads as craggy floating
+        /// islands rather than blue rectangles.
         static Transform BuildIslandLayer(string name, Color color,
             float followFactor, float lateralOffset)
         {
             GameObject rig = new GameObject(name);
             rig.transform.SetParent(null);
-            Material mat = UnlitMaterial("Unlit/Color", color);
+            // The body: darker than the passed colour for aerial
+            // perspective — distant islands sit lower-contrast against
+            // the sky than near objects, but still need silhouette.
+            Material bodyMat = UnlitMaterial("Unlit/Color",
+                Color.Lerp(color * 0.65f, Color.black, 0.15f));
+            // The turf cap: lighter than the body, faking a sunlit top.
+            Material topMat = UnlitMaterial("Unlit/Color",
+                Color.Lerp(color, Color.white, 0.15f));
 
             for (int i = 0; i < 7; i++)
             {
@@ -75,11 +85,30 @@ namespace GemRush
                 island.transform.SetParent(rig.transform, false);
                 island.transform.localPosition = new Vector3(x, y, z);
 
+                // Body slab: the island's mass.
                 ArtLib.DecorCube(island.transform, new Vector3(0f, 0f, 0f),
-                    new Vector3(w, w * 0.22f, 6f), Quaternion.identity, mat);
+                    new Vector3(w, w * 0.22f, 6f), Quaternion.identity, bodyMat);
                 ArtLib.DecorCube(island.transform,
                     new Vector3(0f, -w * 0.16f, 0f),
-                    new Vector3(w * 0.6f, w * 0.28f, 4.5f), Quaternion.identity, mat);
+                    new Vector3(w * 0.6f, w * 0.28f, 4.5f), Quaternion.identity, bodyMat);
+                // Turf cap: a thin lighter slab on the top face, faking
+                // the sun catching the island's upper surface.
+                ArtLib.DecorCube(island.transform,
+                    new Vector3(0f, w * 0.11f + w * 0.03f, 0f),
+                    new Vector3(w * 1.02f, w * 0.05f, 6.2f),
+                    Quaternion.identity, topMat);
+                // Peaks: 0–2 smaller cubes above the cap, breaking the
+                // flat horizon line. Deterministic per island.
+                int peaks = i % 3; // 0, 1, or 2
+                for (int p = 0; p < peaks; p++)
+                {
+                    float px = (p == 0 ? -1f : 1f) * w * 0.18f;
+                    float pw = w * (0.14f + 0.06f * p);
+                    float ph = w * (0.10f + 0.05f * (i + p) % 3);
+                    ArtLib.DecorCube(island.transform,
+                        new Vector3(px, w * 0.14f + ph * 0.5f, 0f),
+                        new Vector3(pw, ph, 4f), Quaternion.identity, bodyMat);
+                }
             }
             return rig.transform;
         }
