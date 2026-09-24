@@ -34,6 +34,16 @@ namespace GemRush
 
             if (sharedGemMaterial == null)
                 sharedGemMaterial = ArtLib.Solid(ArtLib.GemPink, 1.6f);
+            // In the Undercloud, gems ARE the light sources: boost their
+            // emission so they read as lanterns in the gloom rather than
+            // the same brightness as daylight gems. All gems share one
+            // material, so this is one colour write per level load.
+            var levelDef = GameManager.Instance != null
+                ? GameManager.Instance.CurrentLevelDefinition : null;
+            float gemEmission = levelDef != null && levelDef.DarkRealm
+                ? 2.4f : 1.6f;
+            sharedGemMaterial.SetColor("_EmissionColor",
+                ArtLib.GemPink * gemEmission);
             go.GetComponent<MeshRenderer>().sharedMaterial = sharedGemMaterial;
 
             Collider col = go.GetComponent<Collider>();

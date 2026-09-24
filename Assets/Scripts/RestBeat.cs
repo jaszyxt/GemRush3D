@@ -141,7 +141,10 @@ namespace GemRush
             if (follow != null)
             {
                 follow.enabled = true;
-                follow.SnapToTarget();
+                // SnapToTarget deliberately NOT called: the follow rig's
+                // own exp-smoothing eases the camera back from the rest
+                // orbit position, so the return reads as a dolly move
+                // rather than a hard cut (same treatment as PhotoMode).
             }
         }
     }
