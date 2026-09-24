@@ -45,14 +45,19 @@ namespace GemRush.EditorTools
             }
             Report = "";
             rows.Clear();
-            phase = 0;
+            // Phase -1: force a menu reset first, so the probe always
+            // starts from a known state regardless of what the editor
+            // was doing when the menu item fired (a mid-level session
+            // used to leave the state machine stuck and the runner
+            // timed out silently with zero diagnostics).
+            phase = -1;
             waitFrames = 0;
             Application.runInBackground = true;
             var go = new GameObject("BudgetProbeRunner");
             Object.DontDestroyOnLoad(go);
             go.hideFlags = HideFlags.HideAndDontSave;
             runner = go.AddComponent<Runner>();
-            Debug.Log("[BudgetProbe] started");
+            Debug.Log("[BudgetProbe] started (resetting to menu first)");
         }
 
         class Runner : MonoBehaviour
@@ -61,7 +66,7 @@ namespace GemRush.EditorTools
             void Update()
             {
                 age += Time.unscaledDeltaTime;
-                if (age > 150f || GemRush.GameManager.Instance == null)
+                if (age > 240f || GemRush.GameManager.Instance == null)
                 {
                     Debug.Log("[BudgetProbe] runner retired.");
                     Destroy(gameObject);
@@ -75,6 +80,16 @@ namespace GemRush.EditorTools
             if (!Application.isPlaying || runner == null) return;
             if (waitFrames > 0) { waitFrames--; return; }
 
+            // Phase -1: force a clean menu state before the scene sequence.
+            if (phase == -1)
+            {
+                GemRush.GameManager.Instance.GoToMenu();
+                Debug.Log("[BudgetProbe] phase -1: menu reset done");
+                waitFrames = 30;
+                phase = 0;
+                return;
+            }
+
             int sceneIndex = phase / 2;
             if (sceneIndex >= Levels.Length)
             {
@@ -84,6 +99,9 @@ namespace GemRush.EditorTools
 
             if ((phase % 2) == 0)
             {
+                Debug.Log("[BudgetProbe] phase " + phase + ": loading level " +
+                    Levels[sceneIndex] + " (" +
+                    GemRush.LevelLibrary.Levels[Levels[sceneIndex]].Name + ")");
                 GemRush.GameManager.Instance.PlayLevel(Levels[sceneIndex]);
                 // Settle: level build, audio clip synthesis, particle ramp.
                 // An unsettled read measures the loading hitch, not the

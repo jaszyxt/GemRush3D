@@ -113,7 +113,7 @@ namespace GemRush.EditorTools
             }
             captureMode = capture;
             Report = "";
-            phase = 0;
+            phase = -1; // menu reset first, then the scene sequence
             waitFrames = 0;
             means.Clear();
             changed.Clear();
@@ -136,7 +136,7 @@ namespace GemRush.EditorTools
                 // from PhotoProbe): retire if the run overruns or the world
                 // is torn down under us.
                 age += Time.unscaledDeltaTime;
-                if (age > 180f || GemRush.GameManager.Instance == null)
+                if (age > 240f || GemRush.GameManager.Instance == null)
                 {
                     Debug.Log("[VisualBaseline] runner retired (age " +
                         (int)age + "s).");
@@ -162,6 +162,17 @@ namespace GemRush.EditorTools
             if (!Application.isPlaying || runner == null) return;
             if (waitFrames > 0) { waitFrames--; return; }
 
+            // Phase -1: force a clean menu state before the scene sequence,
+            // so the probe never starts mid-level or mid-dialogue.
+            if (phase == -1)
+            {
+                GemRush.GameManager.Instance.GoToMenu();
+                Debug.Log("[VisualBaseline] phase -1: menu reset done");
+                waitFrames = 30;
+                phase = 0;
+                return;
+            }
+
             int sceneIndex = phase / 2;
             if (sceneIndex >= Scenes.Length)
             {
@@ -173,6 +184,8 @@ namespace GemRush.EditorTools
 
             if (isSetup)
             {
+                Debug.Log("[VisualBaseline] phase " + phase + ": setting up " +
+                    scene.Name);
                 SetupScene(scene);
                 // A settle window: level build, camera snap, particle ramp.
                 // UI panels animate in over 0.2s, so they need a full second
