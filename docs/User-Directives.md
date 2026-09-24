@@ -297,3 +297,13 @@ a long session when a short answer was asked for.
 **Why it matters:** the user reads the replies. Volume costs them
 attention and buries the one line that needed a decision. A short reply
 that answers the question beats a complete record every time.
+
+---
+
+## D-9. Movements are 40 levels each
+
+**Source: user, 2026-09-24** — *"each chapter should have 40 levels"*
+
+Every movement = 40 levels. Movement One is the shipped game (levels 1–40).
+Future movements each get 40 levels — no more, no fewer. This is the
+creative constraint that shapes all future story and content work.

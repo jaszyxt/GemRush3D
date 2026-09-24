@@ -84,6 +84,9 @@ namespace GemRush
         readonly Color lockedColor = new Color(0.35f, 0.37f, 0.42f);
         readonly Color starGold = ArtLib.Gold;   // the world's reward gold
         readonly Color starDim = new Color(0.3f, 0.3f, 0.34f);
+        bool introHiding;   // AnimateHide in progress — prevents
+                            // re-triggering while the tween runs.
+        bool toastHiding;    // same pattern for the story toast.
         GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
         System.Action quitConfirmedAction;
         Text quitConfirmTitle;   // set per use (quit vs restart)
@@ -299,7 +302,10 @@ namespace GemRush
                     PlayerHasInput();
                 if (tookControl) introAwaitInput = false;
                 if (tookControl || introTimer <= 0f)
-                    introPanel.SetActive(false);
+                {
+                    introHiding = true;
+                    AnimateHide(introPanel);
+                }
             }
             if (storyToastPanel != null && storyToastPanel.activeSelf)
             {
@@ -310,7 +316,11 @@ namespace GemRush
                 }
                 else holdToastForVoice = false;
                 storyToastTimer -= Time.unscaledDeltaTime;
-                if (storyToastTimer <= 0f) storyToastPanel.SetActive(false);
+                if (storyToastTimer <= 0f && !toastHiding)
+                {
+                    toastHiding = true;
+                    AnimateHide(storyToastPanel);
+                }
             }
             // The milestone line waits its turn: one voice at a time, and
             // the win line speaks first.
@@ -1786,7 +1796,7 @@ namespace GemRush
             System.IO.Directory.CreateDirectory(photoFolder);
             photoStatus.text = Strings.PhotoHint;
             photoOpenFolder.gameObject.SetActive(false);
-            photoPanel.SetActive(true);
+            AnimateShow(photoPanel);
             photoOrbit = PhotoMode.Begin(GameBootstrap.CameraRig,
                 GameBootstrap.Player.transform);
             Button capture = photoPanel.GetComponentInChildren<Button>();
@@ -1802,7 +1812,7 @@ namespace GemRush
                 photoOrbit.End();
                 photoOrbit = null;
             }
-            photoPanel.SetActive(false);
+            AnimateHide(photoPanel);
             ShowPaused(); // back to the pause menu, run still paused
             AudioManager.Instance.PlayPanel(false);
         }
@@ -1976,7 +1986,8 @@ namespace GemRush
                 return;
             }
             introTimer = BriefingBackstop;
-            introPanel.SetActive(true);
+            introHiding = false;
+            AnimateShow(introPanel);
             introAwaitInput = true;
             MaybeShowFirstStepsHint(levelIndex);
         }
@@ -2027,7 +2038,8 @@ namespace GemRush
             // story beats (up to ~120 chars at 24 pt) need ~9-10 s.
             // VO hold already extends this when narration is playing.
             storyToastTimer = Mathf.Max(4f, line.Length * 0.08f);
-            storyToastPanel.SetActive(true);
+            toastHiding = false;
+            AnimateShow(storyToastPanel);
             holdToastForVoice = false;
             if (voId != null && VoiceOver.Instance != null)
             {
@@ -2397,7 +2409,7 @@ namespace GemRush
                 quitButtonLabel.text = confirmLabel;
             quitConfirmedAction = onConfirmed;
             confirmAlsoQuits = alsoQuits;
-            quitConfirmPanel.SetActive(true);
+            AnimateShow(quitConfirmPanel);
             Focus(cancelButton); // safe default: focus never starts on the
                                  // destructive button
             AudioManager.Instance.PlayPanel(true);
@@ -2409,7 +2421,7 @@ namespace GemRush
         public bool CloseQuitConfirm()
         {
             if (quitConfirmPanel == null || !quitConfirmPanel.activeSelf) return false;
-            quitConfirmPanel.SetActive(false);
+            AnimateHide(quitConfirmPanel);
             // Clear the intent WITH the panel. Leaving it set would let a
             // cancelled QUIT leak into the next confirm: cancel the quit
             // dialog, then open RESTART, and confirming would exit the game.

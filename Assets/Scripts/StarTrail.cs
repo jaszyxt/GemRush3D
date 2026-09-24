@@ -115,7 +115,12 @@ namespace GemRush
         {
             tier = newTier;
             Color color = ColorForTier(tier);
-            main.startColor = new Color(color.r, color.g, color.b, 0.85f);
+            // Boost past 1.0 so the brightest motes exceed the bloom
+            // threshold (0.95) and the trail glows rather than just tints.
+            // Alpha is preserved so the fade still works; the bloom
+            // appears on fresh motes and fades naturally as they die.
+            main.startColor = new Color(
+                color.r * 1.3f, color.g * 1.3f, color.b * 1.3f, 0.85f);
 
             Gradient gradient = new Gradient();
             gradient.SetKeys(

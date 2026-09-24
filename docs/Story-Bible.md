@@ -96,7 +96,7 @@ Recipes that work (all shipped; imitate these shapes):
   of." / "Request pending."
 - **Recurrence, not repetition.** Gags return changed: Tuesday rain
   becomes a job becomes a day off; "probationary" becomes a request
-  becomes, at the end of Movement Two, a badge with the word simply gone.
+  becomes, at the end of Movement One, a badge with the word simply gone.
   (That arc is complete — see §5 amendments.)
   becomes (someday) a ceremony. Never paste the same gag twice.
 
@@ -199,7 +199,7 @@ One line per pack; future packs must not contradict these:
 
 - **Tuesdays** — rain delivery day; the day off; the calendar's gentle
   heartbeat. Lives in mission text and is allowed to touch real dates.
-- **The badge** — *retired at the end of Movement Two.* Once "requested
+- **The badge** — *retired at the end of Movement One.* Once "requested
   removed; request pending," it is now simply official (see Canon
   amendments). The gag ended by paying off. Do not restart it.
 - **The lullaby** — see cast section.
@@ -234,17 +234,11 @@ fifth.
 ends with a rewritten epilogue and one permanent change to the world. Its
 last pack is a celebration — no new danger, the story is the content.
 
-**Movement One (done):** *fear → friendship.* Packs 1–10 plus the
-B-Sides: a storm took the light, a small hero brought him home.
+**Movement One (done, 40 levels):** *fear → friendship → redemption → home.*
+Packs 1–13, levels 1–40. The rescue arc is complete. The B-Sides
+(indices 28–30) are a bonus remix section within this movement.
 
-**Movement Two (SHIPPED, complete):** *stillness → celebration → home.*
-Packs 11–13, levels 32–40. Gloomfang asked the realm for one quiet week;
-the realm answered with a festival and then walked him home. **The badge
-review — the question of whether a storm can become a citizen — is
-answered.** The full record is in **docs/Movement-Two-Story.md**, which
-also carries the craft checklist the next pack must pass.
-
-**Movement Three (next, not yet scheduled):** *renewal.* The seeds:
+**Movement Two (next, 40 levels):** *renewal.* The seeds:
 
 - **The Deep Bloom** — what grows in the old dark now that the Undercloud
   is lit. Feeling: renewal.
@@ -258,7 +252,7 @@ also carries the craft checklist the next pack must pass.
   in the Undercloud, where the light was kept. Feeling: wonder. *(Written
   before the packs shipped; unbuilt, and still good.)*
 
-**Before building any Movement Three pack:** the epilogue in `Story.cs`
+**Before building any Movement Two pack:** the epilogue in `Story.cs`
 already covers packs 11–13 (the quiet week, the festival, the walk home) —
 the Renewal Law is satisfied, and it was verified rather than assumed.
 Write the new pack's script against the §3 checklist in
@@ -300,7 +294,7 @@ region before moving the completion screen.
 | Region names + atlas grouping | `LevelLibrary.Regions` |
 | Gift copy | `Assets/Scripts/DailyGem.cs` |
 | Geometry/metadata audit (the other half of the QA gate) | `Assets/Tests/EditMode/LevelAuditTests.cs` |
-| Movement Two canon + craft checklist | `docs/Movement-Two-Story.md` |
+| Shipped packs 11–13 canon + craft checklist | `docs/Movement-Two-Story.md` |
 
 *Story is the delivery vehicle for the whole expansion contract. When in
 doubt, build the feeling, and the obstacle will introduce itself.*

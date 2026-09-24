@@ -99,7 +99,7 @@ text.
 
 | Retired script | What it was | Salvageable idea |
 |---|---|---|
-| The First Rainbow (prism gates) | rainbow ends in the Undercloud, where the light was kept | strong; a natural Movement Three region |
+| The First Rainbow (prism gates) | rainbow ends in the Undercloud, where the light was kept | strong; a natural Movement Two region |
 | The Guardian Games (sport) | taking turns as the win condition; Red Nine's carousel | Red Nine's carousel is lovely; the "no losers" framing is on-theme |
 | The Little Apprentice (flicker) | Pip teaches a copying spark | strong teaching-feeling pack; the flicker is a good recurring character |
 | The Badge Ceremony (pack 16) | a dedicated ceremony pack with the hat gag | **superseded** — the verdict already happened in pack 13. Do not build. |
