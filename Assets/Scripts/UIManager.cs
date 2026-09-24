@@ -84,7 +84,9 @@ namespace GemRush
         readonly Color lockedColor = new Color(0.35f, 0.37f, 0.42f);
         readonly Color starGold = ArtLib.Gold;   // the world's reward gold
         readonly Color starDim = new Color(0.3f, 0.3f, 0.34f);
-        bool introHiding;   // AnimateHide in progress — prevents
+        float winTitlePopTimer;
+        bool introHiding;
+        bool epilogueCrossfading;   // AnimateHide in progress — prevents
                             // re-triggering while the tween runs.
         bool toastHiding;    // same pattern for the story toast.
         GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
@@ -330,6 +332,25 @@ namespace GemRush
                 VoiceOver.Instance.Play(pendingMilestoneVo, pendingMilestoneText);
                 pendingMilestoneVo = null;
                 pendingMilestoneText = null;
+            }
+            // Win title pop: brief overshoot 0.2s after panel lands.
+            if (winTitlePopTimer > 0f)
+            {
+                winTitlePopTimer -= Time.unscaledDeltaTime;
+                if (winTitlePopTimer <= 0f && titleRect != null)
+                {
+                    RectTransform tr = titleRect;
+                    Tweener.Value(1f, 1.12f, 0.15f, delegate(float k)
+                    {
+                        tr.localScale = new Vector3(k, k, 1f);
+                    }, delegate
+                    {
+                        Tweener.Value(1.12f, 1f, 0.2f, delegate(float k2)
+                        {
+                            tr.localScale = new Vector3(k2, k2, 1f);
+                        });
+                    });
+                }
             }
             if (pendingStarDings > 0)
             {
@@ -942,6 +963,8 @@ namespace GemRush
 
         void AdvanceEpilogue()
         {
+            // Block double-fires while the crossfade runs.
+            if (epilogueCrossfading) return;
             AudioManager.Instance.PlayPageTurn();
             epiloguePage++;
             if (epiloguePages == null || epiloguePage >= epiloguePages.Length)
@@ -955,10 +978,33 @@ namespace GemRush
             }
             else if (completeStory != null)
             {
-                completeStory.text = epiloguePages[epiloguePage];
-                if (VoiceOver.Instance != null)
-                    VoiceOver.Instance.Play(
-                        VoiceIds.Epilogue(epiloguePage), epiloguePages[epiloguePage]);
+                // Crossfade: fade text out, swap content, fade back in.
+                // The existing CanvasGroup (added by PanelGroup) handles alpha.
+                epilogueCrossfading = true;
+                CanvasGroup cg = completeStory.GetComponent<CanvasGroup>();
+                if (cg == null) cg = completeStory.gameObject.AddComponent<CanvasGroup>();
+                string newText = epiloguePages[epiloguePage];
+                string vo = epiloguePages[epiloguePage];
+                int gen = PanelGeneration(completeStory.gameObject, true);
+                Tweener.Value(1f, 0f, 0.1f, delegate(float k)
+                {
+                    if (gen != PanelGeneration(completeStory.gameObject, false)) return;
+                    cg.alpha = k;
+                }, delegate
+                {
+                    if (gen != PanelGeneration(completeStory.gameObject, false)) return;
+                    completeStory.text = newText;
+                    if (VoiceOver.Instance != null)
+                        VoiceOver.Instance.Play(VoiceIds.Epilogue(epiloguePage), vo);
+                    Tweener.Value(0f, 1f, 0.1f, delegate(float k2)
+                    {
+                        if (gen != PanelGeneration(completeStory.gameObject, false)) return;
+                        cg.alpha = k2;
+                    }, delegate
+                    {
+                        epilogueCrossfading = false;
+                    });
+                });
             }
         }
 
@@ -2230,6 +2276,8 @@ namespace GemRush
                     Fx.Confetti(at, 30);
             }
             AnimateShow(winPanel);
+            // Brief title pop after the panel is fully visible.
+            winTitlePopTimer = 0.22f;
             Focus(winNextButton);
         }
 

@@ -268,7 +268,31 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 
 ## 10. Change log
 
-- **2026-09-20 (art pass v4 — readability, haptics, motion, AV)** — study-driven
+- **2026-09-22 (motion pass v5 — panel transitions, trail bloom, photo ease)**
+
+  *Panel transitions:* four panels that previously snapped on/off now use
+  the same `AnimateShow`/`AnimateHide` tween system that Settings, Pause
+  and Atlas already use — intro card, story toast, photo-mode bar, quit
+  confirmation. `HideAll` stays instant (hard teardown before level loads);
+  only the dedicated show/hide paths get the tween.
+
+  *Star trail bloom:* motes now glow through the bloom threshold —
+  `startColor` boosted to 1.3× so gold, pink and green tiers all bloom
+  distinctively. The glow appears on fresh motes and fades naturally with
+  alpha.
+
+  *Win screen title pop:* "LEVEL COMPLETE!" gets a brief 1.12× overshoot
+  and settles, timed to land just as the panel finishes fading in.
+
+  *Epilogue page turns:* crossfade instead of instant text swap — alpha
+  fades out, text swaps, alpha fades back in.
+
+  *Photo-mode camera ease:* entry interpolates from the follow position to
+  the first orbit position over 0.4 s (ease-out-quad); exit lets the
+  follow rig's own smoothing take over instead of `SnapToTarget` (which
+  teleported back).
+
+- **2026-09-21 (art pass v4 — readability, haptics, motion, AV)** — study-driven
   from three audits (motion/animation, audio-visual coupling, readability).
   *(a)* **HUD readability (P1, verified visually):** the HUD panel was
   `alpha 0` — the four readouts sat on bare sky behind a 2 px outline. On
