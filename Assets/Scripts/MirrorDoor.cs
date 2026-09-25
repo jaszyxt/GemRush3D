@@ -38,6 +38,7 @@ namespace GemRush
         DoorSide doorA;
         DoorSide doorB;
         Material paneMat;
+        Material paneMatB; // twin's pane, shimmering out of phase
         float shimmer;
 
         /// Builds a linked pair. Positions are the door bases (floor level).
@@ -50,12 +51,18 @@ namespace GemRush
 
             Material frame = ArtLib.Solid(ArtLib.Stone, 0f);
             Material gold = ArtLib.Solid(ArtLib.Gold, 0.5f);
-            Material pane = ArtLib.Solid(ArtLib.Air, 0.3f);
-            ArtLib.SetFade(pane, 0.4f);
-            door.paneMat = pane;
+            // Per-side pane materials: the twins shimmer OUT OF PHASE —
+            // sharing one material made them pulse in perfect sync (the
+            // doc comment promised phase, the code delivered a chorus).
+            Material paneA = ArtLib.Solid(ArtLib.Air, 0.3f);
+            ArtLib.SetFade(paneA, 0.4f);
+            Material paneB = ArtLib.Solid(ArtLib.Air, 0.3f);
+            ArtLib.SetFade(paneB, 0.4f);
+            door.paneMat = paneA; // the Update pulse drives pane A
+            door.paneMatB = paneB;
 
-            door.sideA = BuildSide(go.transform, a, frame, gold, pane);
-            door.sideB = BuildSide(go.transform, b, frame, gold, pane);
+            door.sideA = BuildSide(go.transform, a, frame, gold, paneA);
+            door.sideB = BuildSide(go.transform, b, frame, gold, paneB);
 
             door.doorA = door.sideA.GetComponentInChildren<DoorSide>();
             door.doorB = door.sideB.GetComponentInChildren<DoorSide>();
@@ -81,8 +88,10 @@ namespace GemRush
                 new Vector3(0.3f, 3f, 0.35f), Quaternion.identity, frame);
             ArtLib.DecorCube(side.transform, new Vector3(0f, 3.1f, 0f),
                 new Vector3(2.1f, 0.35f, 0.4f), Quaternion.identity, frame);
-            // A gold keystone: these doors matter.
-            ArtLib.DecorCube(side.transform, new Vector3(0f, 3.1f, 0.22f),
+            // A gold keystone: these doors matter. Protrudes -Z (toward
+            // the spawn camera), not +Z — the camera never sees +Z from
+            // the approach angle, so the accent was invisible in play.
+            ArtLib.DecorCube(side.transform, new Vector3(0f, 3.1f, -0.22f),
                 new Vector3(0.4f, 0.4f, 0.12f), Quaternion.identity, gold);
 
             // The mirror pane.
@@ -111,13 +120,23 @@ namespace GemRush
 
         void Update()
         {
-            // The panes shimmer out of phase with each other.
+            // The panes shimmer out of phase with each other — twin A
+            // breathes in while twin B breathes out, so standing between
+            // them reads as a shared pulse splitting and rejoining.
             shimmer += Time.deltaTime;
+            float a = 0.35f + Mathf.Sin(shimmer * 1.8f) * 0.12f;
+            float b = 0.35f + Mathf.Sin(shimmer * 1.8f + Mathf.PI) * 0.12f;
             if (paneMat != null)
             {
                 Color c = paneMat.color;
-                c.a = 0.35f + Mathf.Sin(shimmer * 1.8f) * 0.12f;
+                c.a = a;
                 paneMat.color = c;
+            }
+            if (paneMatB != null)
+            {
+                Color c = paneMatB.color;
+                c.a = b;
+                paneMatB.color = c;
             }
         }
     }

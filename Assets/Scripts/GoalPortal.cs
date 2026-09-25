@@ -24,15 +24,22 @@ namespace GemRush
                 new Vector3(0.5f, 3.5f, 0.5f), Quaternion.identity, frame);
             ArtLib.DecorCube(portal.transform, new Vector3(0f, 3.75f, 0f),
                 new Vector3(3.3f, 0.5f, 0.5f), Quaternion.identity, frame);
+            // Gold crown: the goal is the game's greatest gift — the
+            // reward gold says so at a glance, matching MirrorDoor's
+            // keystone grammar ("this one matters").
+            ArtLib.DecorCube(portal.transform, new Vector3(0f, 4.1f, 0f),
+                new Vector3(0.7f, 0.35f, 0.6f), Quaternion.identity,
+                ArtLib.Solid(ArtLib.Gold, 0.8f));
 
             // Shimmering fill: a radial gradient so the gateway glows from
             // its heart rather than reading as a flat decorated rectangle.
+            // Extends to the floor (no gap) so the glow seals the doorway.
             GameObject fill = GameObject.CreatePrimitive(PrimitiveType.Cube);
             fill.name = "PortalFill";
             Object.Destroy(fill.GetComponent<Collider>());
             fill.transform.SetParent(portal.transform, false);
-            fill.transform.localPosition = new Vector3(0f, 1.75f, 0f);
-            fill.transform.localScale = new Vector3(2.3f, 3.0f, 0.1f);
+            fill.transform.localPosition = new Vector3(0f, 1.6f, 0f);
+            fill.transform.localScale = new Vector3(2.4f, 3.2f, 0.08f);
 
             Shader fillShader = Shader.Find("Sprites/Default");
             Material fillMat = fillShader != null

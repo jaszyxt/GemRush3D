@@ -103,8 +103,12 @@ namespace GemRush
             for (int i = 0; i < level.EchoBridges.Count; i++)
             {
                 EchoBridgeSpec b = level.EchoBridges[i];
+                // Emission 0.6: a solid bridge must read as WALKABLE
+                // SURFACE, not atmosphere. Without emission it sat at
+                // ~1.03:1 against pale skies — invisible on the very
+                // viewing angle that matters (down a long Z-span).
                 EchoBridge.Create(parent, b,
-                    ArtLib.Solid(ArtLib.Air, 0f));
+                    ArtLib.Solid(ArtLib.Air, 0.6f));
             }
 
             for (int i = 0; i < level.MirrorDoors.Count; i++)
@@ -530,6 +534,35 @@ namespace GemRush
             ArtLib.DecorCube(go.transform,
                 new Vector3(0f, -0.15f, 0f),
                 new Vector3(size.x, size.y - 0.3f, size.z), Quaternion.identity, bottom);
+
+            // Direction chevrons: two gold strips flush into the top slab,
+            // pointing along the travel axis. A mover used to be a plain
+            // dirt-and-orange box, identical in shape to a static platform
+            // — direction was only ever inferred by watching it move.
+            // Gold trim says "this one goes somewhere" at a glance.
+            Vector3 dir = offset.normalized;
+            bool alongX = Mathf.Abs(dir.x) > Mathf.Abs(dir.z);
+            float chevronInset = 0.25f; // margin from the slab's edges
+            float stripLen = alongX
+                ? 0.5f : size.z * 0.5f - chevronInset;
+            float stripWide = alongX
+                ? size.z * 0.5f - chevronInset : 0.5f;
+            Material trim = ArtLib.Solid(ArtLib.Gold, 0.3f);
+            for (int s = -1; s <= 1; s += 2)
+            {
+                Vector3 pos;
+                if (alongX)
+                    pos = new Vector3(s * (size.x * 0.5f - 0.5f),
+                        size.y * 0.5f + 0.02f, 0f);
+                else
+                    pos = new Vector3(0f, size.y * 0.5f + 0.02f,
+                        s * (size.z * 0.5f - 0.5f));
+                ArtLib.DecorCube(go.transform, pos,
+                    alongX
+                        ? new Vector3(0.25f, 0.04f, stripWide)
+                        : new Vector3(stripWide, 0.04f, 0.25f),
+                    Quaternion.identity, trim);
+            }
 
             MovingPlatform mover = go.AddComponent<MovingPlatform>();
             mover.moveOffset = offset;

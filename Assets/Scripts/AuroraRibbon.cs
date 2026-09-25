@@ -68,8 +68,13 @@ namespace GemRush
 
         System.Collections.IEnumerator Shimmer()
         {
-            Material mat = GetComponentInChildren<MeshRenderer>() != null
-                ? GetComponentInChildren<MeshRenderer>().material : null;
+            MeshRenderer mr = GetComponentInChildren<MeshRenderer>();
+            Material mat = mr != null ? mr.material : null;
+            // Preserve the 0.7 alpha set in Create(): the Aurora palette
+            // constants all have alpha 1, and Color.Lerp overwrites alpha —
+            // without pinning it, the first shimmer frame made the ribbon
+            // OPAQUE, hiding anything under it.
+            const float FadeAlpha = 0.7f;
             int a = 0;
             while (true)
             {
@@ -77,9 +82,20 @@ namespace GemRush
                 {
                     Color from = ArtLib.Aurora[a % ArtLib.Aurora.Length];
                     Color to = ArtLib.Aurora[(a + 1) % ArtLib.Aurora.Length];
+                    // Drive emission along with the hue so the ribbon
+                    // actually brightens through the cycle, not just
+                    // re-colours.
+                    Color emissionFrom = from * 0.9f;
+                    Color emissionTo = to * 0.9f;
                     for (float k = 0f; k < 1f; k += Time.deltaTime / 2.2f)
                     {
-                        mat.color = Color.Lerp(from, to, k);
+                        mat.color = new Color(
+                            Color.Lerp(from, to, k).r,
+                            Color.Lerp(from, to, k).g,
+                            Color.Lerp(from, to, k).b,
+                            FadeAlpha);
+                        mat.SetColor("_EmissionColor",
+                            Color.Lerp(emissionFrom, emissionTo, k));
                         yield return null;
                     }
                 }
