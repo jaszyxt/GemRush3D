@@ -50,11 +50,42 @@ namespace GemRush
             float halfZ = platformSize.z * 0.5f - EdgeMargin;
 
             int count = DecideCount(rng, platformSize);
+            // Placed spots so far: later props bias toward these, creating
+            // natural patches rather than uniform scatter. Props grow in
+            // clusters the way real vegetation does.
+            var placed = new System.Collections.Generic.List<Vector2>();
             for (int i = 0; i < count; i++)
             {
                 Vector3 spot;
-                if (!TryPickSpot(rng, halfX, halfZ, keepClearZones, out spot)) continue;
-                PlaceProp(rng, platformTransform, topY, spot, rockMat);
+                bool placedNearExisting = false;
+                // After the first prop, 60% of props try to cluster near
+                // a previously placed one (within ~1.5 units), so tufts
+                // and flowers read as patches instead of confetti.
+                if (placed.Count > 0 && rng.NextDouble() < 0.6)
+                {
+                    Vector2 anchor = placed[rng.Next(placed.Count)];
+                    float sx = ((float)rng.NextDouble() * 2f - 1f) * 1.5f;
+                    float sz = ((float)rng.NextDouble() * 2f - 1f) * 1.5f;
+                    Vector2 candidate = anchor + new Vector2(sx, sz);
+                    // Validate the clustered spot against the same rules.
+                    if (Mathf.Abs(candidate.x) < halfX &&
+                        Mathf.Abs(candidate.y) < halfZ &&
+                        !InKeepClearZone(candidate.x, candidate.y, keepClearZones) &&
+                        !(Mathf.Abs(candidate.x) < CenterClear &&
+                          Mathf.Abs(candidate.y) < CenterClear))
+                    {
+                        spot = new Vector3(candidate.x, 0f, candidate.y);
+                        PlaceProp(rng, platformTransform, topY, spot, rockMat);
+                        placed.Add(candidate);
+                        placedNearExisting = true;
+                    }
+                }
+                if (!placedNearExisting)
+                {
+                    if (!TryPickSpot(rng, halfX, halfZ, keepClearZones, out spot)) continue;
+                    PlaceProp(rng, platformTransform, topY, spot, rockMat);
+                    placed.Add(new Vector2(spot.x, spot.z));
+                }
             }
 
             // At most one tree, and only on big platforms (~40% chance).
