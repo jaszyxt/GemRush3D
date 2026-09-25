@@ -869,6 +869,13 @@ namespace GemRush
             CancelIdleLife();
             twirlTime = -1f;
             twirlYaw = 0f;
+            // Materialization pop: start compressed and let the squash
+            // spring expand — reads as Pip popping into existence at the
+            // checkpoint rather than just appearing. The same overshoot
+            // grammar as the wake-from-nap pop, but stronger.
+            squash = -0.35f;
+            squashVel = 2.0f;
+            Fx.Ring(tr.position, ArtLib.CheckpointOn);
         }
     }
 }
