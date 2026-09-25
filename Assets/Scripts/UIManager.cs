@@ -25,6 +25,7 @@ namespace GemRush
         Text hudGems;
         Text hudTime;
         Text hudLives;
+        Text hudStarBadge;
         Text winStats;
         Text winStory;
         Text winMilestone;
@@ -92,7 +93,9 @@ namespace GemRush
         readonly Color starDim = new Color(0.3f, 0.3f, 0.34f);
         float winTitlePopTimer;
         bool introHiding;
-        bool epilogueCrossfading;   // AnimateHide in progress — prevents
+        bool epilogueCrossfading;
+        GameObject transitionOverlay;
+        CanvasGroup transitionGroup;   // AnimateHide in progress — prevents
                                     // re-triggering while the tween runs.
         bool toastHiding;    // same pattern for the story toast.
         GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
@@ -152,6 +155,7 @@ namespace GemRush
         // fast chain restarts the tween instead of stacking tweens) and the
         // low-life heart breathing (a slow warm gold pulse, never red).
         int gemPulseSeq;
+        int starBadgeSeq;
         int starPopSeq; // retires an in-flight win-star pop on re-show
         float heartGlowPhase;
         bool heartGlowing;
@@ -246,6 +250,7 @@ namespace GemRush
             BuildPhotoPanel(safeGo.transform);
             BuildIntro(safeGo.transform);
             BuildStoryToast(safeGo.transform);
+            BuildTransitionOverlay(safeGo.transform);
 
             // Honor a persisted Text Size preference on every label (a no-op
             // at the default size).
@@ -786,6 +791,17 @@ namespace GemRush
             hudGems = MakeText(dyn, "Gems", Strings.HudGems(0, 0), 28,
                 Color.white, TextAnchor.MiddleLeft,
                 new Vector2(0.22f, 0.93f), new Vector2(0.48f, 1f), 12f, 4f, 4f, 2f);
+
+            // Star badge: a brief gold "★★" flash when a star threshold is
+            // crossed, so the player knows WHY the counter just popped
+            // harder. Sits just below the gems counter, inside the HUD band,
+            // hidden by default and faded out by a Tweener after each flash.
+            hudStarBadge = MakeText(dyn, "StarBadge", "", 24,
+                starGold, TextAnchor.MiddleLeft,
+                new Vector2(0.24f, 0.86f), new Vector2(0.46f, 0.93f),
+                0f, 0f, 0f, 0f);
+            hudStarBadge.fontStyle = FontStyle.Bold;
+            hudStarBadge.gameObject.SetActive(false);
 
             hudTime = MakeText(dyn, "Time", "0:00.0", 28,
                 Color.white, TextAnchor.MiddleCenter,
@@ -2041,6 +2057,7 @@ namespace GemRush
 
         public void ShowLevelIntro(int levelIndex)
         {
+            RevealScreen(); // fade from the transition overlay to the level
             if (introPanel == null) return;
             LevelDefinition def = LevelLibrary.Levels[
                 Mathf.Clamp(levelIndex, 0, LevelLibrary.Levels.Length - 1)];
@@ -2092,6 +2109,47 @@ namespace GemRush
             if (levelIndex != 0) return;
             if (!SaveSystem.IsBrandNew) return;
             ShowStoryToast(Strings.FirstStepsHint());
+        }
+
+        /// The level transition overlay: a full-screen black panel that
+        /// covers the screen during a level swap and fades away to reveal
+        /// the new level. Without it, pressing NEXT cuts instantly from
+        /// the win screen to the new course — jarring on every change.
+        void BuildTransitionOverlay(Transform canvas)
+        {
+            transitionOverlay = MakePanel(canvas, "TransitionOverlay",
+                new Color(0f, 0f, 0f, 1f));
+            transitionGroup = transitionOverlay.GetComponent<CanvasGroup>();
+            // Built last in Awake's call order, so the overlay is already
+            // the topmost sibling — no SetAsLastSibling needed.
+            transitionOverlay.SetActive(false);
+        }
+
+        /// Covers the screen instantly (black). Call BEFORE the level
+        /// loads so the swap happens behind the overlay.
+        public void CoverScreen()
+        {
+            if (transitionOverlay == null) return;
+            transitionGroup.alpha = 1f;
+            transitionOverlay.SetActive(true);
+        }
+
+        /// Reveals the screen: fades from black over ~0.35 s, then
+        /// deactivates so it stops blocking raycasts.
+        public void RevealScreen()
+        {
+            if (transitionOverlay == null || !transitionOverlay.activeSelf) return;
+            int gen = PanelGeneration(transitionOverlay, true);
+            Tweener.Value(1f, 0f, 0.35f, delegate(float k)
+            {
+                if (gen != PanelGeneration(transitionOverlay, false)) return;
+                transitionGroup.alpha = k;
+            }, delegate
+            {
+                if (gen != PanelGeneration(transitionOverlay, false)) return;
+                transitionGroup.alpha = 1f; // ready for next cover
+                transitionOverlay.SetActive(false);
+            });
         }
 
         /// Story beat band at the bottom of the screen, shown when a
@@ -2188,6 +2246,7 @@ namespace GemRush
         public void ShowHUD()
         {
             HideAll();
+            CoverScreen(); // the level just swapped; mask it until reveal
             // A fresh level must repaint the HUD even when the cached values
             // happen to match what the last run displayed (restart with
             // identical gem count, etc.).
@@ -2428,6 +2487,10 @@ namespace GemRush
                 // chime the every-10th streak uses, so milestone moments
                 // share one voice.
                 if (crossed) AudioManager.Instance.PlayMilestoneChime();
+                // Star badge: a brief "★★" flash so the player knows WHY
+                // the counter just popped — they earned a star, not just a
+                // gem. The badge fades out on its own; no re-reading needed.
+                if (crossed) FlashStarBadge(gems, total);
             }
             int decis = (int)(time * 10f);
             if (hudTime != null && decis != hudCacheDeciseconds)
@@ -2464,6 +2527,30 @@ namespace GemRush
                 if (seq != gemPulseSeq) return;
                 rt.localScale = Vector3.one;
                 hudGems.color = Color.white;
+            });
+        }
+
+        /// A brief gold "★★" or "★★★" flash when the player crosses a star
+        /// threshold, so they know the pop was a milestone — not just a gem.
+        /// The badge fades out on its own (1.2 s) and hides; no interaction.
+        void FlashStarBadge(int gems, int total)
+        {
+            if (hudStarBadge == null) return;
+            int stars = gems >= total ? 3 : 2;
+            hudStarBadge.text = new string('\u2605', stars);
+            hudStarBadge.gameObject.SetActive(true);
+            hudStarBadge.color = starGold;
+            int seq = ++starBadgeSeq;
+            Tweener.Value(1f, 0f, 1.2f, delegate (float k)
+            {
+                if (seq != starBadgeSeq) return;
+                Color c = starGold;
+                c.a = k;
+                hudStarBadge.color = c;
+            }, delegate
+            {
+                if (seq != starBadgeSeq) return;
+                hudStarBadge.gameObject.SetActive(false);
             });
         }
 
