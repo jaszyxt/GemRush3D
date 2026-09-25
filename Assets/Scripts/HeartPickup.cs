@@ -14,7 +14,11 @@ namespace GemRush
             heart.transform.SetParent(parent, false);
             heart.transform.localPosition = position;
 
-            Material mat = ArtLib.Solid(ArtLib.Gold, 0.6f);
+            // GemPink, not Gold: the reward gold already carries bells,
+            // stars and trophies. A spare life is a different gift — it
+            // deserves its own hue, and pink separates it from the gold
+            // family while staying warm (never hazard red).
+            Material mat = ArtLib.Solid(ArtLib.GemPink, 0.6f);
 
             // Two spheres for the lobes, a rotated cube for the point.
             GameObject lobeL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -48,7 +52,12 @@ namespace GemRush
 
         void Update()
         {
-            transform.Rotate(0f, 90f * Time.deltaTime, 0f);
+            // Gentle oscillation instead of a free 90°/s spin: the
+            // two-lobe heart silhouette stays roughly frontal, so it
+            // reads as a heart from any frame. A free spin showed a
+            // gold peanut for 3 of every 4 frames.
+            float sway = Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 35f;
+            transform.localRotation = Quaternion.Euler(0f, sway, 0f);
             transform.localPosition += Vector3.up *
                 (Mathf.Sin(Time.time * ArtLib.HoverBobRate) * 0.0015f);
         }

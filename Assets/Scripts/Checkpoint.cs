@@ -27,6 +27,7 @@ namespace GemRush
             disc.transform.localScale = new Vector3(2.4f, 0.06f, 2.4f);
 
             Material mat = ArtLib.Solid(ArtLib.CheckpointOff, 0.8f);
+            disc.GetComponent<MeshRenderer>().sharedMaterial = mat;
 
             GameObject post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             post.name = "Beacon";

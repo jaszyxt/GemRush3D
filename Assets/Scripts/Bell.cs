@@ -28,20 +28,32 @@ namespace GemRush
             ArtLib.DecorCube(bell.transform, new Vector3(0f, 1.8f, 0f),
                 new Vector3(1.1f, 0.2f, 0.3f), Quaternion.identity, stone);
 
-            // The bell: a golden cup hanging under the crossbar.
+            // The bell: a golden bell profile — a narrow shoulder cylinder
+            // stacked on a wider mouth-rim cylinder, hung with a visible
+            // gap below the crossbar. The old single straight cylinder
+            // read as a barrel on a signpost; the shoulder+mouth shape
+            // says "bell" from any angle.
             GameObject cup = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             Object.Destroy(cup.GetComponent<Collider>());
             cup.transform.SetParent(bell.transform, false);
-            cup.transform.localPosition = new Vector3(0f, 1.35f, 0f);
-            cup.transform.localScale = new Vector3(0.55f, 0.4f, 0.55f);
+            cup.transform.localPosition = new Vector3(0f, 1.42f, 0f);
+            cup.transform.localScale = new Vector3(0.42f, 0.3f, 0.42f);
             cup.GetComponent<MeshRenderer>().sharedMaterial = goldMat;
+            // Mouth rim: wider and thinner, the part that says "bell".
+            GameObject rim = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            Object.Destroy(rim.GetComponent<Collider>());
+            rim.transform.SetParent(bell.transform, false);
+            rim.transform.localPosition = new Vector3(0f, 1.18f, 0f);
+            rim.transform.localScale = new Vector3(0.6f, 0.1f, 0.6f);
+            rim.GetComponent<MeshRenderer>().sharedMaterial = goldMat;
 
-            // The clapper swings only while the echo is fresh.
+            // The clapper swings only while the echo is fresh. Raised so
+            // a knob peeks below the mouth rim at rest, selling "bell."
             GameObject clapperGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             Object.Destroy(clapperGo.GetComponent<Collider>());
-            clapperGo.transform.SetParent(cup.transform, false);
-            clapperGo.transform.localPosition = new Vector3(0f, -0.35f, 0f);
-            clapperGo.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
+            clapperGo.transform.SetParent(bell.transform, false);
+            clapperGo.transform.localPosition = new Vector3(0f, 1.02f, 0f);
+            clapperGo.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
             clapperGo.GetComponent<MeshRenderer>().sharedMaterial = stone;
 
             // The ring zone covers the whole pedestal: visiting the bell

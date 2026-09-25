@@ -65,11 +65,14 @@ namespace GemRush
             Material woodDark = ArtLib.Solid(new Color(0.48f, 0.34f, 0.20f), 0f);
 
             // The frame: two posts and two planks, against the island's
-            // west edge, facing the spawn (east).
-            Vector3 posts = new Vector3(0.12f, 0.9f, 0.12f);
-            ArtLib.DecorCube(shelf.transform, new Vector3(-0.7f, 0.45f, 0f),
+            // west edge, facing the spawn (east). Posts extend to 1.45
+            // (up from 0.9) so they actually carry the top plank and the
+            // roof — previously the upper half of the shelf hovered with
+            // nothing supporting it.
+            Vector3 posts = new Vector3(0.12f, 1.45f, 0.12f);
+            ArtLib.DecorCube(shelf.transform, new Vector3(-0.7f, 0.725f, 0f),
                 posts, Quaternion.identity, woodDark);
-            ArtLib.DecorCube(shelf.transform, new Vector3(0.7f, 0.45f, 0f),
+            ArtLib.DecorCube(shelf.transform, new Vector3(0.7f, 0.725f, 0f),
                 posts, Quaternion.identity, woodDark);
             ArtLib.DecorCube(shelf.transform, new Vector3(0f, 0.62f, 0f),
                 new Vector3(1.7f, 0.09f, 0.5f), Quaternion.identity, wood);

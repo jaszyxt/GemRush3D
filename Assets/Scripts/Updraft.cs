@@ -48,14 +48,17 @@ namespace GemRush
                 GameObject wisp = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 Object.Destroy(wisp.GetComponent<BoxCollider>());
                 wisp.transform.SetParent(col.transform, false);
+                // Vertical streaks (tall thin cubes), not horizontal
+                // shelves — the geometry itself carries the direction of
+                // motion, so "air rising here" reads in a still frame.
                 wisp.transform.localScale = new Vector3(
-                    size.x * (0.5f + 0.3f * ((i * 7) % 3)),
-                    0.12f,
-                    size.z * (0.5f + 0.3f * ((i * 5) % 3)));
+                    0.15f + 0.1f * ((i * 7) % 3),
+                    size.y / 4f,
+                    0.15f + 0.1f * ((i * 5) % 3));
                 wisp.transform.localPosition = new Vector3(
-                    (((i * 11) % 5) - 2f) * 0.12f,
+                    (((i * 11) % 5) - 2f) * 0.35f,
                     size.y * (i + 0.5f) / count,
-                    (((i * 13) % 5) - 2f) * 0.12f);
+                    (((i * 13) % 5) - 2f) * 0.35f);
                 wisp.GetComponent<MeshRenderer>().sharedMaterial = windMat;
                 up.wisps[i] = wisp.transform;
             }

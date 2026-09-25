@@ -428,11 +428,15 @@ namespace GemRush
 
             CloudDrift.Create(clouds.transform, highClouds.transform);
 
-            // Start marker: stone post with a gem-pink flag at the spawn.
+            // Start marker: stone post with a gem-pink pennant at the
+            // spawn. The flag offsets to the pole's +x side (the pole at
+            // its left edge), so it reads as a flying pennant rather than
+            // a lollipop topper.
             Vector3 post = level.Spawn + new Vector3(0f, 0.5f, -3f);
             ArtLib.DecorCube(parent, post + new Vector3(0f, 1f, 0f),
                 new Vector3(0.3f, 2f, 0.3f), Quaternion.identity, stone);
-            ArtLib.DecorCube(parent, post + new Vector3(0f, 2.2f, 0f),
+            ArtLib.DecorCube(parent,
+                post + new Vector3(0.55f, 2.2f, 0f),
                 new Vector3(0.9f, 0.55f, 0.12f), Quaternion.identity,
                 ArtLib.Solid(ArtLib.GemPink, 0.6f));
 

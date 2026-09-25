@@ -53,6 +53,17 @@ namespace GemRush
             pulse += Time.deltaTime * 3f;
             if (padTop != null)
                 padTop.localScale = new Vector3(1.7f, 0.12f + Mathf.Sin(pulse) * 0.025f, 1.7f);
+            // Emission breathes with the pad: 0.55 idle, swelling to 1.2
+            // at the sine peak. A breathing glow reads "bouncy" at
+            // distance far better than the 5 cm squash alone. The old
+            // one-way ×2 snap never reset, leaving every pad permanently
+            // double-bright after its first bounce.
+            if (padMaterial != null)
+            {
+                float glow = Mathf.Lerp(0.55f, 1.2f,
+                    0.5f + 0.5f * Mathf.Sin(pulse));
+                padMaterial.SetColor("_EmissionColor", ArtLib.GemPink * glow);
+            }
         }
 
         void OnTriggerEnter(Collider other)
@@ -65,10 +76,8 @@ namespace GemRush
             // (motion-comfort gated inside CameraFollow).
             GameBootstrap.CameraRig.FovKick(8f, 0.06f, 0.3f);
 
-            if (padMaterial != null)
-            {
-                padMaterial.SetColor("_EmissionColor", ArtLib.GemPink * 2f);
-            }
+            // The breathing emission in Update handles the flash; no
+            // one-way snap needed (it used to set ×2 permanently).
             Vector3 top = transform.localPosition + new Vector3(0f, 0.3f, 0f);
             Fx.Burst(top, ArtLib.GemPink * 1.5f, 14);
             AudioManager.Instance.PlayBounce();
