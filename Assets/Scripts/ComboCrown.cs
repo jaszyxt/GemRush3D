@@ -56,12 +56,15 @@ namespace GemRush
             gold = ArtLib.Solid(ArtLib.Gold, 0.9f);
             ArtLib.SetFade(gold, 1f);
             // Band plus three points — a crown in the game's soft-cube idiom.
+            // Width 0.65 (up from 0.55) so it reads from the follow camera's
+            // distance: a reward the player EARNED should be visible, not
+            // something they have to squint at.
             ArtLib.DecorCube(transform, Vector3.zero,
-                new Vector3(0.55f, 0.12f, 0.55f), Quaternion.identity, gold);
+                new Vector3(0.65f, 0.12f, 0.65f), Quaternion.identity, gold);
             for (int i = -1; i <= 1; i++)
             {
-                ArtLib.DecorCube(transform, new Vector3(i * 0.17f, 0.14f, 0f),
-                    new Vector3(0.09f, 0.2f, 0.09f), Quaternion.identity, gold);
+                ArtLib.DecorCube(transform, new Vector3(i * 0.21f, 0.14f, 0f),
+                    new Vector3(0.10f, 0.24f, 0.10f), Quaternion.identity, gold);
             }
         }
 
