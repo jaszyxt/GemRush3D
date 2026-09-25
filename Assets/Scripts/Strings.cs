@@ -156,6 +156,18 @@ namespace GemRush
         public const string GhostHint =
             "Your best run waits — race it back.";
 
+        /// The standing line on the menu when nothing has changed this
+        /// session. Replaces the blank that the most common player state
+        /// used to show — the corner reads as dead for a returning player.
+        public static string VisitRecapStanding(int totalStars, int totalMedals)
+        {
+            if (totalMedals > 0)
+                return "Total stars  " + totalStars +
+                    "  ·  Medals  " + totalMedals;
+            if (totalStars > 0)
+                return "Total stars  " + totalStars;
+            return "";
+        }
         /// First time the player takes a photo. The mode is always in the
         /// pause menu but nobody ever says so — this puts one word there.
         public const string PhotoFirstHint =
@@ -314,6 +326,7 @@ namespace GemRush
 
         // ---------- Golden gems (remix gate) ----------
 
+        public const string DailySuffix = "  · DAILY";
         public const string GoldenSuffix = "  · GOLD";
         public const string GoldenGateLocked = "FIND THE GOLDEN GEM";
         public static string GoldenGateHint(string sourceName)

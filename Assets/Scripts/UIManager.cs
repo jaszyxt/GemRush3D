@@ -15,6 +15,7 @@ namespace GemRush
         Font font;
         GameObject menuPanel;
         GameObject hudPanel;
+        CanvasGroup deathDim; // a brief full-screen tint on death
         GameObject winPanel;
         GameObject overPanel;
         GameObject completePanel;
@@ -34,6 +35,7 @@ namespace GemRush
         RectTransform titleRect;
         Image[] winStars;
         Text[] levelButtonTexts;
+        Image[][] levelButtonStars; // 3 visual star dots per level button
         Button[] levelButtons;
         Text[] settingsLabels; // labels for the rows in settingsIds order
         SettingId[] settingsIds; // which setting each row is, in display order
@@ -96,7 +98,7 @@ namespace GemRush
         bool epilogueCrossfading;
         GameObject transitionOverlay;
         CanvasGroup transitionGroup;   // AnimateHide in progress — prevents
-                                    // re-triggering while the tween runs.
+                                       // re-triggering while the tween runs.
         bool toastHiding;    // same pattern for the story toast.
         GameObject quitConfirmPanel; // D4: Esc/back from the menu asks before quitting
         System.Action quitConfirmedAction;
@@ -499,6 +501,7 @@ namespace GemRush
             int count = LevelLibrary.Levels.Length;
             levelButtons = new Button[count];
             levelButtonTexts = new Text[count];
+            levelButtonStars = new Image[count][];
             menuPerRow = 5;
             for (int i = 0; i < count; i++)
             {
@@ -518,6 +521,27 @@ namespace GemRush
                     touch ? 24 : 21);
                 levelButtons[i] = b;
                 levelButtonTexts[i] = b.GetComponentInChildren<Text>();
+                // Three visual star dots per level button: gold for
+                // earned, dim for not. Far more scannable than a text
+                // "Stars N/3" line across a wall of 40 buttons.
+                levelButtonStars[i] = new Image[3];
+                for (int st = 0; st < 3; st++)
+                {
+                    GameObject dot = new GameObject("Star" + st);
+                    dot.transform.SetParent(b.transform, false);
+                    Image star = dot.AddComponent<Image>();
+                    star.sprite = Fx.StarSprite();
+                    star.raycastTarget = false;
+                    star.color = starDim;
+                    RectTransform srt = star.rectTransform;
+                    // Bottom-center of the button, evenly spaced.
+                    float dotX = (st - 1) * 26f;
+                    srt.anchorMin = new Vector2(0.5f, 0.12f);
+                    srt.anchorMax = srt.anchorMin;
+                    srt.anchoredPosition = new Vector2(dotX, 0f);
+                    srt.sizeDelta = new Vector2(18f, 18f);
+                    levelButtonStars[i][st] = star;
+                }
             }
 
             // Page flipper: arrows flank the grid; the "n / N" readout sits
@@ -706,10 +730,12 @@ namespace GemRush
                 {
                     if (unlocked)
                     {
-                        levelButtonTexts[i].text = Strings.LevelUnlockedRow(
-                            i + 1, SaveSystem.Stars(i), 3, isDaily);
-                        if (goldenFound)
-                            levelButtonTexts[i].text += Strings.GoldenSuffix;
+                        // The visual star dots carry the star count now;
+                        // the text stays lean — just the level number
+                        // plus any special marker.
+                        levelButtonTexts[i].text = Strings.LevelLabel(i + 1) +
+                            (isDaily ? Strings.DailySuffix : "") +
+                            (goldenFound ? Strings.GoldenSuffix : "");
                     }
                     else if (gateSource >= 0 && i <= SaveSystem.UnlockedLevel)
                     {
@@ -721,6 +747,22 @@ namespace GemRush
                     else
                     {
                         levelButtonTexts[i].text = Strings.LevelLockedRow(i + 1);
+                    }
+                }
+                // Star dots: gold for earned, dim for unearned, near-
+                // invisible on locked levels.
+                if (levelButtonStars[i] != null)
+                {
+                    int stars = unlocked ? SaveSystem.Stars(i) : 0;
+                    for (int st = 0; st < 3; st++)
+                    {
+                        if (levelButtonStars[i][st] == null) continue;
+                        if (!unlocked)
+                            levelButtonStars[i][st].color =
+                                new Color(starDim.r, starDim.g, starDim.b, 0.3f);
+                        else
+                            levelButtonStars[i][st].color =
+                                st < stars ? starGold : starDim;
                     }
                 }
                 // The repaint above overwrites the base tint; keep any
@@ -837,6 +879,24 @@ namespace GemRush
             hudLives = MakeText(dyn, "Lives", Strings.HudLives(3), 28,
                 starGold, TextAnchor.MiddleRight,
                 new Vector2(livesStart, 0.93f), new Vector2(1f, 1f), 8f, 4f, 24f, 2f);
+
+            // Death dim: a brief full-screen tint that acknowledges death
+            // visually. The hit-stop (120 ms) freezes the frame while this
+            // appears; the tween fades it out as the game resumes. It is
+            // non-raycast and uses unscaled time so it works under both the
+            // hit-stop and any future pause overlap.
+            GameObject dimGO = new GameObject("DeathDim", typeof(RectTransform));
+            dimGO.transform.SetParent(hudPanel.transform, false);
+            Image dimImg = dimGO.AddComponent<Image>();
+            dimImg.color = new Color(0f, 0f, 0f, 0f);
+            dimImg.raycastTarget = false;
+            RectTransform dimRT = (RectTransform)dimGO.transform;
+            dimRT.anchorMin = Vector2.zero;
+            dimRT.anchorMax = Vector2.one;
+            dimRT.offsetMin = Vector2.zero;
+            dimRT.offsetMax = Vector2.zero;
+            deathDim = dimGO.AddComponent<CanvasGroup>();
+            deathDim.alpha = 0f;
 
             // Virtual joystick + jump button; only appears on touch devices.
             TouchControls.Create(hudPanel.transform, font);
@@ -2140,7 +2200,7 @@ namespace GemRush
         {
             if (transitionOverlay == null || !transitionOverlay.activeSelf) return;
             int gen = PanelGeneration(transitionOverlay, true);
-            Tweener.Value(1f, 0f, 0.35f, delegate(float k)
+            Tweener.Value(1f, 0f, 0.35f, delegate (float k)
             {
                 if (gen != PanelGeneration(transitionOverlay, false)) return;
                 transitionGroup.alpha = k;
@@ -2170,6 +2230,15 @@ namespace GemRush
             storyToastText.fontStyle = FontStyle.Italic;
 
             storyToastPanel.SetActive(false);
+        }
+
+        /// Brief full-screen tint on death. Shows during hit-stop, fades
+        /// out as the game resumes. Called by GameManager.OnPlayerDied.
+        public void ShowDeathDim()
+        {
+            if (deathDim == null) return;
+            deathDim.alpha = 0.3f;
+            Tweener.Value(0.3f, 0f, 0.4f, delegate (float v) { deathDim.alpha = v; });
         }
 
         /// Story beat band at the bottom of the screen, shown when a
@@ -2240,7 +2309,14 @@ namespace GemRush
                 // hello instead. Disappears the moment they earn anything.
                 visitRecap.text = Strings.FirstVisitWelcome;
             else
-                visitRecap.text = "";
+            {
+                // A returning player with nothing new this session used to
+                // see a blank corner — the most common state, and the deadest.
+                int totalStars = SaveSystem.TotalStars(count);
+                int totalMedals = SaveSystem.TotalMedals(count);
+                visitRecap.text = Strings.VisitRecapStanding(
+                    totalStars, totalMedals);
+            }
         }
 
         public void ShowHUD()

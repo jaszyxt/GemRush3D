@@ -49,7 +49,15 @@ namespace GemRush
             "Nim's first word was a gust. There was weather everywhere. Gloomfang has never been prouder.",
             "The bell towers once sang storms home. Now they ring one in to work.",
             "Red Nine still dreams of being a carousel. On weekends, he practices.",
-            "The Sky-Keeper's map has one word in the corner: 'more.' It's a to-do list."
+            "The Sky-Keeper's map has one word in the corner: 'more.' It's a to-do list.",
+            "Every legend starts somewhere small. Pip's started with a stolen sun.",
+            "The rematch: Gloomfang brought his best clouds. Pip brought snacks.",
+            "Down is just a direction. Down here, someone was hoarding light for a very long time.",
+            "A sky that copies you, half a second behind. Then half a second ahead. Nobody mentions it.",
+            "After dark, the same places look different. So does the work.",
+            "Snow holds still. Pip holds the lantern. Both are patient.",
+            "The sky said thank you in colours it made itself.",
+            "The road home was worth the atlas it took to find."
         };
 
         /// Index of the quote MenuQuote last returned, so voice lines can

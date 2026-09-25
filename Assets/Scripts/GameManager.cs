@@ -385,6 +385,7 @@ namespace GemRush
         {
             if (State != GameState.Playing) return;
             BeginHitStop(); // hold the impact frame; the feedback plays out after
+            ui.ShowDeathDim(); // brief visual acknowledgement of death
             Lives--;
             AudioManager.ResetPickupStreak();
             AudioManager.Instance.PlayDie(fell);
