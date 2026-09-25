@@ -904,7 +904,12 @@ namespace GemRush
 
         void BuildWin(Transform canvas)
         {
-            winPanel = MakePanel(canvas, "WinPanel", new Color(0f, 0.1f, 0.05f, 0.65f));
+            // 0.50, not the old 0.65: the rest-beat camera orbits the world
+            // behind this panel, and at 0.65 the celebration was mostly
+            // dark panel with a faint hint of sky. A win is a moment to
+            // show off the world you just conquered — keep enough scrim
+            // for the text to read, but let the orbit shine through.
+            winPanel = MakePanel(canvas, "WinPanel", new Color(0f, 0.1f, 0.05f, 0.50f));
 
             Text title = MakeText(winPanel.transform, "Title", Strings.WinTitle, 76,
                 new Color(0.45f, 1f, 0.55f), TextAnchor.MiddleCenter,
