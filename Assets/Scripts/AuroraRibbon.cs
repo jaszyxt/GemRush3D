@@ -68,34 +68,42 @@ namespace GemRush
 
         System.Collections.IEnumerator Shimmer()
         {
-            MeshRenderer mr = GetComponentInChildren<MeshRenderer>();
-            Material mat = mr != null ? mr.material : null;
-            // Preserve the 0.7 alpha set in Create(): the Aurora palette
-            // constants all have alpha 1, and Color.Lerp overwrites alpha —
-            // without pinning it, the first shimmer frame made the ribbon
-            // OPAQUE, hiding anything under it.
+            // Grab BOTH materials: the slab (first renderer found) and the
+            // underglow (last renderer found). Previously only the slab
+            // shimmered — the underglow stayed frozen AuroraCyan forever.
+            MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>();
+            Material slab = renderers.Length > 0 ? renderers[0].material : null;
+            Material underglow = renderers.Length > 1
+                ? renderers[renderers.Length - 1].material : null;
             const float FadeAlpha = 0.7f;
+            const float GlowAlpha = 0.3f;
             int a = 0;
             while (true)
             {
-                if (mat != null)
+                if (slab != null)
                 {
                     Color from = ArtLib.Aurora[a % ArtLib.Aurora.Length];
                     Color to = ArtLib.Aurora[(a + 1) % ArtLib.Aurora.Length];
-                    // Drive emission along with the hue so the ribbon
-                    // actually brightens through the cycle, not just
-                    // re-colours.
+                    // The underglow chases one palette entry behind, so
+                    // the two surfaces visibly pursue each other through
+                    // the aurora — a chasing wave, not a uniform flash.
+                    Color glowFrom = ArtLib.Aurora[(a + 1) % ArtLib.Aurora.Length];
+                    Color glowTo = ArtLib.Aurora[(a + 2) % ArtLib.Aurora.Length];
                     Color emissionFrom = from * 0.9f;
                     Color emissionTo = to * 0.9f;
                     for (float k = 0f; k < 1f; k += Time.deltaTime / 2.2f)
                     {
-                        mat.color = new Color(
-                            Color.Lerp(from, to, k).r,
-                            Color.Lerp(from, to, k).g,
-                            Color.Lerp(from, to, k).b,
+                        Color slabC = Color.Lerp(from, to, k);
+                        slab.color = new Color(slabC.r, slabC.g, slabC.b,
                             FadeAlpha);
-                        mat.SetColor("_EmissionColor",
+                        slab.SetColor("_EmissionColor",
                             Color.Lerp(emissionFrom, emissionTo, k));
+                        if (underglow != null)
+                        {
+                            Color glowC = Color.Lerp(glowFrom, glowTo, k);
+                            underglow.color = new Color(glowC.r, glowC.g,
+                                glowC.b, GlowAlpha);
+                        }
                         yield return null;
                     }
                 }
