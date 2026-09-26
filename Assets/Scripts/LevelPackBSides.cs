@@ -37,9 +37,15 @@ namespace GemRush
                 l.WinLine = "The Garden That Dreams, charted! It kept the tune while it slept, and Pip kept to the beat. Nobody woke up. That was the whole trick.";
                 l.SkyColor = new Color(0.42f, 0.60f, 0.72f);
                 l.FogColor = new Color(0.38f, 0.56f, 0.66f);
-                l.Gusts.Add(new GustSpec(0f, 3.5f, 44f, new Vector3(5f, 4f, 10f),
+                // Both dream lanes extended to their landings (ride census
+                // 2026-09-26): g0 now reaches 2u into the parent's gust
+                // landing (54..60) across the 5u gap that killed a let-go
+                // rider; g1 is raised and stretched to deliver onto the
+                // high checkpoint isle (80.5..87.5, top y 7.5) instead of
+                // dropping into the void past 77.
+                l.Gusts.Add(new GustSpec(0f, 3.5f, 47.5f, new Vector3(5f, 4f, 17f),
                     new Vector3(0f, 0f, 1f)));
-                l.Gusts.Add(new GustSpec(0f, 3.5f, 71f, new Vector3(5f, 4f, 10f),
+                l.Gusts.Add(new GustSpec(0f, 5f, 74f, new Vector3(5f, 6f, 16f),
                     new Vector3(0f, 0f, 1f)));
                 l.Hearts.Add(new Vector3(2f, 6.6f, 66f));
                 l.Gems.Add(new Vector3(0f, 5.1f, 44f));    // ride the new lane

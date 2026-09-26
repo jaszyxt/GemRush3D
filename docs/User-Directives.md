@@ -330,3 +330,12 @@ and the constructor accepts geometry only; `LevelAuditTests.AllGusts_
 ShareOneWind` fails if any spec drifts from the constants;
 `tools/check-directives.sh` fails if a gust call site carries wind
 literals again.
+
+**The one exception (user, 2026-09-26, same ruling):** a gust may differ
+from the shared wind ONLY if the player is warned before it and the gust
+genuinely has a different nature. Same settings is the default; a
+different gust is the rare, signed-off case, never a silent variation.
+Lane geometry (position, size, direction) is not wind tuning: extending a
+lane so its wind carries a rider who lets go of the stick is required
+kindness, applied to Where Nim Laughs g1, The Baby's Home g1, and both
+Garden That Dreams lanes.

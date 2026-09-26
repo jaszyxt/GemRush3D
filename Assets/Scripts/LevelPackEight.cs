@@ -103,7 +103,11 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 12f, 137f, 12f, 1f, 12f)); // summit
 
             l.Gusts.Add(new GustSpec(0f, 3.5f, 46f, new Vector3(5f, 4f, 10f), ZPlus));
-            l.Gusts.Add(new GustSpec(0f, 8.5f, 100f, new Vector3(5f, 4f, 10f), ZPlus));
+            // Lane reaches 1u INTO the gust landing (spans 107..113): the
+            // wind zeroes horizontal speed at the lane's end, so the old
+            // 2u gap past the box was a let-go death (ride census,
+            // 2026-09-26). A delivered rider now lands on the isle.
+            l.Gusts.Add(new GustSpec(0f, 8.5f, 100f, new Vector3(5f, 4f, 16f), ZPlus));
 
             l.Spinners.Add(new SpinnerSpec(0f, 3.5f, 38f, 60f, 7f, 12f));
             l.Spinners.Add(new SpinnerSpec(0f, 8.5f, 90f, 75f, 8f, 12f));
@@ -169,7 +173,12 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(0f, 12f, 146f, 13f, 1f, 13f)); // The Nest
 
             l.Gusts.Add(new GustSpec(0f, 3.5f, 48f, LongLane, ZPlus));
-            l.Gusts.Add(new GustSpec(0f, 8.5f, 108f, new Vector3(5f, 5f, 18f), ZPlus));
+            // Taller lane (y 5.5..13.5) so the lift bounce cannot eject a
+            // rider before the gust landing (113.5..122.5, top y 8.5):
+            // the old 5-tall lane ejected at ~z 109, where the wind
+            // zeroes horizontal speed and the drop was a let-go death
+            // (ride census, 2026-09-26).
+            l.Gusts.Add(new GustSpec(0f, 9.5f, 108f, new Vector3(5f, 8f, 18f), ZPlus));
 
             l.Spinners.Add(new SpinnerSpec(0f, 3.5f, 38f, 75f, 7f, 12f));
             l.Spinners.Add(new SpinnerSpec(0f, 8.5f, 95f, 75f, 8f, 12f));
