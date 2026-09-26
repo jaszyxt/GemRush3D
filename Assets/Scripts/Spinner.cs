@@ -111,6 +111,19 @@ namespace GemRush
             Color baseColor = ArtLib.HazardRed * 0.7f;
             armMat.SetColor("_EmissionColor", baseColor);
 
+            // Ground disc: a warm-toned warning plate under the spinner,
+            // so the danger zone is visible on the platform surface even
+            // when the arm is pointed away. HazardRed at low emission.
+            Material discMat = ArtLib.Solid(ArtLib.HazardRed, 0.3f);
+            ArtLib.SetFade(discMat, 0.25f);
+            GameObject disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            disc.name = "SpinnerDisc";
+            Object.Destroy(disc.GetComponent<Collider>());
+            disc.transform.SetParent(parent, false);
+            disc.transform.localPosition = platformTopCenter + new Vector3(0f, 0.03f, 0f);
+            disc.transform.localScale = new Vector3(5.2f, 0.05f, 5.2f);
+            disc.GetComponent<MeshRenderer>().sharedMaterial = discMat;
+
             GameObject post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             post.name = "SpinnerPost";
             post.transform.SetParent(parent, false);

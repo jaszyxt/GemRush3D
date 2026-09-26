@@ -97,6 +97,7 @@ namespace GemRush
         float winTitlePopTimer;
         bool introHiding;
         bool epilogueCrossfading;
+        Text progressLabel; // overall star counter on the menu
         GameObject transitionOverlay;
         CanvasGroup transitionGroup;   // AnimateHide in progress — prevents
                                        // re-triggering while the tween runs.
@@ -595,6 +596,13 @@ namespace GemRush
                 new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f,
                 wrap: true);
 
+            // Overall star progress: a one-line counter in the top-right
+            // corner so the player always sees how close they are to the
+            // next milestone (15/30/45 stars drive the trail colour).
+            progressLabel = MakeText(menuPanel.transform, "StarProgress", "",
+                20, starGold, TextAnchor.UpperRight,
+                new Vector2(0.55f, 0.90f), new Vector2(0.97f, 0.95f), 0f, 0f, 12f, 0f);
+
             WireMenuNav();
         }
 
@@ -696,6 +704,13 @@ namespace GemRush
                 pageLabel.text = (levelPage + 1) + " / " + pages;
             if (pagePrev != null) pagePrev.interactable = levelPage > 0;
             if (pageNext != null) pageNext.interactable = levelPage < pages - 1;
+            // Overall star progress: always visible on the menu.
+            if (progressLabel != null)
+            {
+                int total = SaveSystem.TotalStars(count);
+                int max = count * 3;
+                progressLabel.text = total + " / " + max + " ★";
+            }
             for (int i = 0; i < count; i++)
             {
                 bool onPage = i >= first && i < last;
