@@ -32,6 +32,7 @@ namespace GemRush
         Text winStory;
         Text winMilestone;
         Text winMedalText;
+        Text winNewBestText;
         Text completeStats;
         RectTransform titleRect;
         Image[] winStars;
@@ -160,6 +161,7 @@ namespace GemRush
         // low-life heart breathing (a slow warm gold pulse, never red).
         int gemPulseSeq;
         int starBadgeSeq;
+        int newBestSeq;
         int starPopSeq; // retires an in-flight win-star pop on re-show
         float heartGlowPhase;
         bool heartGlowing;
@@ -404,7 +406,10 @@ namespace GemRush
             {
                 recordFlourishTimer -= Time.unscaledDeltaTime;
                 if (recordFlourishTimer <= 0f)
+                {
                     AudioManager.Instance.PlayNewRecord();
+                    FlashNewBest();
+                }
             }
             // The unlock sting waits its turn: it is placed on the win
             // screen by ShowWin and fires once the celebration has thinned,
@@ -972,6 +977,15 @@ namespace GemRush
                 new Vector2(0.3f, 0.465f), new Vector2(0.7f, 0.52f), 0f, 0f, 0f, 0f);
             winMedalText.fontStyle = FontStyle.Bold;
             winMedalText.gameObject.SetActive(false);
+
+            // "NEW BEST!" celebration: a brief gold flash above the stats
+            // when the player beats their record. Appears with the audio
+            // flourish (after the star dings finish) and fades on its own.
+            winNewBestText = MakeText(winPanel.transform, "NewBestFlash", "",
+                36, starGold, TextAnchor.MiddleCenter,
+                new Vector2(0.15f, 0.52f), new Vector2(0.85f, 0.58f), 0f, 0f, 0f, 0f);
+            winNewBestText.fontStyle = FontStyle.Bold;
+            winNewBestText.gameObject.SetActive(false);
 
             winStory = MakeText(winPanel.transform, "Story", "", 26,
                 new Color(0.75f, 0.82f, 0.95f), TextAnchor.UpperCenter,
@@ -2678,6 +2692,29 @@ namespace GemRush
         /// A brief gold "★★" or "★★★" flash when the player crosses a star
         /// threshold, so they know the pop was a milestone — not just a gem.
         /// The badge fades out on its own (1.2 s) and hides; no interaction.
+        /// A brief gold "NEW BEST!" flash on the win screen when the player
+        /// beats their record. Fires alongside the audio flourish, fades
+        /// out on its own (1.5 s). Sequence-token guarded so a re-show
+        /// retires the previous tween.
+        void FlashNewBest()
+        {
+            if (winNewBestText == null) return;
+            winNewBestText.text = Strings.NewBestFlash;
+            winNewBestText.gameObject.SetActive(true);
+            int seq = ++newBestSeq;
+            Tweener.Value(1f, 0f, 1.5f, delegate (float k)
+            {
+                if (seq != newBestSeq) return;
+                Color c = starGold;
+                c.a = k;
+                winNewBestText.color = c;
+            }, delegate
+            {
+                if (seq != newBestSeq) return;
+                winNewBestText.gameObject.SetActive(false);
+            });
+        }
+
         void FlashStarBadge(int gems, int total)
         {
             if (hudStarBadge == null) return;

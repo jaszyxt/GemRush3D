@@ -122,6 +122,7 @@ namespace GemRush
         public const string FirstClear = "First clear!";
         public const string BestPrefix = "Best ";
         public const string NewRecordSuffix = "  (NEW!)";
+        public const string NewBestFlash = "NEW BEST!";
 
         public static string WinStats(int level, string time, string medal,
             int gems, int total, string bestLine)
