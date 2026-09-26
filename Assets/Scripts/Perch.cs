@@ -207,13 +207,34 @@ namespace GemRush
             seat.GetComponent<MeshRenderer>().sharedMaterial = matWood;
             seatRef = seat.transform;
 
-            GameObject back = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Object.Destroy(back.GetComponent<Collider>());
-            back.name = "Back";
-            back.transform.SetParent(transform, false);
-            back.transform.localPosition = new Vector3(0f, 0.82f, 0.3f);
-            back.transform.localScale = new Vector3(2.1f, 0.55f, 0.1f);
-            back.GetComponent<MeshRenderer>().sharedMaterial = matSlat;
+            // Backrest: two vertical stiles plus three horizontal slats
+            // in between, so see-through gaps make it read as a crafted
+            // bench instead of a leaning billboard. Same footprint as
+            // the old single-plate back.
+            for (int s = -1; s <= 1; s += 2)
+            {
+                GameObject stile = GameObject.CreatePrimitive(
+                    PrimitiveType.Cube);
+                Object.Destroy(stile.GetComponent<Collider>());
+                stile.name = "BackStile";
+                stile.transform.SetParent(transform, false);
+                stile.transform.localPosition =
+                    new Vector3(s * 1.0f, 0.82f, 0.3f);
+                stile.transform.localScale = new Vector3(0.1f, 0.55f, 0.1f);
+                stile.GetComponent<MeshRenderer>().sharedMaterial = matSlat;
+            }
+            for (int slat = 0; slat < 3; slat++)
+            {
+                GameObject slatGo = GameObject.CreatePrimitive(
+                    PrimitiveType.Cube);
+                Object.Destroy(slatGo.GetComponent<Collider>());
+                slatGo.name = "BackSlat" + slat;
+                slatGo.transform.SetParent(transform, false);
+                slatGo.transform.localPosition = new Vector3(0f,
+                    0.60f + slat * 0.22f, 0.3f);
+                slatGo.transform.localScale = new Vector3(2.1f, 0.14f, 0.1f);
+                slatGo.GetComponent<MeshRenderer>().sharedMaterial = matSlat;
+            }
 
             for (int side = -1; side <= 1; side += 2)
             {
