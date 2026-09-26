@@ -238,7 +238,12 @@ namespace GemRush
                 slatGo.transform.localPosition = new Vector3(0f,
                     0.60f + slat * 0.22f, 0.3f);
                 slatGo.transform.localScale = new Vector3(2.1f, 0.14f, 0.1f);
-                slatGo.GetComponent<MeshRenderer>().sharedMaterial = matSlat;
+                // Alternate wood and dark slats: even slats in the seat's
+                // warm Wood, odd slats in the darker Trunk tone, so the
+                // backrest has visible tonal variation — real bench slats
+                // are alternating grain directions, not uniform bars.
+                slatGo.GetComponent<MeshRenderer>().sharedMaterial =
+                    slat % 2 == 0 ? matWood : matSlat;
             }
 
             for (int side = -1; side <= 1; side += 2)

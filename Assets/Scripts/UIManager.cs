@@ -2303,6 +2303,9 @@ namespace GemRush
         public void ShowStoryToast(string line, string voId = null)
         {
             if (storyToastPanel == null || string.IsNullOrEmpty(line)) return;
+            // The briefing band occupies the same screen space; retire it
+            // so the toast text is readable instead of overlapping.
+            HideBriefing();
             if (storyToastText != null) storyToastText.text = line;
             // Scale hold time to text length so longer beats get more
             // read-time. Short quips still get the 4 s floor; multi-line

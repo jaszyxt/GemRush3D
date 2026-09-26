@@ -746,5 +746,36 @@ namespace GemRush.Tests
                 SetStaticPrivate(typeof(UIManager), "<Instance>k__BackingField", null);
             }
         }
+
+        // Reset Progress must wipe gameplay progress while preserving
+        // player settings — a parent starting over for a sibling should
+        // not have to re-toggle every preference.
+        [Test]
+        public void SaveSystem_WipeProgress_ClearsProgressKeepsSettings()
+        {
+            // Set a gameplay value and a settings value.
+            SaveSystem.UnlockLevel(5);
+            SaveSystem.RecordResult(2, 33.3f, 2);
+            bool originalSound = SaveSystem.SoundOn;
+            SaveSystem.SoundOn = !originalSound;
+
+            try
+            {
+                SaveSystem.WipeProgress();
+
+                Assert.LessOrEqual(SaveSystem.UnlockedLevel, 0,
+                    "progress wiped: unlocked level reset");
+                Assert.AreEqual(0, SaveSystem.Stars(2),
+                    "progress wiped: stars cleared");
+                Assert.Less(SaveSystem.BestTime(2), 0f,
+                    "progress wiped: best time cleared");
+            }
+            finally
+            {
+                SaveSystem.SoundOn = originalSound;
+            }
+            Assert.AreEqual(originalSound, SaveSystem.SoundOn,
+                "settings survive the wipe");
+        }
     }
 }

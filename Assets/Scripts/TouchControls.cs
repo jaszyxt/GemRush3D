@@ -163,10 +163,19 @@ namespace GemRush
                         Vector2 delta = t.position - stickCenter;
                         float mag = delta.magnitude;
                         if (mag > radiusPx) delta *= radiusPx / mag;
-                        if (knobRect != null)
-                            knobRect.anchoredPosition = delta / canvasScale;
                         if (mag > 0.08f * radiusPx)
+                        {
+                            // Only move the knob past the dead zone — a kid
+                            // who sees the knob drift expects Pip to move
+                            // too; keeping them in sync avoids confusion.
+                            if (knobRect != null)
+                                knobRect.anchoredPosition = delta / canvasScale;
                             move = delta / radiusPx;
+                        }
+                        else if (knobRect != null)
+                        {
+                            knobRect.anchoredPosition = Vector2.zero;
+                        }
                     }
                 }
             }
