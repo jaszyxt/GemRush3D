@@ -38,9 +38,9 @@ namespace GemRush
                 l.SkyColor = new Color(0.42f, 0.60f, 0.72f);
                 l.FogColor = new Color(0.38f, 0.56f, 0.66f);
                 l.Gusts.Add(new GustSpec(0f, 3.5f, 44f, new Vector3(5f, 4f, 10f),
-                    new Vector3(0f, 0f, 1f), 4.4f, 2.2f, 8f));
+                    new Vector3(0f, 0f, 1f)));
                 l.Gusts.Add(new GustSpec(0f, 3.5f, 71f, new Vector3(5f, 4f, 10f),
-                    new Vector3(0f, 0f, 1f), 4.4f, 2.2f, 8f));
+                    new Vector3(0f, 0f, 1f)));
                 l.Hearts.Add(new Vector3(2f, 6.6f, 66f));
                 l.Gems.Add(new Vector3(0f, 5.1f, 44f));    // ride the new lane
                 l.Gems.Add(new Vector3(0f, 8.1f, 72f));    // ride the new lane

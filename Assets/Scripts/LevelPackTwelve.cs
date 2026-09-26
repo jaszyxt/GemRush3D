@@ -187,7 +187,7 @@ namespace GemRush
             // 19-unit ride with margin; the giggle telegraph still leads
             // each blow, and a running start lands mid-isle either way.
             l.Gusts.Add(new GustSpec(0f, 6f, 62f, new Vector3(4f, 4f, 20f),
-                new Vector3(0f, 0f, 1f), 4.4f, 3.0f, 8f, 3f));
+                new Vector3(0f, 0f, 1f)));
             l.Bells.Add(new BellSpec(2f, 6.5f, 74f, 6f, 0));
             l.EchoBridges.Add(new EchoBridgeSpec(0f, 6.5f, 84f,
                 new Vector3(3f, 0.5f, 10f), 0));

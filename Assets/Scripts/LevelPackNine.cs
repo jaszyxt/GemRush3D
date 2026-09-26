@@ -195,7 +195,7 @@ namespace GemRush
             // (the wind's real hold-up is lift − g/4; anything under ~2.5
             // still sinks) so even walking in carries you onto the deck.
             l.Gusts.Add(new GustSpec(0f, 3.5f, 68f, new Vector3(5f, 4f, 20f),
-                new Vector3(0f, 0f, 1f), 4.4f, 4.4f, 8f, 3f));
+                new Vector3(0f, 0f, 1f)));
 
             l.Bells.Add(new BellSpec(0f, 3.5f, 42f, 6f, 0));
             l.Bells.Add(new BellSpec(0f, 6.5f, 101f, 7f, 1));

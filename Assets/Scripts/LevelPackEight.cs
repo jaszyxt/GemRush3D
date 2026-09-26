@@ -44,8 +44,8 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 7f, 100f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 8f, 109f, 12f, 1f, 12f));  // summit
 
-            l.Gusts.Add(new GustSpec(0f, 0.5f, 20f, new Vector3(5f, 4f, 16f), ZPlus, 4.4f, 2.2f, 8f));
-            l.Gusts.Add(new GustSpec(0f, 4.5f, 74f, new Vector3(5f, 4f, 14f), ZPlus, 4.4f, 2.2f, 8f));
+            l.Gusts.Add(new GustSpec(0f, 0.5f, 20f, new Vector3(5f, 4f, 16f), ZPlus));
+            l.Gusts.Add(new GustSpec(0f, 4.5f, 74f, new Vector3(5f, 4f, 14f), ZPlus));
 
             l.Checkpoints.Add(new Vector3(0f, 2.5f, 47f));
             l.Checkpoints.Add(new Vector3(0f, 4.5f, 83f));
@@ -102,8 +102,8 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 11f, 127f, 5f, 1f, 5f));
             l.Platforms.Add(new PlatformSpec(0f, 12f, 137f, 12f, 1f, 12f)); // summit
 
-            l.Gusts.Add(new GustSpec(0f, 3.5f, 46f, new Vector3(5f, 4f, 10f), ZPlus, 4.4f, 2.2f, 8f));
-            l.Gusts.Add(new GustSpec(0f, 8.5f, 100f, new Vector3(5f, 4f, 10f), ZPlus, 4.4f, 2.2f, 8f));
+            l.Gusts.Add(new GustSpec(0f, 3.5f, 46f, new Vector3(5f, 4f, 10f), ZPlus));
+            l.Gusts.Add(new GustSpec(0f, 8.5f, 100f, new Vector3(5f, 4f, 10f), ZPlus));
 
             l.Spinners.Add(new SpinnerSpec(0f, 3.5f, 38f, 60f, 7f, 12f));
             l.Spinners.Add(new SpinnerSpec(0f, 8.5f, 90f, 75f, 8f, 12f));
@@ -168,8 +168,8 @@ namespace GemRush
             l.Platforms.Add(new PlatformSpec(-2f, 11f, 136f, 4f, 1f, 4f));
             l.Platforms.Add(new PlatformSpec(0f, 12f, 146f, 13f, 1f, 13f)); // The Nest
 
-            l.Gusts.Add(new GustSpec(0f, 3.5f, 48f, LongLane, ZPlus, 4.4f, 2.2f, 8f));
-            l.Gusts.Add(new GustSpec(0f, 8.5f, 108f, new Vector3(5f, 5f, 18f), ZPlus, 4.4f, 2.2f, 8f));
+            l.Gusts.Add(new GustSpec(0f, 3.5f, 48f, LongLane, ZPlus));
+            l.Gusts.Add(new GustSpec(0f, 8.5f, 108f, new Vector3(5f, 5f, 18f), ZPlus));
 
             l.Spinners.Add(new SpinnerSpec(0f, 3.5f, 38f, 75f, 7f, 12f));
             l.Spinners.Add(new SpinnerSpec(0f, 8.5f, 95f, 75f, 8f, 12f));

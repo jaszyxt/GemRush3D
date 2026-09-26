@@ -1206,6 +1206,41 @@ namespace GemRush.Tests
         }
 
         [Test]
+        public void AllGusts_ShareOneWind()
+        {
+            // D-10 (user, 2026-09-26): "all the gusts should have the same
+            // settings." The wind — period, blow window, strength, lift —
+            // is defined ONCE in GustZone's constants, and every GustSpec
+            // in the library must carry exactly those values. History that
+            // forces this lock: the level data's wind numbers were DEAD
+            // (the builder dropped the lift parameter and every gust ran
+            // flat), a per-gust window variation then made the finale's
+            // settings differ from the rest, and a hand edit gave Silent
+            // Spire an always-blowing window. Any future per-gust wind
+            // tweak — even a well-meaning one — fails here; tune the wind
+            // by changing GustZone's constants, which changes EVERY gust
+            // together.
+            foreach (LevelDefinition level in AllLevels)
+            {
+                for (int g = 0; g < level.Gusts.Count; g++)
+                {
+                    GemRush.GustSpec gust = level.Gusts[g];
+                    string where = "gust " + g + " of " + level.Name;
+                    Assert.AreEqual(GemRush.GustZone.DefaultPeriod,
+                        gust.Period, where + " must ride the shared period");
+                    Assert.AreEqual(GemRush.GustZone.DefaultActiveTime,
+                        gust.ActiveTime, where + " must ride the shared "
+                        + "blow window");
+                    Assert.AreEqual(GemRush.GustZone.DefaultStrength,
+                        gust.Strength, where + " must ride the shared "
+                        + "strength");
+                    Assert.AreEqual(GemRush.GustZone.DefaultLift,
+                        gust.Lift, where + " must ride the shared lift");
+                }
+            }
+        }
+
+        [Test]
         public void GustBlowWindow_IsARealShareOfEveryCycle()
         {
             // Player-reported: The Festival Finale's gust crossing was
@@ -1221,10 +1256,9 @@ namespace GemRush.Tests
             // this asserts the gameplay rule directly and records which
             // moods would drift if it ever read the music again.
             // Read the REAL constants rather than copies: a duplicated
-            // literal cannot catch a regression in the value it duplicates,
-            // and the original strict `>` compared 2.2 against 2.2 — the
-            // design value is EXACTLY half — so the test failed on its own
-            // definition of correct.
+            // literal cannot catch a regression in the value it duplicates.
+            // The blow is most of the cycle now (D-10's shared wind) — the
+            // assertion below still holds the floor at half.
             float period = GemRush.GustZone.DefaultPeriod;
             float active = GemRush.GustZone.DefaultActiveTime;
             Assert.Greater(period, 0f, "the gust needs a positive period");

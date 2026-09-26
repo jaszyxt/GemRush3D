@@ -248,24 +248,24 @@ namespace GemRush
         public Vector3 Size = new Vector3(5f, 4f, 12f);
         /// Unit axis the gust blows toward (e.g. +z down the course).
         public Vector3 Direction = new Vector3(0f, 0f, 1f);
-        public float Period = 4.4f;     // matches two music chords
-        public float ActiveTime = 2.2f; // how long each blow lasts
-        public float Strength = 8f;     // horizontal carry speed while active
+        // D-10 (user, 2026-09-26): "all the gusts should have the same
+        // settings" — the wind feel below defaults to GustZone's shared
+        // constants and the level packs never pass them. A gust is placed
+        // by position, size and direction ONLY; if any call site ever
+        // passes a wind number again, the gust-uniformity audit fails.
+        public float Period = GustZone.DefaultPeriod;
+        public float ActiveTime = GustZone.DefaultActiveTime;
+        public float Strength = GustZone.DefaultStrength;
         /// Vertical sustain: without it gravity arcs Pip into the void
         /// mid-crossing. A real tailwind holds you up.
-        public float Lift = 0f;
+        public float Lift = GustZone.DefaultLift;
 
         public GustSpec(float x, float y, float z, Vector3 size,
-            Vector3 direction, float period, float activeTime, float strength,
-            float lift = 0f)
+            Vector3 direction)
         {
             Center = new Vector3(x, y, z);
             Size = size;
             Direction = direction;
-            Period = period;
-            ActiveTime = activeTime;
-            Strength = strength;
-            Lift = lift;
         }
     }
 

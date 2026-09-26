@@ -89,14 +89,13 @@ namespace GemRush
             for (int i = 0; i < level.Gusts.Count; i++)
             {
                 GustSpec g = level.Gusts[i];
-                // g.Lift MUST reach Create: it used to be dropped, so every
-                // gust in the game ran at lift 0 whatever the level data
-                // said — Silent Spire's sustain and The Festival Finale's
-                // were dead data, and a flat ride sinks below a landing
-                // whose top sits at entry height (play-reported as "so
-                // hard to cross" on the finale, 2026-09-26).
-                GustZone.Create(parent, g.Center, g.Size, g.Direction,
-                    g.Period, g.ActiveTime, g.Strength, g.Lift);
+                // The wind feel is GustZone's shared constants (D-10); the
+                // spec carries them and Create reads them from the zone's
+                // own initializers. An earlier version of this call passed
+                // period/active/strength and DROPPED g.Lift — every gust
+                // in the game ran flat whatever the data said — which is
+                // why the wind is no longer parameterised here at all.
+                GustZone.Create(parent, g.Center, g.Size, g.Direction);
             }
 
             if (level.Bells.Count > 0 || level.EchoBridges.Count > 0)

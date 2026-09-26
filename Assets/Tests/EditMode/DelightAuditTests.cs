@@ -273,7 +273,7 @@ namespace GemRush.Tests
         }
 
         [Test]
-        public void GustZone_ReceivesTheLiftItsLevelSpecifies()
+        public void GustZone_RidesTheSharedWind()
         {
             // The Festival Finale play report ("so hard to cross") ended at
             // a one-word bug: LevelBuilder called GustZone.Create WITHOUT
@@ -281,15 +281,16 @@ namespace GemRush.Tests
             // sustain written into the level data was dead — Silent
             // Spire's included. A flat ride sinks during the crossing, so
             // any landing whose top sits at entry height was a wall or a
-            // void. This drives a gust through the REAL builder and
-            // asserts the live zone matches its spec, so the wiring can
-            // never drop a field again.
+            // void. The fix, per D-10, removed the wind from the wiring
+            // entirely: GustZone carries the shared constants, the spec
+            // defaults to them, and the builder passes geometry only.
+            // This drives a gust through the REAL builder and asserts the
+            // live zone rides the shared wind.
             var level = new LevelDefinition();
             level.Name = "Gust Wiring Probe";
             level.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));
             level.Gusts.Add(new GustSpec(0f, 3f, 20f,
-                new Vector3(5f, 4f, 10f), new Vector3(0f, 0f, 1f),
-                4.4f, 2.2f, 8f, 3f));
+                new Vector3(5f, 4f, 10f), new Vector3(0f, 0f, 1f)));
 
             GameObject parent = new GameObject("GustWiringProbe");
             try
@@ -306,14 +307,14 @@ namespace GemRush.Tests
                 GustZone zone = parent.GetComponentInChildren<GustZone>();
                 Assert.IsNotNull(zone,
                     "the built level must contain its gust zone");
-                Assert.AreEqual(3f, zone.lift,
-                    "the live gust must carry the spec's lift — the " +
-                    "builder dropped this parameter once and every gust " +
+                Assert.AreEqual(GustZone.DefaultLift, zone.lift,
+                    "the live gust must ride the shared lift — the " +
+                    "builder once dropped this parameter and every gust " +
                     "in the game ran flat");
-                Assert.AreEqual(8f, zone.strength,
-                    "the live gust must carry the spec's strength");
-                Assert.AreEqual(2.2f, zone.activeTime,
-                    "the live gust must carry the spec's blow window");
+                Assert.AreEqual(GustZone.DefaultStrength, zone.strength,
+                    "the live gust must ride the shared strength");
+                Assert.AreEqual(GustZone.DefaultActiveTime, zone.activeTime,
+                    "the live gust must ride the shared blow window");
             }
             finally
             {

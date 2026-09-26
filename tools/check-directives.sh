@@ -222,6 +222,26 @@ else
   echo "ok (D-7):   the probationary status is not reinstated"
 fi
 
+# ---------------------------------------------------------------- D-10
+# Every gust rides the same wind: gust call sites carry GEOMETRY only
+# (position, size, direction). The wind numbers live once in GustZone's
+# constants; a wind literal at a call site means someone is tuning one
+# gust apart from the rest.
+wind_literals="$(grep -H -E 'Gusts\.Add|GustSpec\(' \
+    Assets/Scripts/LevelPack*.cs Assets/Scripts/LevelLibrary.cs 2>/dev/null |
+    grep -E ', ?4\.4f|, ?2\.2f|, ?8f\)|, ?3f\)' || true)"
+if [ -n "$wind_literals" ]; then
+  echo "FAIL (D-10): a gust call site carries wind numbers. All gusts"
+  echo "      share one wind (GustZone.DefaultPeriod/DefaultActiveTime/"
+  echo "      DefaultStrength/DefaultLift); level data places lanes only."
+  echo "      Tune the wind by changing GustZone's constants, which"
+  echo "      changes EVERY gust together — never one lane."
+  printf '%s\n' "$wind_literals" | sed 's/^/      /'
+  FAILED=1
+else
+  echo "ok (D-10):  gust call sites carry geometry only"
+fi
+
 # ---------------------------------------------------------------- done
 if [ "$FAILED" -ne 0 ]; then
   echo

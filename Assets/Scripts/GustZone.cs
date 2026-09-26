@@ -18,20 +18,26 @@ namespace GemRush
     /// musical link audible without making gameplay depend on it.
     public class GustZone : MonoBehaviour
     {
-        /// The canonical gust timing, exposed so the audit can assert the
+        /// The canonical wind settings — THE one place gust feel is
+        /// defined. D-10 (user, 2026-09-26): "all the gusts should have
+        /// the same settings" — every gust in every level rides this same
+        /// wind; level data places lanes (position, size, direction) and
+        /// never tunes the wind. Exposed so the audits assert the
         /// gameplay contract against the REAL constants instead of copies
         /// (a duplicated literal in a test cannot catch a regression in
-        /// the value it duplicates). ActiveBlow is half the period by
-        /// design: a player waiting to cross spends equal time able and
-        /// unable, and the giggle telegraph fills the lull.
+        /// the value it duplicates). The blow is most of the cycle: a
+        /// waiting player spends most of their time able to cross, and
+        /// the giggle telegraph fills the short lull.
         public const float DefaultPeriod = 4.4f;
-        public const float DefaultActiveTime = 2.2f;
+        public const float DefaultActiveTime = 3.0f;
+        public const float DefaultStrength = 8f;
+        public const float DefaultLift = 3f;
 
         public Vector3 direction = new Vector3(0f, 0f, 1f);
         public float period = DefaultPeriod;
         public float activeTime = DefaultActiveTime;
-        public float strength = 8f;
-        public float lift = 0f;
+        public float strength = DefaultStrength;
+        public float lift = DefaultLift;
 
         Transform[] streaks;
         Transform[] petals;
@@ -48,8 +54,7 @@ namespace GemRush
         const float GiggleLead = 0.55f;
 
         public static void Create(Transform parent, Vector3 center,
-            Vector3 size, Vector3 direction, float period, float activeTime,
-            float strength, float lift = 0f)
+            Vector3 size, Vector3 direction)
         {
             GameObject go = new GameObject("GustZone");
             go.transform.SetParent(parent, false);
@@ -61,10 +66,8 @@ namespace GemRush
 
             GustZone g = go.AddComponent<GustZone>();
             g.direction = direction.normalized;
-            g.period = period;
-            g.activeTime = activeTime;
-            g.strength = strength;
-            g.lift = lift;
+            // D-10: the field initializers above already carry the shared
+            // wind; every zone rides the same gust by construction.
             g.volumeSize = size;
             g.streakLength = Mathf.Max(size.x, size.z) * 1.4f;
             // Align the first blow with the music once, at spawn (the pad

@@ -307,3 +307,26 @@ that answers the question beats a complete record every time.
 Every movement = 40 levels. Movement One is the shipped game (levels 1–40).
 Future movements each get 40 levels — no more, no fewer. This is the
 creative constraint that shapes all future story and content work.
+
+## D-10. Every gust rides the same wind
+
+**Source: user, 2026-09-26** — *"all the gusts should have the same settings"*
+
+All gusts share ONE wind — period, blow window, strength, lift — defined
+once in `GustZone`'s constants (`DefaultPeriod 4.4`, `DefaultActiveTime
+3.0`, `DefaultStrength 8`, `DefaultLift 3`). Level data places gust lanes
+(position, size, direction) and NEVER tunes the wind: a gust on level 19
+behaves exactly like a gust on level 37, forever.
+
+Context: the Festival Finale "so hard to cross" report (2026-09-26) found
+that the level data's wind numbers had been dead — the builder dropped the
+lift parameter — and that fixing the finale alone had left its window
+different from every other gust. The user set uniformity as the rule so no
+lane can be secretly different, and so a wind retune always means "change
+GustZone's constants", which changes every gust together.
+
+Enforced three ways: the GustSpec fields default to the shared constants
+and the constructor accepts geometry only; `LevelAuditTests.AllGusts_
+ShareOneWind` fails if any spec drifts from the constants;
+`tools/check-directives.sh` fails if a gust call site carries wind
+literals again.
