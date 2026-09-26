@@ -331,6 +331,33 @@ written down.
   over the release key (first install needed a clean uninstall — it had
   debug-signed v1.0). Tablet SM-X810 still awaits USB.
 
+## Shipped in v1.30.0 — the finale gust now delivers (a dropped parameter)
+
+Play report on The Festival Finale (L37): "please adjust the gusts in this
+part. so hard to cross." The shipped lane was the Silent Spire shape — gust
+box short of both takeoff and landing — AND the data's Lift never reached
+runtime: `LevelBuilder` called `GustZone.Create` **without `g.Lift`**, so
+EVERY gust in the game ran at lift 0 whatever the levels said. In-engine
+trials of the shipped build killed Pip on every entry (carried ~2s, then
+the void); Silent Spire had only ever worked through its box extension,
+its lift being dead data.
+
+Fix (3 files): the lane now spans the whole crossing (z 52-72, overlapping
+shelf and bell isle), its blow window is 3.0s (one 2.2s window carries a
+STANDING start 17.6u — 0.4 short of the isle; measured), and the builder
+passes `g.Lift`. Locked by `DelightAuditTests.GustZone_ReceivesTheLiftIts-
+LevelSpecifies` (drives a gust through the REAL builder, asserts the live
+zone matches its spec). `LevelBuilder.Build` now null-guards
+`GameManager.Instance` (same pattern as PlayerController's kill-check), so
+edit-mode rigs can build levels.
+
+Verified in-engine with live physics: Festival Finale standing start →
+delivered grounded on the bell isle, no input, no deaths; Silent Spire
+(whose lift 3 went LIVE with this fix) → delivered the same; headless
+40/40; editor 99/99; all CLI gates green. Rule the trials kept proving:
+trust the ride, not the model — every "impossible" report has been
+invisible to geometry math.
+
 ## Shipped in v1.29.4 — the goldens were never broken (the replay ghost)
 
 **The bug, finally located after three shipping releases and three wrong

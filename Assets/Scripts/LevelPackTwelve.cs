@@ -169,8 +169,25 @@ namespace GemRush
 
             l.Spinners.Add(new SpinnerSpec(0f, 1.5f, 28f, 60f, 7f, 12f));
             l.WindZones.Add(new WindSpec(0f, 2f, 40f, new Vector3(3.5f, 7f, 3.5f), 11f));
-            l.Gusts.Add(new GustSpec(0f, 6f, 62f, new Vector3(4f, 4f, 12f),
-                new Vector3(0f, 0f, 1f), 4.4f, 2.2f, 8f, 3f));
+            // The lane spans the WHOLE crossing: from the takeoff shelf
+            // (z ends 54.5) to the bell isle (z starts 71). The old
+            // 12-long box (z 56-68) left a dead glide on BOTH ends — a
+            // jump to get in, then 3 units of unsupported fall to the
+            // isle — and play-testing the shipped build killed Pip on
+            // every entry (carried ~2s, then the void). Same repair The
+            // Silent Spire got: the wind overlaps takeoff and landing, so
+            // stepping off the shelf is enough and the blow delivers onto
+            // the isle. Lift stays 3: the isle top sits at entry height,
+            // so the ride must arrive HIGH, not sinking (this is why the
+            // working lift-0 lanes all overlap their landings instead).
+            // The blow is 3.0s, not the default 2.2: measured in-engine,
+            // one 2.2s window carries a STANDING start exactly 17.6 units
+            // — 0.4 short of the isle — so a child waiting still on the
+            // shelf was swept into the void. 3.0s carries the whole
+            // 19-unit ride with margin; the giggle telegraph still leads
+            // each blow, and a running start lands mid-isle either way.
+            l.Gusts.Add(new GustSpec(0f, 6f, 62f, new Vector3(4f, 4f, 20f),
+                new Vector3(0f, 0f, 1f), 4.4f, 3.0f, 8f, 3f));
             l.Bells.Add(new BellSpec(2f, 6.5f, 74f, 6f, 0));
             l.EchoBridges.Add(new EchoBridgeSpec(0f, 6.5f, 84f,
                 new Vector3(3f, 0.5f, 10f), 0));

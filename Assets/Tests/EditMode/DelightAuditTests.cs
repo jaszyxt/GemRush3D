@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace GemRush.Tests
 {
@@ -267,6 +268,56 @@ namespace GemRush.Tests
             finally
             {
                 GoldenGem.ActiveLevelIndex = savedIndex;
+                Object.DestroyImmediate(parent);
+            }
+        }
+
+        [Test]
+        public void GustZone_ReceivesTheLiftItsLevelSpecifies()
+        {
+            // The Festival Finale play report ("so hard to cross") ended at
+            // a one-word bug: LevelBuilder called GustZone.Create WITHOUT
+            // g.Lift, so EVERY gust in the game ran at lift 0 and the
+            // sustain written into the level data was dead — Silent
+            // Spire's included. A flat ride sinks during the crossing, so
+            // any landing whose top sits at entry height was a wall or a
+            // void. This drives a gust through the REAL builder and
+            // asserts the live zone matches its spec, so the wiring can
+            // never drop a field again.
+            var level = new LevelDefinition();
+            level.Name = "Gust Wiring Probe";
+            level.Platforms.Add(new PlatformSpec(0f, 0f, 0f, 8f, 1f, 8f));
+            level.Gusts.Add(new GustSpec(0f, 3f, 20f,
+                new Vector3(5f, 4f, 10f), new Vector3(0f, 0f, 1f),
+                4.4f, 2.2f, 8f, 3f));
+
+            GameObject parent = new GameObject("GustWiringProbe");
+            try
+            {
+                // GustZone.Create destroys its streak/petal cube colliders
+                // with Object.Destroy — correct at runtime, but edit mode
+                // logs an error per call. Those logs are this test's only
+                // business NOT being asserted, so silence them for the
+                // build call alone.
+                LogAssert.ignoreFailingMessages = true;
+                LevelBuilder.Build(level, parent.transform);
+                LogAssert.ignoreFailingMessages = false;
+
+                GustZone zone = parent.GetComponentInChildren<GustZone>();
+                Assert.IsNotNull(zone,
+                    "the built level must contain its gust zone");
+                Assert.AreEqual(3f, zone.lift,
+                    "the live gust must carry the spec's lift — the " +
+                    "builder dropped this parameter once and every gust " +
+                    "in the game ran flat");
+                Assert.AreEqual(8f, zone.strength,
+                    "the live gust must carry the spec's strength");
+                Assert.AreEqual(2.2f, zone.activeTime,
+                    "the live gust must carry the spec's blow window");
+            }
+            finally
+            {
+                LogAssert.ignoreFailingMessages = false;
                 Object.DestroyImmediate(parent);
             }
         }

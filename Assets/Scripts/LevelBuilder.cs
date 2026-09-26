@@ -89,8 +89,14 @@ namespace GemRush
             for (int i = 0; i < level.Gusts.Count; i++)
             {
                 GustSpec g = level.Gusts[i];
+                // g.Lift MUST reach Create: it used to be dropped, so every
+                // gust in the game ran at lift 0 whatever the level data
+                // said — Silent Spire's sustain and The Festival Finale's
+                // were dead data, and a flat ride sinks below a landing
+                // whose top sits at entry height (play-reported as "so
+                // hard to cross" on the finale, 2026-09-26).
                 GustZone.Create(parent, g.Center, g.Size, g.Direction,
-                    g.Period, g.ActiveTime, g.Strength);
+                    g.Period, g.ActiveTime, g.Strength, g.Lift);
             }
 
             if (level.Bells.Count > 0 || level.EchoBridges.Count > 0)
@@ -186,7 +192,12 @@ namespace GemRush
 
             BuildBackdrop(level, parent, cloudMat, stone);
 
-            GameManager.Instance.ConfigureLevel(level);
+            // Guarded like PlayerController's kill-check: the manager can
+            // be absent while a half-torn-down world is still ticking, and
+            // edit-mode rigs (tests, probes) build levels with no manager
+            // at all. Geometry must build without one.
+            if (GameManager.Instance != null)
+                GameManager.Instance.ConfigureLevel(level);
         }
 
         /// Sleepy flower buds on the platforms. They stay closed until the
