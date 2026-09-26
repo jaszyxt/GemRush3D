@@ -26,6 +26,7 @@ namespace GemRush
         float wobbleAge;
         bool shading;    // nap watch: hovering right above sleeping Pip
         Transform shadeBlob;
+        int shadeSeq;    // retires in-flight shade tweens on state change
 
         /// The level's companion (never the mirror twin): PlayerController
         /// finds him for jump giggles, the idle ladder for nap shade.
@@ -305,14 +306,34 @@ namespace GemRush
                 shadeBlob.name = "Shade";
                 shadeBlob.SetParent(sleeper, false);
                 shadeBlob.localPosition = new Vector3(0f, -0.95f, 0f);
-                shadeBlob.localScale = new Vector3(1.5f, 0.1f, 1.5f);
+                // Start small and spring to full size — the shade settles
+                // over Pip rather than popping on.
+                shadeBlob.localScale = new Vector3(0.3f, 0.02f, 0.3f);
                 Material m = ArtLib.Solid(new Color(0.30f, 0.34f, 0.48f), 0f);
                 ArtLib.SetFade(m, 0.22f);
                 shadeBlob.GetComponent<MeshRenderer>().sharedMaterial = m;
+                Transform blob = shadeBlob;
+                int seq = ++shadeSeq;
+                Tweener.Value(0.3f, 1.5f, 0.4f, delegate(float k)
+                {
+                    if (seq != shadeSeq) return;
+                    blob.localScale = new Vector3(k, 0.1f * k / 1.5f, k);
+                });
             }
             else if (shadeBlob != null)
             {
-                Object.Destroy(shadeBlob.gameObject);
+                // Shrink out before destroying, so the shade lifts off
+                // Pip rather than vanishing.
+                Transform blob = shadeBlob;
+                int seq = ++shadeSeq;
+                Tweener.Value(1.5f, 0f, 0.25f, delegate(float k)
+                {
+                    if (seq != shadeSeq || blob == null) return;
+                    blob.localScale = new Vector3(k, 0.1f * k / 1.5f, k);
+                }, delegate
+                {
+                    if (blob != null) Object.Destroy(blob.gameObject);
+                });
                 shadeBlob = null;
             }
         }
