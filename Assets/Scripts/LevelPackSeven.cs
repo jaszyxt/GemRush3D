@@ -51,9 +51,11 @@ namespace GemRush
 
             l.Checkpoints.Add(new Vector3(0f, 2.5f, 28f));
             l.Checkpoints.Add(new Vector3(0f, 6.5f, 66f));
+            l.Checkpoints.Add(new Vector3(0f, 10.5f, 107f));
 
             l.StoryBeats.Add("Guardian lullaby, translated from the hum: 'spin when they're near, dream when they're gone.'");
             l.StoryBeats.Add("The garden grew overnight. Nobody planted it. Gloomfang is whistling like he had nothing to do with it.");
+            l.StoryBeats.Add("Flowers everywhere. Pip didn't plant a single one. The garden grew because it was happy to see him.");
 
             l.Gems.Add(new Vector3(0f, 1.6f, 10f));
             l.Gems.Add(new Vector3(3f, 2.6f, 19f));

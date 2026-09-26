@@ -43,6 +43,7 @@ namespace UnityEngine
         public T GetComponent<T>() { return default(T); }
         public T GetComponentInParent<T>() { return default(T); }
         public T GetComponentInChildren<T>() { return default(T); }
+        public T[] GetComponentsInChildren<T>() { return new T[0]; }
     }
 
     public class AsyncOperation { }

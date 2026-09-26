@@ -48,9 +48,11 @@ namespace GemRush
 
             l.Checkpoints.Add(new Vector3(0f, 3.5f, 35f));
             l.Checkpoints.Add(new Vector3(0f, 7.5f, 73f));
+            l.Checkpoints.Add(new Vector3(0f, 11.5f, 111f));
 
             l.StoryBeats.Add("Two suns mean two shadows. Pip has decided the second one is Gloomfang, walking along.");
             l.StoryBeats.Add("The tame guardian spins at exactly the speed of a comfortable afternoon.");
+            l.StoryBeats.Add("From up here the whole sky realm glows gold. It always did. Pip just needed two suns to see it.");
 
             l.BouncePads.Add(new Vector3(3f, 0.5f, 3f));
             l.BouncePads.Add(new Vector3(4.5f, 4.5f, 49f));

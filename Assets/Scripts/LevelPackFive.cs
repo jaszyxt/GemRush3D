@@ -50,9 +50,11 @@ namespace GemRush
 
             l.Checkpoints.Add(new Vector3(0f, 2.5f, 28f));
             l.Checkpoints.Add(new Vector3(0f, 12f, 69f));
+            l.Checkpoints.Add(new Vector3(0f, 16f, 111f));
 
             l.StoryBeats.Add("The wind here doesn't push. It holds. Gloomfang says the Far Isles are 'the sky holding its breath.'");
             l.StoryBeats.Add("Pip floats. Pip actually FLOATS. This is the best job ever.");
+            l.StoryBeats.Add("The map grows its first new ink in a thousand years. Pip's handwriting is very small and very determined.");
 
             l.BouncePads.Add(new Vector3(3f, 0.5f, 3f));
 
@@ -113,10 +115,12 @@ namespace GemRush
 
             l.Checkpoints.Add(new Vector3(0f, 3.5f, 36f));
             l.Checkpoints.Add(new Vector3(0f, 13.5f, 91f));
+            l.Checkpoints.Add(new Vector3(0f, 17.5f, 122f));
             l.Hearts.Add(new Vector3(2f, 13.6f, 91f));
 
             l.StoryBeats.Add("Rain + updraft = one very confused, very beautiful waterfall going the wrong way.");
             l.StoryBeats.Add("The dancing guardians have started charging admission. One gem per show. They accept compliments too.");
+            l.StoryBeats.Add("Everything the rain touches turns a colour Pip doesn't have a name for yet. He's working on it.");
 
             l.Gems.Add(new Vector3(0f, 1.6f, 10f));
             l.Gems.Add(new Vector3(-3f, 2.6f, 19f));
