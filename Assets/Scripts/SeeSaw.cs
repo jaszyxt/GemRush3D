@@ -50,8 +50,13 @@ namespace GemRush
             ArtLib.DecorCube(plank.transform, Vector3.zero, col.size,
                 Quaternion.identity, wood);
 
-            // Edge stripes so the tilting ends read at a glance.
-            Material edge = ArtLib.Solid(ArtLib.Gold, 0.2f);
+            // Edge stripes so the tilting ends read at a glance. A lighter
+            // wood tone (not Gold): the see-saw is a traversal mechanic,
+            // and Gold means "the game gives you something" — putting it
+            // here taught the wrong lesson about what gold means.
+            Material edge = ArtLib.Solid(
+                new Color(ArtLib.Wood.r * 1.4f, ArtLib.Wood.g * 1.4f,
+                    ArtLib.Wood.b * 1.4f), 0.15f);
             Vector3 edgeA = alongX
                 ? new Vector3(spec.Length * 0.5f - 0.3f, 0.14f, 0f)
                 : new Vector3(0f, 0.14f, spec.Length * 0.5f - 0.3f);
