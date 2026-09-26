@@ -64,7 +64,11 @@ namespace GemRush
 
             ParticleSystemRenderer renderer = go.GetComponent<ParticleSystemRenderer>();
             Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader != null) renderer.sharedMaterial = new Material(shader);
+            if (shader != null)
+            {
+                renderer.sharedMaterial = new Material(shader);
+                renderer.sharedMaterial.mainTexture = Fx.DiscTexture();
+            }
             renderer.velocityScale = 1.4f; // stretch the motes into streak lines
 
             streaks.ps.Play();

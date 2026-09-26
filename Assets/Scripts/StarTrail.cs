@@ -102,7 +102,11 @@ namespace GemRush
                 gameObject.GetComponent<ParticleSystemRenderer>();
             Shader shader = Shader.Find(
                 "Universal Render Pipeline/Particles/Unlit");
-            if (shader != null) renderer.sharedMaterial = new Material(shader);
+            if (shader != null)
+            {
+                renderer.sharedMaterial = new Material(shader);
+                renderer.sharedMaterial.mainTexture = Fx.DiscTexture();
+            }
 
             ApplyTier(initialTier);
         }

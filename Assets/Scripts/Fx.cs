@@ -475,7 +475,7 @@ namespace GemRush
         }
 
         /// Soft disc texture for round celebration particles (petals).
-        static Texture2D DiscTexture()
+        public static Texture2D DiscTexture()
         {
             if (cachedDisc != null) return cachedDisc;
             int size = 64;

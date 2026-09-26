@@ -57,7 +57,11 @@ namespace GemRush
             renderer.renderMode = ParticleSystemRenderMode.Stretch;
             renderer.lengthScale = 1.6f;
             Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader != null) renderer.sharedMaterial = new Material(shader);
+            if (shader != null)
+            {
+                renderer.sharedMaterial = new Material(shader);
+                renderer.sharedMaterial.mainTexture = Fx.DiscTexture();
+            }
         }
     }
 }

@@ -141,7 +141,11 @@ namespace GemRush
                 trailShader = Shader.Find(
                     "Universal Render Pipeline/Particles/Unlit");
             if (trailMaterial == null && trailShader != null)
+            {
                 trailMaterial = new Material(trailShader);
+                // Round motes, not squares (same fix as Fx.SharedBurstMaterial).
+                trailMaterial.mainTexture = Fx.DiscTexture();
+            }
             return trailMaterial;
         }
     }

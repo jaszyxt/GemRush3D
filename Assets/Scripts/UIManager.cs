@@ -596,12 +596,18 @@ namespace GemRush
                 new Vector2(0.03f, 0.90f), new Vector2(0.60f, 0.95f), 12f, 0f, 0f, 0f,
                 wrap: true);
 
-            // Overall star progress: a one-line counter in the top-right
-            // corner so the player always sees how close they are to the
-            // next milestone (15/30/45 stars drive the trail colour).
+            // Overall star progress: a one-line counter between the visit
+            // recap (left) and the ATLAS/SETTINGS buttons (right), so the
+            // player always sees how close they are to the next milestone
+            // (15/30/45 stars drive the trail colour). The x range is
+            // touch-aware: desktop buttons sit further left, so the gap
+            // narrows there to avoid overlapping ATLAS.
+            bool touchMenu = IsTouchLayout();
+            float progressRight = touchMenu ? 0.84f : 0.73f;
             progressLabel = MakeText(menuPanel.transform, "StarProgress", "",
                 20, starGold, TextAnchor.UpperRight,
-                new Vector2(0.55f, 0.90f), new Vector2(0.97f, 0.95f), 0f, 0f, 12f, 0f);
+                new Vector2(0.60f, 0.90f), new Vector2(progressRight, 0.95f),
+                0f, 0f, 0f, 0f);
 
             WireMenuNav();
         }

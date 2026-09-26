@@ -251,6 +251,35 @@ namespace GemRush.Tests
             }
         }
 
+        // The pause panel: the title must not be covered by any button on
+        // EITHER layout. With 120-unit touch targets and 4 rows (PHOTO now
+        // always present), the derived step pushes row 0 up to where it
+        // overlaps the "PAUSED" title — this test catches that.
+        [Test]
+        public void PausePanel_BothLayouts_TitleClearOfButtons()
+        {
+            foreach (bool touch in new bool[] { true, false })
+            {
+                UIManager ui = BuildUI(touch);
+                string tag = touch ? "touch" : "desktop";
+                try
+                {
+                    Button resume = GetPrivate(ui, "pauseResumeButton") as Button;
+                    Assert.IsNotNull(resume, tag + ": RESUME built");
+
+                    // The title occupies 0.56–0.72 of screen height.
+                    Band titleBand = new Band { Min = 504f, Max = 648f };
+                    Band resumeBand = YBand(resume);
+                    AssertNoOverlap(titleBand, resumeBand,
+                        tag + ": title vs RESUME");
+                }
+                finally
+                {
+                    TearDownUI(ui);
+                }
+            }
+        }
+
         // Win and game-over screens: the primary action and the row beneath it.
         [Test]
         public void ResultScreens_TouchLayout_NoOverlap()
