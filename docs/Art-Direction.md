@@ -269,14 +269,17 @@ warm tint) so **only emissive things glow** — if it blooms it matters.
 ## 10. Change log
 
 - **2026-09-25 (palette redesign — doors, bridges, movers)**
-  Three palette confusions resolved. **EchoBridge** now uses
-  `ArtLib.Echo` (warm sea-green) instead of `Air` — Air meant
-  "intangible" (panes, updrafts), but a bridge is solid and walkable.
-  **MirrorDoor frame** uses `ArtLib.MirrorStone` (cooler violet-shifted
-  stone) instead of plain `Stone`, so a magic doorway reads as crafted.
-  **Mover body** uses `ArtLib.MoverBody` (dark burnt orange) instead of
-  `Dirt`, so a mover reads as one machine rather than an orange cap
-  glued onto a dirt cube. Air's doc comment now explicitly excludes
+  Three palette confusions resolved plus one gold-hijack fix.
+  **EchoBridge** now uses `ArtLib.Echo` (warm sea-green) instead of
+  `Air` — Air meant "intangible" (panes, updrafts), but a bridge is
+  solid and walkable. **MirrorDoor frame** uses `ArtLib.MirrorStone`
+  (cooler violet-shifted stone) instead of plain `Stone`, so a magic
+  doorway reads as crafted. **Mover body** uses `ArtLib.MoverBody`
+  (dark burnt orange) instead of `Dirt`, so a mover reads as one
+  machine rather than an orange cap glued onto a dirt cube.
+  **SeeSaw edge stripes** use a lighter wood tone instead of Gold —
+  gold on a traversal mechanic taught "gold = collectible" about a
+  thing you stand on and tip. Air's doc comment now explicitly excludes
   the bridge.
 
 - **2026-09-24 (art pass v6 — realm identity, ambient life, portal glow)**
