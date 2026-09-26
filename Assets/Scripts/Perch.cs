@@ -207,10 +207,12 @@ namespace GemRush
             seat.GetComponent<MeshRenderer>().sharedMaterial = matWood;
             seatRef = seat.transform;
             // Solid: Pip can sit on it (via Perch's own logic) but can't
-            // walk through the bench body.
+            // walk through the bench body. Local size (1, 5, 1) on a
+            // transform scaled (2.1, 0.12, 0.7) gives a world collider
+            // of (2.1, 0.6, 0.7) — matching the visible bench body.
             var benchCol = seat.AddComponent<BoxCollider>();
-            benchCol.size = new Vector3(2.1f, 0.6f, 0.7f);
-            benchCol.center = new Vector3(0f, 0.3f, 0f);
+            benchCol.size = new Vector3(1f, 5f, 1f);
+            benchCol.center = new Vector3(0f, 2.5f, 0f);
 
             // Backrest: two vertical stiles plus three horizontal slats
             // in between, so see-through gaps make it read as a crafted

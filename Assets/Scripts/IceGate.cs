@@ -43,10 +43,10 @@ namespace GemRush
             Transform slabT = ArtLib.DecorCube(go.transform, Vector3.zero,
                 spec.Size, Quaternion.identity, ice).transform;
             // A frosty cap line so the wall reads as ice, not glass.
-            ArtLib.DecorCube(go.transform,
+            Transform capT = ArtLib.DecorCube(go.transform,
                 new Vector3(0f, spec.Size.y * 0.5f, 0f),
                 new Vector3(spec.Size.x + 0.2f, 0.22f, spec.Size.z + 0.2f),
-                Quaternion.identity, ArtLib.Solid(ArtLib.Snow, 0.15f));
+                Quaternion.identity, ArtLib.Solid(ArtLib.Snow, 0.15f)).transform;
 
             // Frost frame down both vertical edges. The gate is a pale
             // translucent pane in the pale winter sky it lives in — measured
@@ -85,11 +85,13 @@ namespace GemRush
             gate.block = blockCol;
             gate.fullScale = spec.Size;
             gate.pulseSeed = Random.value * 10f;
+            gate.cap = capT;
             gate.rims = new[] { rimL, rimR, rimF, rimB };
             all.Add(gate);
         }
 
         Transform[] rims;
+        Transform cap;
 
         /// Clear the level-lifetime registry between world rebuilds (the
         /// old gates die with the old world; their entries must not linger).
@@ -135,10 +137,16 @@ namespace GemRush
 
             melt = Mathf.Min(1f, melt + Time.deltaTime / MeltSeconds);
             float shrink = 1f - melt;
+            // Crush DOWN, not iris-shut: the slab's bottom stays at the
+            // gate's base while the top collapses toward the ground. The
+            // local Y offset drops by half the lost height so the bottom
+            // edge stays pinned at the platform surface.
             slab.localScale = new Vector3(
                 Mathf.Lerp(0.35f, 1f, shrink) * fullScale.x,
                 shrink * fullScale.y,
                 fullScale.z);
+            slab.localPosition = new Vector3(0f,
+                -fullScale.y * 0.5f * (1f - shrink), 0f);
             // The frost frame melts with the pane: a full-height rim around
             // a sunken slab would read as a wall still standing.
             if (rims != null)
@@ -149,16 +157,29 @@ namespace GemRush
                     Vector3 rs = rims[i].localScale;
                     rims[i].localScale = new Vector3(rs.x, shrink * fullScale.y,
                         rs.z);
-                    Vector3 rp = rims[i].localPosition;
-                    rims[i].localPosition = new Vector3(rp.x, 0f, rp.z);
+                    Vector3 rpos = rims[i].localPosition;
+                    rims[i].localPosition = new Vector3(rpos.x, 0f, rpos.z);
                 }
+            }
+
+            // The snow cap rides the collapsing top edge: it falls with
+            // the ice instead of floating at the original height.
+            if (cap != null)
+            {
+                float capY = -fullScale.y * 0.5f * (1f - shrink)
+                    + shrink * fullScale.y;
+                cap.localPosition = new Vector3(0f, capY + 0.11f, 0f);
             }
 
             if (melt >= 1f)
             {
                 melted = true;
                 block.enabled = false;
-                Fx.Burst(transform.position, ArtLib.IceBlue * 1.4f, 18);
+                // Crush event: ice crystals + a ring at the base, so the
+                // collapse reads as a physical event, not a silent fade.
+                Vector3 base_ = transform.position - Vector3.up * fullScale.y * 0.5f;
+                Fx.Burst(base_, ArtLib.IceBlue * 1.4f, 24);
+                Fx.Ring(base_ + Vector3.up * 0.1f, ArtLib.IceBlue);
             }
         }
 

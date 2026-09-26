@@ -299,11 +299,12 @@ namespace GemRush
                 new Vector3(spot.x, y, spot.z),
                 new Vector3(w, h, d), rot, rockMat);
             rock.name = "Rock";
-            // Solid: a small box collider so Pip bumps into the rock.
-            // Smaller than the visual mesh (70%) so it doesn't catch on
-            // the corners, and keeps Pip from getting stuck on a tilt.
+            // Solid: a box collider so Pip bumps into the rock.
+            // Local size (0.7, 1, 1) on a transform scaled (w, h, d)
+            // gives a world collider of (w×0.7, h, d×0.7) — 70% of the
+            // visual mesh, so it doesn't catch on the tilted corners.
             var col = rock.AddComponent<BoxCollider>();
-            col.size = new Vector3(w * 0.7f, h, d * 0.7f);
+            col.size = new Vector3(0.7f, 1f, 1f);
         }
 
         /// Cylinder trunk plus 2-3 stacked spheres for the canopy; the whole

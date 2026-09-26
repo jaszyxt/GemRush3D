@@ -96,7 +96,10 @@ namespace GemRush
 
             l.Lanterns.Add(new LanternSpec(2.5f, 0.5f, 3f));
             l.IceGates.Add(new IceGateSpec(0f, 1.8f, 20f, 9.4f, 2.6f, 0.7f));
-            l.IceGates.Add(new IceGateSpec(0f, 6.4f, 33f, 3.2f, 2.4f, 0.7f));
+            // Gate B: x 3.5 (not 0) — beside the updraft column, not inside
+            // it. Pip rises freely, grabs the gem, and melts the gate on
+            // foot. Inside the column, the solid gate pinned him mid-air.
+            l.IceGates.Add(new IceGateSpec(3.5f, 6.4f, 33f, 3.2f, 2.4f, 0.7f));
             l.IceGates.Add(new IceGateSpec(0f, 4.9f, 77f, 6f, 2.8f, 0.7f));
 
             l.WindZones.Add(new WindSpec(0f, 2f, 33f, new Vector3(3.5f, 7f, 3.5f), 11f));

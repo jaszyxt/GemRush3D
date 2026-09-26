@@ -188,7 +188,7 @@ namespace GemRush
 
             // Gentle materialization: the ghost fades in over 0.8s
             // rather than popping into existence at full opacity.
-            Tweener.Value(0f, 0.30f, 0.8f, delegate(float k)
+            Tweener.Value(0f, 0.30f, 0.8f, delegate (float k)
             {
                 mat.color = new Color(mat.color.r, mat.color.g,
                     mat.color.b, k);

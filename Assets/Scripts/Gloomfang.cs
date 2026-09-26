@@ -314,7 +314,7 @@ namespace GemRush
                 shadeBlob.GetComponent<MeshRenderer>().sharedMaterial = m;
                 Transform blob = shadeBlob;
                 int seq = ++shadeSeq;
-                Tweener.Value(0.3f, 1.5f, 0.4f, delegate(float k)
+                Tweener.Value(0.3f, 1.5f, 0.4f, delegate (float k)
                 {
                     if (seq != shadeSeq) return;
                     blob.localScale = new Vector3(k, 0.1f * k / 1.5f, k);
@@ -326,7 +326,7 @@ namespace GemRush
                 // Pip rather than vanishing.
                 Transform blob = shadeBlob;
                 int seq = ++shadeSeq;
-                Tweener.Value(1.5f, 0f, 0.25f, delegate(float k)
+                Tweener.Value(1.5f, 0f, 0.25f, delegate (float k)
                 {
                     if (seq != shadeSeq || blob == null) return;
                     blob.localScale = new Vector3(k, 0.1f * k / 1.5f, k);
