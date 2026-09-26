@@ -93,3 +93,7 @@ __pycache__/
 
 # Headless test-runner build intermediates
 tools/obj/
+
+# Standalone syntax-check build artifacts (generated per-check)
+tools/v*.dll
+tools/v*.rsp
