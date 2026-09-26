@@ -114,8 +114,10 @@ namespace GemRush
             // Ground disc: a warm-toned warning plate under the spinner,
             // so the danger zone is visible on the platform surface even
             // when the arm is pointed away. HazardRed at low emission.
+            // Solid (85% opacity): a faded disc was hard to read on some
+            // realm skies; the user asked for it solid everywhere.
             Material discMat = ArtLib.Solid(ArtLib.HazardRed, 0.3f);
-            ArtLib.SetFade(discMat, 0.25f);
+            ArtLib.SetFade(discMat, 0.85f);
             GameObject disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             disc.name = "SpinnerDisc";
             Object.Destroy(disc.GetComponent<Collider>());
