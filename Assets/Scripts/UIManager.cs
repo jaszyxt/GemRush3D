@@ -1796,14 +1796,15 @@ namespace GemRush
             pauseMissionText.gameObject.SetActive(false);
 
             // The four-row pause stack (RESUME / RESTART / PHOTO / MENU +
-            // SETTINGS) is the tightest vertical layout in the game. Spacing
-            // is DERIVED from the target floor, so raising the floor cannot
-            // make the rows collide (Pause_TouchLayout_NoOverlap pins it).
+            // SETTINGS) is the tightest vertical layout in the game.
+            // Navigation buttons use a lower touch floor (100 ≈ 45 dp)
+            // because four 120-unit targets physically cannot fit between
+            // the title and screen bottom. The gameplay floor (D13) still
+            // applies to HUD and gameplay controls.
             bool touch = IsTouchLayout();
-            // PHOTO is available on every platform (the save path adapts in
-            // ShowPhotoMode), so the stack always has four rows.
+            const float pauseFloor = 100f; // ≈ 45 dp
             int stackRows = 4;
-            float floorHalf = TouchFloorUnits / 900f * 0.5f;
+            float floorHalf = pauseFloor / 900f * 0.5f;
             // Leave a small gap between rows beyond the target height.
             float minGap = floorHalf * 2f + 0.012f;
             float stackTop = 0.42f;
@@ -1812,14 +1813,22 @@ namespace GemRush
             float step = stackRows > 1
                 ? Mathf.Max(minGap, span / (stackRows - 1)) : 0f;
             // If the minimum spacing needs more than the span, push the top
-            // row up rather than letting the stack overflow the bottom.
+            // row up — but never so far that the first button overlaps the
+            // "PAUSED" title. The cap accounts for the button's own
+            // half-height, not just the centre position.
+            float titleSafeTop = 0.56f - floorHalf - 0.01f;
             if (step * (stackRows - 1) > span)
-                stackTop = stackBottom + step * (stackRows - 1);
+            {
+                stackTop = Mathf.Min(stackBottom + step * (stackRows - 1),
+                    titleSafeTop);
+                step = stackRows > 1 ? (stackTop - stackBottom) / (stackRows - 1) : 0f;
+            }
             float rowY(int n) { return stackTop - n * step; }
 
             pauseResumeButton = MakeButton(pausePanel.transform, Strings.Resume,
                 new Vector2(0.5f, rowY(0)), new Vector2(0f, 0f),
-                new Vector2(360f, 84f), delegate { GameManager.Instance.ResumeGame(); });
+                new Vector2(360f, 84f), delegate { GameManager.Instance.ResumeGame(); },
+                touchFloor: pauseFloor);
 
             pauseRestartButton = MakeButton(pausePanel.transform, Strings.RestartLevel,
                 new Vector2(0.5f, rowY(1)), new Vector2(0f, 0f),
@@ -1836,14 +1845,16 @@ namespace GemRush
                             GameManager.Instance.PlayLevel(
                                 GameManager.Instance.CurrentLevel);
                         });
-                });
+                },
+                touchFloor: pauseFloor);
 
             // Photo mode (photo postcards, DESIGN.md community plan): pause
             // the run, frame the sky, take the shot. The save path adapts
             // per platform in ShowPhotoMode; OPEN FOLDER is desktop-only.
             pausePhotoButton = MakeButton(pausePanel.transform, Strings.Photo,
                     new Vector2(0.5f, rowY(2)), new Vector2(0f, 0f),
-                    new Vector2(360f, 60f), delegate { ShowPhotoMode(); });
+                    new Vector2(360f, 60f), delegate { ShowPhotoMode(); },
+                    touchFloor: pauseFloor);
 
             // Settings joins the pause menu (D9): sound/haptics/text size
             // are adjustable mid-run, without abandoning the level. MENU and
@@ -1851,11 +1862,13 @@ namespace GemRush
             float bottomRowY = rowY(stackRows - 1);
             pauseMenuButton = MakeButton(pausePanel.transform, Strings.Menu,
                 new Vector2(0.5f - 0.13f, bottomRowY), new Vector2(0f, 0f),
-                new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); });
+                new Vector2(260f, 62f), delegate { GameManager.Instance.GoToMenu(); },
+                touchFloor: pauseFloor);
 
             pauseSettingsButton = MakeButton(pausePanel.transform, Strings.Settings,
                 new Vector2(0.5f + 0.13f, bottomRowY), new Vector2(0f, 0f),
-                new Vector2(260f, 62f), delegate { ShowSettings(); });
+                new Vector2(260f, 62f), delegate { ShowSettings(); },
+                touchFloor: pauseFloor);
 
             MenuNav.Set(pauseResumeButton, null, pauseRestartButton, null, null);
             MenuNav.Set(pauseRestartButton, pauseResumeButton, pausePhotoButton,
@@ -2988,19 +3001,20 @@ namespace GemRush
         public const float TouchFloorUnits = 120f;
 
         /// Touch hit-target floor: on touch devices no tappable button may
-        /// be smaller than TouchFloorUnits in either axis, so requested
-        /// sizes grow to meet the floor. Keyboard and mouse builds keep
-        /// their designed sizes unchanged.
-        static Vector2 TouchTarget(Vector2 size)
+        /// be smaller than <paramref name="floor"/> in either axis, so
+        /// requested sizes grow to meet the floor. Panels that need tighter
+        /// packing (e.g. the four-row pause stack) pass a lower floor —
+        /// 100 units ≈ 45 dp is still within the 44 pt adult floor.
+        static Vector2 TouchTarget(Vector2 size, float floor = -1f)
         {
             if (!IsTouchLayout()) return size;
-            return new Vector2(Mathf.Max(size.x, TouchFloorUnits),
-                Mathf.Max(size.y, TouchFloorUnits));
+            float f = floor < 0 ? TouchFloorUnits : floor;
+            return new Vector2(Mathf.Max(size.x, f), Mathf.Max(size.y, f));
         }
 
         Button MakeButton(Transform parent, string label, Vector2 anchor,
             Vector2 anchoredPos, Vector2 size, UnityEngine.Events.UnityAction onClick,
-            int labelSize = 28)
+            int labelSize = 28, float touchFloor = -1f)
         {
             GameObject go = new GameObject("Button");
             go.transform.SetParent(parent, false);
@@ -3025,7 +3039,7 @@ namespace GemRush
             rt.anchorMin = anchor;
             rt.anchorMax = anchor;
             rt.anchoredPosition = anchoredPos;
-            rt.sizeDelta = TouchTarget(size);
+            rt.sizeDelta = TouchTarget(size, touchFloor);
             button.onClick.AddListener(delegate
             {
                 Vector3 rest = rt.localScale;

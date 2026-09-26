@@ -112,7 +112,14 @@ namespace GemRush
                 particleShader = Shader.Find(
                     "Universal Render Pipeline/Particles/Unlit");
             if (burstMaterial == null && particleShader != null)
+            {
                 burstMaterial = new Material(particleShader);
+                // Soft circle texture: without this, the URP particle
+                // shader renders each particle as a solid SQUARE — the
+                // most common "my particles look cheap" bug. The disc
+                // gives every burst a soft, round sparkle.
+                burstMaterial.mainTexture = DiscTexture();
+            }
             return burstMaterial;
         }
 

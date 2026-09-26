@@ -57,9 +57,17 @@ namespace GemRush
             for (int i = 0; i < level.Movers.Count; i++)
             {
                 MoverSpec m = level.Movers[i];
-                // MoverBody, not Dirt: a mover's body reads as one machine
-                // with the orange top, not as a dirt cube with a cap glued on.
-                Mover(parent, m.Center, m.Size, m.Offset, m.Period, moverMat, moverBody);
+                // ElevatorBlue for vertical movers (offset is y-dominant),
+                // MoverOrange for horizontal movers. Previously ALL movers
+                // used MoverOrange, so elevators had no visual identity —
+                // you couldn't tell "this one goes up" from "this one
+                // goes across" without watching them move.
+                bool isElevator =
+                    Mathf.Abs(m.Offset.y) > Mathf.Abs(m.Offset.x) &&
+                    Mathf.Abs(m.Offset.y) > Mathf.Abs(m.Offset.z);
+                Material moverTop = isElevator ? elevatorMat : moverMat;
+                Mover(parent, m.Center, m.Size, m.Offset, m.Period,
+                    moverTop, moverBody);
             }
 
             for (int i = 0; i < level.Spinners.Count; i++)

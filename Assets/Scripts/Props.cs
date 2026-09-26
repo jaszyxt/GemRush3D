@@ -280,6 +280,8 @@ namespace GemRush
         }
 
         /// Unevenly scaled, randomly rotated rock sunk partway into the turf.
+        /// Carries a small collider so Pip can't walk through it — rocks
+        /// are solid objects.
         static void Rock(System.Random rng, Transform parent, float topY,
             Vector3 spot, Material rockMat)
         {
@@ -293,19 +295,32 @@ namespace GemRush
             // Sink ~30% of the height below the surface.
             float y = topY + h * 0.35f;
             Quaternion rot = Quaternion.Euler(tiltX, yaw, tiltZ);
-            ArtLib.DecorCube(parent, new Vector3(spot.x, y, spot.z),
+            var rock = ArtLib.DecorCube(parent,
+                new Vector3(spot.x, y, spot.z),
                 new Vector3(w, h, d), rot, rockMat);
+            rock.name = "Rock";
+            // Solid: a small box collider so Pip bumps into the rock.
+            // Smaller than the visual mesh (70%) so it doesn't catch on
+            // the corners, and keeps Pip from getting stuck on a tilt.
+            var col = rock.AddComponent<BoxCollider>();
+            col.size = new Vector3(w * 0.7f, h, d * 0.7f);
         }
 
         /// Cylinder trunk plus 2-3 stacked spheres for the canopy; the whole
-        /// tree stands roughly 3 units tall.
+        /// tree stands roughly 3 units tall. The trunk carries a capsule
+        /// collider so Pip can't walk through the tree — the canopy stays
+        /// pass-through so Pip can jump over without hitting leaves.
         static void Tree(System.Random rng, Transform parent, float topY,
             Vector3 spot, Material trunkMat, Material leafMat)
         {
             // Cylinder primitive is 2 units tall: scale y 0.8 = 1.6 trunk.
-            DecorPrimitive(PrimitiveType.Cylinder, parent,
+            var trunk = DecorPrimitive(PrimitiveType.Cylinder, parent,
                 new Vector3(spot.x, topY + 0.8f, spot.z),
                 new Vector3(0.35f, 0.8f, 0.35f), Quaternion.identity, trunkMat);
+            // Solid trunk: a capsule collider matching the visible cylinder.
+            // The canopy spheres above stay pass-through (no collider) so
+            // Pip can jump over the tree without hitting leaves.
+            trunk.AddComponent<CapsuleCollider>();
 
             float yaw = (float)rng.NextDouble() * 360f;
             float dx = ((float)rng.NextDouble() * 2f - 1f) * 0.12f;
