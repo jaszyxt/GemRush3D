@@ -30,7 +30,23 @@ namespace GemRush
         /// Moving air — updraft columns, mirror panes, Gloomfang's spark.
         /// The wind/mirror family: one pale cyan everywhere air is the
         /// subject, so "invisible" forces still read as one substance.
+        /// NOT used for the echo bridge — a bridge is solid and walkable,
+        /// which is the opposite of what Air means.
         public static readonly Color Air = new Color(0.65f, 0.92f, 1f);
+        /// The echo bridge's solid colour: a warm sea-green, clearly a
+        /// sibling of Air (both are "made of sound") but warmer and more
+        /// saturated, so a walkable bridge never reads as an intangible
+        /// mirror pane. "This is solid NOW, while the tone rings."
+        public static readonly Color Echo = new Color(0.40f, 0.85f, 0.72f);
+        /// Mirror architecture: the door frames use a cooler, slightly
+        /// violet-shifted stone so a magic doorway reads as crafted, not
+        /// as the same rock as a bell post or a spinner pedestal.
+        public static readonly Color MirrorStone = new Color(0.50f, 0.52f, 0.68f);
+        /// Moving-platform machine housing: a dark burnt orange that
+        /// pairs with the MoverOrange top, so a mover reads as ONE machine
+        /// (top + body = same device) instead of an orange cap glued onto
+        /// a dirt cube that happens to slide.
+        public static readonly Color MoverBody = new Color(0.60f, 0.38f, 0.12f);
         public static readonly Color CheckpointOff = new Color(0.55f, 0.58f, 0.65f);
         public static readonly Color CheckpointOn = new Color(0.30f, 0.95f, 0.40f);
         /// The Long Winter family: snow-soft tops, ice gates and frost

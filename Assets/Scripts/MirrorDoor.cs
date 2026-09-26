@@ -49,7 +49,11 @@ namespace GemRush
 
             MirrorDoor door = go.AddComponent<MirrorDoor>();
 
-            Material frame = ArtLib.Solid(ArtLib.Stone, 0f);
+            // Mirror architecture, not generic stone: the cooler violet-
+            // shifted tint separates a magic doorway from the bell posts,
+            // checkpoint posts and spinner pedestals that all share
+            // plain ArtLib.Stone.
+            Material frame = ArtLib.Solid(ArtLib.MirrorStone, 0f);
             Material gold = ArtLib.Solid(ArtLib.Gold, 0.5f);
             // Per-side pane materials: the twins shimmer OUT OF PHASE —
             // sharing one material made them pulse in perfect sync (the

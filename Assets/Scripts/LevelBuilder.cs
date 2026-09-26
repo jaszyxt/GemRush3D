@@ -16,7 +16,9 @@ namespace GemRush
             Material snow = ArtLib.Solid(ArtLib.Snow, 0.05f);
             Material topMat = level.LongWinter ? snow : grass;
             Material moverMat = ArtLib.Solid(ArtLib.MoverOrange, 0.15f);
+            Material moverBody = ArtLib.Solid(ArtLib.MoverBody, 0f);
             Material elevatorMat = ArtLib.Solid(ArtLib.ElevatorBlue, 0.15f);
+            Material elevatorBody = ArtLib.Solid(ArtLib.MoverBody, 0f);
             Material stone = ArtLib.Solid(ArtLib.Stone, 0f);
             Material cloudMat = ArtLib.Solid(ArtLib.CloudWhite, 0.25f);
             Material trunk = ArtLib.Solid(ArtLib.Trunk, 0f);
@@ -55,7 +57,9 @@ namespace GemRush
             for (int i = 0; i < level.Movers.Count; i++)
             {
                 MoverSpec m = level.Movers[i];
-                Mover(parent, m.Center, m.Size, m.Offset, m.Period, moverMat, dirt);
+                // MoverBody, not Dirt: a mover's body reads as one machine
+                // with the orange top, not as a dirt cube with a cap glued on.
+                Mover(parent, m.Center, m.Size, m.Offset, m.Period, moverMat, moverBody);
             }
 
             for (int i = 0; i < level.Spinners.Count; i++)
@@ -108,12 +112,12 @@ namespace GemRush
             for (int i = 0; i < level.EchoBridges.Count; i++)
             {
                 EchoBridgeSpec b = level.EchoBridges[i];
-                // Emission 0.6: a solid bridge must read as WALKABLE
-                // SURFACE, not atmosphere. Without emission it sat at
-                // ~1.03:1 against pale skies — invisible on the very
-                // viewing angle that matters (down a long Z-span).
+                // ArtLib.Echo, not Air: a bridge is solid and walkable,
+                // while Air means intangible (mirror panes, updrafts).
+                // The warmer sea-green separates the two meanings, and
+                // the emission keeps it visible against pale skies.
                 EchoBridge.Create(parent, b,
-                    ArtLib.Solid(ArtLib.Air, 0.6f));
+                    ArtLib.Solid(ArtLib.Echo, 0.6f));
             }
 
             for (int i = 0; i < level.MirrorDoors.Count; i++)
