@@ -21,6 +21,7 @@ namespace GemRush
         GameObject completePanel;
         GameObject settingsPanel;
         GameObject pausePanel;
+        Text pauseMissionText;
 
         Text hudLevel;
         Text hudGems;
@@ -1769,6 +1770,16 @@ namespace GemRush
                 new Vector2(0f, 0.56f), new Vector2(1f, 0.72f), 0f, 0f, 0f, 0f);
             title.fontStyle = FontStyle.Bold;
 
+            // Mission reminder: the briefing band dismisses on first input,
+            // and a kid who swiped past it had no way to re-read the goal.
+            // Populated in ShowPaused from the current level's definition.
+            pauseMissionText = MakeText(pausePanel.transform, "MissionReminder",
+                "", 20, new Color(0.85f, 0.87f, 0.92f), TextAnchor.UpperCenter,
+                new Vector2(0.08f, 0.47f), new Vector2(0.92f, 0.56f), 0f, 0f, 0f, 0f,
+                wrap: true);
+            pauseMissionText.fontStyle = FontStyle.Italic;
+            pauseMissionText.gameObject.SetActive(false);
+
             // The four-row pause stack (RESUME / RESTART / PHOTO / MENU +
             // SETTINGS) is the tightest vertical layout in the game. Spacing
             // is DERIVED from the target floor, so raising the floor cannot
@@ -2184,7 +2195,12 @@ namespace GemRush
         {
             transitionOverlay = MakePanel(canvas, "TransitionOverlay",
                 new Color(0f, 0f, 0f, 1f));
-            transitionGroup = transitionOverlay.GetComponent<CanvasGroup>();
+            // MakePanel doesn't add a CanvasGroup; without this, the
+            // CoverScreen/RevealScreen tweens throw MissingComponentException
+            // and the transition overlay never fades.
+            transitionGroup =
+                transitionOverlay.AddComponent<CanvasGroup>();
+            transitionGroup.alpha = 0f;
             // Built last in Awake's call order, so the overlay is already
             // the topmost sibling — no SetAsLastSibling needed.
             transitionOverlay.SetActive(false);
@@ -2345,6 +2361,17 @@ namespace GemRush
         public void ShowPaused()
         {
             HideBriefing(); // never sit behind the pause menu
+            // Mission reminder: the briefing band dismisses on first input,
+            // so this is the kid's one place to re-read the goal. Shows the
+            // current level's mission; hidden when the level has none.
+            if (pauseMissionText != null && GameManager.Instance != null)
+            {
+                string mission = LevelLibrary.Levels[
+                    Mathf.Clamp(GameManager.Instance.CurrentLevel, 0,
+                        LevelLibrary.Levels.Length - 1)].Mission;
+                pauseMissionText.text = mission;
+                pauseMissionText.gameObject.SetActive(!string.IsNullOrEmpty(mission));
+            }
             AnimateShow(pausePanel);
             Focus(pauseResumeButton);
         }
