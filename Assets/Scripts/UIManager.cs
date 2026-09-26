@@ -1105,11 +1105,13 @@ namespace GemRush
             epiloguePage++;
             if (epiloguePages == null || epiloguePage >= epiloguePages.Length)
             {
-                // Pages done: reveal the stats layout.
+                // Pages done: reveal the stats layout and bring MENU back.
                 if (completeStory != null) completeStory.gameObject.SetActive(false);
                 if (completeNext != null) completeNext.gameObject.SetActive(false);
                 if (completeStats != null) completeStats.gameObject.SetActive(true);
                 if (completeSub != null) completeSub.gameObject.SetActive(true);
+                if (completeMenuButton != null)
+                    completeMenuButton.gameObject.SetActive(true);
                 Focus(completeMenuButton); // NEXT left the screen with the story
             }
             else if (completeStory != null)
@@ -2598,6 +2600,10 @@ namespace GemRush
                             VoiceIds.Epilogue(0), epiloguePages[0]);
                 }
                 if (completeNext != null) completeNext.gameObject.SetActive(true);
+                // Hide MENU during the story so a kid can't skip the
+                // ending by accident — it appears when the pages finish.
+                if (completeMenuButton != null)
+                    completeMenuButton.gameObject.SetActive(false);
             }
             else
             {

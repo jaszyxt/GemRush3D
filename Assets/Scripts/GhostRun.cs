@@ -183,8 +183,16 @@ namespace GemRush
             go.transform.SetParent(parent, false);
             var renderer = go.GetComponent<MeshRenderer>();
             var mat = ArtLib.Solid(ArtLib.Air, 0f);
-            ArtLib.SetFade(mat, 0.30f);
+            ArtLib.SetFade(mat, 0f); // start invisible, fade in below
             renderer.sharedMaterial = mat;
+
+            // Gentle materialization: the ghost fades in over 0.8s
+            // rather than popping into existence at full opacity.
+            Tweener.Value(0f, 0.30f, 0.8f, delegate(float k)
+            {
+                mat.color = new Color(mat.color.r, mat.color.g,
+                    mat.color.b, k);
+            });
 
             // Eyes so it reads as Pip, not a capsule.
             var eyeWhite = ArtLib.Solid(new Color(0.97f, 0.97f, 1f), 0f);
