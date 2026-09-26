@@ -90,6 +90,7 @@ namespace GemRush
             if (shader != null)
             {
                 Material mat = new Material(shader);
+                mat.mainTexture = Fx.DiscTexture();
                 mat.color = new Color(1f, 1f, 1f, 0.75f);
                 renderer.sharedMaterial = mat;
             }
